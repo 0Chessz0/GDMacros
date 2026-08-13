@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Palette. Dark is the default (matching the Global Demonlist look); the
+   navbar sun/moon button flips `data-theme` on <html> to swap these.
+   --------------------------------------------------------------------------- */
+:root {
+  --bg: #121a25;
+  --bg-deep: #0d141d;
+  --nav: #1a2432;
+  --surface: #1e2836;
+  --surface-2: #253143;
+  --surface-3: #2c3a4e;
+  --border: #2b3849;
+  --border-soft: #223044;
+  --text: #e9eff7;
+  --text-dim: #b6c4d6;
+  --muted: #8fa0b7;
+  --accent: #3b82f6;
+  --accent-hover: #2f74e8;
+  --accent-soft: #63a2ff;
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --deco: #ffffff;
+  --deco-opacity: 0.085;
+}
+
+[data-theme="light"] {
+  --bg: #eef2f8;
+  --bg-deep: #e3e9f2;
+  --nav: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --surface-3: #e2e9f3;
+  --border: #d6dfeb;
+  --border-soft: #e4eaf3;
+  --text: #16202c;
+  --text-dim: #3d4c5f;
+  --muted: #5f7085;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #1d4ed8;
+  --green: #15803d;
+  --amber: #b45309;
+  --rose: #be123c;
+  --shadow: 0 1px 2px rgb(15 30 50 / 0.06), 0 8px 24px -14px rgb(15 30 50 / 0.25);
+  --deco: #64748b;
+  --deco-opacity: 0.16;
+}
+
+/* Expose the swappable variables to Tailwind as real utilities
+   (bg-surface, text-muted, border-border, etc.). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-nav: var(--nav);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-green: var(--green);
+  --color-amber: var(--amber);
+  --color-rose: var(--rose);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background-color: var(--bg);
+  color-scheme: dark;
+}
+
+[data-theme="light"] html,
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  /* Deliberately transparent: the fixed decoration layer sits at -z-10, and an
+     opaque body background would paint straight over it. html carries the base
+     colour instead. */
+  background-color: transparent;
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+}
+
+/* Keep theme flips from flashing, but never animate layout. */
+body,
+header,
+input,
+button,
+a,
+.themed {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--text);
+}
+
+/* Scrollbar tuned to the surface colors so it doesn't read as a browser default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Google Translate widget. We drive it from our own language menu, so its
+   injected banner, tooltip and highlight styling are all suppressed. Without
+   the `body { top: 0 }` override Google pushes the whole page down 40px and
+   breaks the sticky navbar.
+   --------------------------------------------------------------------------- */
+iframe.skiptranslate,
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+@utility card {
+  background-color: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+/* Entry animation for list rows, staggered via an inline --i on each row. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}

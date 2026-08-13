@@ -1,0 +1,5 @@
+# Drop custom thumbnail images here and reference them from data/macros.json
+# as "thumbnail": "/thumbnails/your-file.png".
+#
+# Usually unnecessary — if an entry has a `video`, its YouTube still is used
+# automatically.
