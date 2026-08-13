@@ -12,7 +12,7 @@ export default function MacroRow({ macro, index }: { macro: Macro; index: number
     <Link
       href={`/macro/${macro.slug}`}
       style={{ "--i": index } as React.CSSProperties}
-      className="animate-rise card group flex items-center gap-3.5 p-3.5 transition-[border-color,background-color,transform] hover:-translate-y-px hover:border-accent/40 hover:bg-surface-2 sm:gap-4 sm:p-4"
+      className="animate-rise card group flex items-center gap-3.5 p-3.5 transition-[border-color,background-color,transform] duration-200 hover:-translate-y-px hover:border-accent/40 hover:bg-surface-2 active:scale-[0.995] active:duration-75 sm:gap-4 sm:p-4"
     >
       <Thumb macro={macro} className="aspect-video w-[116px] sm:w-[170px] lg:w-[225px]" />
 

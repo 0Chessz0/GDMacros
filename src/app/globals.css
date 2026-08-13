@@ -167,7 +167,11 @@ a,
 iframe.skiptranslate,
 .goog-te-banner-frame,
 #goog-gt-tt,
-.goog-te-balloon-frame {
+.goog-te-balloon-frame,
+/* Google's loading overlay. It is invisible but keeps an SVG spinner animating
+   forever, so it has to be removed from the box tree rather than just hidden. */
+.VIpgJd-ZVi9od-aZ2wEe,
+.VIpgJd-ZVi9od-aZ2wEe-OiiCO {
   display: none !important;
 }
 
@@ -186,6 +190,41 @@ body {
   border: 1px solid var(--border-soft);
   border-radius: 0.75rem;
   box-shadow: var(--shadow);
+}
+
+/* ---------------------------------------------------------------------------
+   Entrance animations. The page-level one runs on first load and again on each
+   route change (see PageTransition); the row-level one staggers underneath it.
+   Both are disabled by the prefers-reduced-motion rule above.
+   --------------------------------------------------------------------------- */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Fades the navbar in on first paint. Opacity only, deliberately: a transform
+   on a sticky element turns it into a containing block and breaks the sticking. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
 }
 
 /* Entry animation for list rows, staggered via an inline --i on each row. */

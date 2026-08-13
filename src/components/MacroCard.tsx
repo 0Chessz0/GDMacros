@@ -13,7 +13,7 @@ export default function MacroCard({ macro, index }: { macro: Macro; index: numbe
     <Link
       href={`/macro/${macro.slug}`}
       style={{ "--i": index } as React.CSSProperties}
-      className="animate-rise card group flex flex-col overflow-hidden transition-[border-color,transform] hover:-translate-y-0.5 hover:border-accent/40"
+      className="animate-rise card group flex flex-col overflow-hidden transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/40 active:scale-[0.985] active:duration-75"
     >
       <Thumb macro={macro} className="aspect-video w-full" rounded="rounded-none" />
 

@@ -28,7 +28,7 @@ interface MenuItem {
 
 const MORE_ITEMS: MenuItem[] = [
   { label: "Guidelines", href: "/guidelines", desc: "What gets accepted, and how" },
-  { label: "Submit a macro", href: SUBMIT_URL, desc: "Open a submission issue", external: true },
+  { label: "Submit a macro", href: SUBMIT_URL, desc: "Send one in through the form", external: true },
   { label: "About", href: "/about", desc: "What this site is" },
 ];
 
@@ -182,7 +182,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border-soft bg-nav/85 backdrop-blur-md">
+    <header className="animate-fade-in sticky top-0 z-40 border-b border-border-soft bg-nav/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-1 px-4 sm:px-6">
         <Link href="/" className="mr-3 flex shrink-0 items-center gap-2.5" onClick={() => setMobileOpen(false)}>
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/25">

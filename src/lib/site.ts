@@ -22,8 +22,8 @@ export const site = {
 /** Level pages on GD Browser, e.g. https://gdbrowser.com/128 */
 export const GD_BROWSER = "https://gdbrowser.com";
 
-/** Opens the prefilled submission form in .github/ISSUE_TEMPLATE. */
-export const SUBMIT_URL = `${site.repo}/issues/new?template=macro-submission.yml`;
+/** Google Form that macro submissions go through. */
+export const SUBMIT_URL = "https://forms.gle/WLJwL9Y82KZNnaQp8";
 
 /**
  * Offered in the navbar language menu. Codes must be ones Google Translate

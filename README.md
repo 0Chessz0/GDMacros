@@ -174,7 +174,6 @@ credit tabs use `--green` and `--accent`.
 data/macros.json            the entire catalog
 public/thumbnails/          optional images referenced by `thumbnail`
 scripts/validate-macros.mjs pre-commit sanity check
-.github/ISSUE_TEMPLATE/     the macro submission form
 src/
   app/
     page.tsx                catalog + search

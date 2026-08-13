@@ -12,6 +12,7 @@ const SECTIONS = [
     title: "What belongs here",
     items: [
       "Macros recorded with Mega Hack's macro recorder, or with xdBot's recorder. Nothing else is accepted.",
+      "The level has to be possible on 240 FPS.",
       "The level has to exist in-game and have a working level ID.",
       "A showcase video is optional but encouraged. It becomes the entry's thumbnail automatically.",
     ],
@@ -65,9 +66,9 @@ export default function GuidelinesPage() {
       <section className="card mt-10 p-5">
         <h2 className="text-[17px] font-bold text-text">Submitting</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          You don&apos;t need to host the file anywhere. Open an issue with your macro attached, along
-          with the level name, the level creator, your name and the level ID. We upload it to our own
-          Google Drive and add it to the catalog for you.
+          You don&apos;t need to host the file anywhere. Fill in the form with your macro, the level
+          name, the level creator, your name and the level ID. We upload it to our own Google Drive
+          and add it to the catalog for you.
         </p>
         <a
           href={SUBMIT_URL}

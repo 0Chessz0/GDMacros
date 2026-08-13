@@ -3,6 +3,7 @@ import "./globals.css";
 import Background from "@/components/Background";
 import Footer from "@/components/Footer";
 import GoogleTranslate from "@/components/GoogleTranslate";
+import PageTransition from "@/components/PageTransition";
 import Navbar from "@/components/Navbar";
 import { site } from "@/lib/site";
 
@@ -50,7 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleTranslate />
         <Background />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          <PageTransition>{children}</PageTransition>
+        </main>
         <Footer />
       </body>
     </html>
