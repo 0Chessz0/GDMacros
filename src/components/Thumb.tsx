@@ -21,23 +21,37 @@ export default function Thumb({
 }) {
   // Remote stills (YouTube in particular) can 404, so fall through to the tile.
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const hue = hueFor(macro.slug);
   const showImage = macro.thumbnailUrl && !failed;
 
   return (
     <div className={`relative shrink-0 overflow-hidden ${rounded} bg-surface-2 ${className}`}>
       {showImage ? (
-        <img
-          src={macro.thumbnailUrl!}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-        />
+        <>
+          {/* Shimmer holds the space until the still arrives, so rows do not
+              flash from empty grey to full-bleed artwork. */}
+          {!loaded && (
+            <span
+              aria-hidden="true"
+              className="animate-shimmer absolute inset-0 overflow-hidden bg-surface-3/50"
+            />
+          )}
+          <img
+            src={macro.thumbnailUrl!}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setLoaded(true)}
+            onError={() => setFailed(true)}
+            className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.06] ${
+              loaded ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        </>
       ) : (
         <div
-          className="grid h-full w-full place-items-center"
+          className="grid h-full w-full place-items-center transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           style={{
             background: `linear-gradient(135deg, hsl(${hue} 45% 26%), hsl(${(hue + 48) % 360} 50% 15%))`,
           }}

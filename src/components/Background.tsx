@@ -18,12 +18,14 @@ export default function Background() {
 
       {/* Left cluster: outlined diamond + stepped spikes. */}
       <svg
-        className="absolute top-[16%] left-2 hidden h-[560px] w-[320px] xl:block"
+        className="deco-parallax-up absolute top-[16%] left-2 hidden h-[560px] w-[320px] xl:block"
         viewBox="0 0 320 560"
         fill="none"
         style={{ color: "var(--deco)", opacity: "var(--deco-opacity)" }}
       >
-        <g stroke="currentColor" strokeWidth="7">
+        {/* Wrapped in its own group so the idle spin composes with the 45deg
+            tilt on the rect rather than replacing it. */}
+        <g className="deco-spin" stroke="currentColor" strokeWidth="7">
           <rect x="118" y="18" width="118" height="118" rx="10" transform="rotate(45 177 77)" />
         </g>
         <g fill="currentColor">
@@ -41,7 +43,7 @@ export default function Background() {
 
       {/* Right cluster: stacked slabs sliding off the edge. */}
       <svg
-        className="absolute top-[8%] right-[-60px] hidden h-[680px] w-[300px] xl:block"
+        className="deco-parallax-down absolute top-[8%] right-[-60px] hidden h-[680px] w-[300px] xl:block"
         viewBox="0 0 300 680"
         fill="none"
         style={{ color: "var(--deco)", opacity: "var(--deco-opacity)" }}

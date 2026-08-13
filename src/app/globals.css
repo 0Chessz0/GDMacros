@@ -197,6 +197,40 @@ body {
   box-shadow: none !important;
 }
 
+/* Cursor-following glow. `isolation: isolate` plus a negative z-index keeps the
+   glow above the card's own background but underneath its text, so nothing is
+   ever tinted or washed out. */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-out);
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    transparent 68%
+  );
+}
+
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight::before {
+    display: none;
+  }
+}
+
 @utility card {
   background-color: var(--surface);
   border: 1px solid var(--border-soft);
@@ -270,6 +304,136 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.5s ease-out;
+}
+
+/* ---------------------------------------------------------------------------
+   View transitions. Each macro carries a unique view-transition-name, so when
+   the filter or the list/grid toggle changes, rows that survive glide to their
+   new position and size instead of teleporting. Rows leaving and arriving
+   cross-fade. Everything else belongs to `root` and fades quickly underneath.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: var(--dur-slow);
+    animation-timing-function: var(--ease-inout);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-base);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll-driven effects. These use scroll() / view() timelines, so they cost no
+   JavaScript and never run on the main thread. Browsers without support simply
+   render the static state, which is why every one of them is a no-op by default.
+   --------------------------------------------------------------------------- */
+@keyframes scroll-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.scroll-progress {
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+@keyframes deco-rise {
+  to {
+    transform: translateY(-120px);
+  }
+}
+
+@keyframes deco-sink {
+  to {
+    transform: translateY(70px);
+  }
+}
+
+/* A very slow idle rotation on the diamond. Long enough that it reads as drift
+   rather than as something spinning at you. */
+@keyframes deco-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.deco-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      animation: scroll-progress linear;
+      animation-timeline: scroll(root block);
+    }
+
+    /* Two different rates give the side decoration a sense of depth. */
+    .deco-parallax-up {
+      animation: deco-rise linear;
+      animation-timeline: scroll(root block);
+    }
+
+    .deco-parallax-down {
+      animation: deco-sink linear;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .deco-spin {
+    animation: deco-spin 90s linear infinite;
+  }
+}
+
+/* Loading shimmer for thumbnails, swept with a transform rather than a moving
+   background-position so it stays on the compositor. */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--text) 10%, transparent),
+    transparent
+  );
+  animation: shimmer 1.4s var(--ease-inout) infinite;
+}
+
+/* Word-by-word reveal for page headings. */
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em) rotate(2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-word {
+  display: inline-block;
+  animation: word-in var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--w, 0) * 60ms);
 }
 
 /* Entry animation for list rows, staggered via an inline --i on each row. */

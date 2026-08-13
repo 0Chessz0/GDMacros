@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AnimatedHeading from "@/components/AnimatedHeading";
 import { SUBMIT_URL, site } from "@/lib/site";
 import { RECORDERS } from "@/lib/types";
 
@@ -31,7 +32,7 @@ const SECTIONS = [
 export default function GuidelinesPage() {
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]">Guidelines</h1>
+      <AnimatedHeading text="Guidelines" className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]" />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         {site.name} indexes macros and does not rank them against each other. Submissions are accepted
         as long as they were recorded with one of the two supported tools and are your own work.

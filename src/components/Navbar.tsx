@@ -236,6 +236,12 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Reading progress, driven entirely by a scroll timeline. No listeners. */}
+      <span
+        aria-hidden="true"
+        className="scroll-progress absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-accent to-accent-soft"
+      />
+
       {mobileOpen && (
         <div className="border-t border-border-soft bg-nav px-4 py-3 lg:hidden">
           <MenuLink item={{ label: "All macros", href: "/" }} onNavigate={() => setMobileOpen(false)} />

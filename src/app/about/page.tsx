@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AnimatedHeading from "@/components/AnimatedHeading";
 import Link from "next/link";
 import { getAllMacros } from "@/lib/macros";
 import { SUBMIT_URL, site } from "@/lib/site";
@@ -33,9 +34,7 @@ export default function AboutPage() {
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]">
-        About {site.name}
-      </h1>
+      <AnimatedHeading text={`About ${site.name}`} className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]" />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         {site.name} is a place to find macros for Geometry Dash levels. Everything listed here was
         recorded with either Mega Hack or xdBot, and everything is free to download.

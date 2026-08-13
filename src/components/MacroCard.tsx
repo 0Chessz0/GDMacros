@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { hostAccent } from "@/lib/format";
 import type { Macro } from "@/lib/types";
+import { useSpotlight } from "@/lib/useSpotlight";
 import CreditTabs from "./CreditTabs";
 import Thumb from "./Thumb";
 import { DownloadIcon } from "./icons";
@@ -8,12 +11,21 @@ import { DownloadIcon } from "./icons";
 /** Grid-view tile. Same data as MacroRow, stacked instead of inline. */
 export default function MacroCard({ macro, index }: { macro: Macro; index: number }) {
   const accent = hostAccent(macro.downloadType);
+  const spotlight = useSpotlight<HTMLAnchorElement>();
 
   return (
     <Link
       href={`/macro/${macro.slug}`}
-      style={{ "--i": index } as React.CSSProperties}
-      className="animate-rise card group flex flex-col overflow-hidden transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/40 active:scale-[0.985] active:duration-75"
+      {...spotlight}
+      style={
+        {
+          "--i": index,
+          // Shares its name with the list row, so switching layout morphs the
+          // same element rather than swapping one component for another.
+          viewTransitionName: `macro-${macro.slug}`,
+        } as React.CSSProperties
+      }
+      className="animate-rise card spotlight group flex flex-col overflow-hidden transition-[border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 active:scale-[0.985] active:duration-75"
     >
       <Thumb macro={macro} className="aspect-video w-full" rounded="rounded-none" />
 
@@ -27,7 +39,10 @@ export default function MacroCard({ macro, index }: { macro: Macro; index: numbe
         <CreditTabs macro={macro} className="mt-2" />
 
         <div className="mt-auto flex items-center gap-1.5 pt-3 text-[12px] text-muted">
-          <DownloadIcon className="h-4 w-4" style={accent ? { color: accent } : undefined} />
+          <DownloadIcon
+            className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-y-0.5"
+            style={accent ? { color: accent } : undefined}
+          />
           <span translate="no" className="notranslate">
             {macro.downloadType}
           </span>

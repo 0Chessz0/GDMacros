@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useViewTransition } from "@/lib/useViewTransition";
 import { RECORDERS, type Macro, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
 import MacroRow from "./MacroRow";
@@ -23,6 +24,10 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
   const [recorder, setRecorder] = useState<RecorderFilter>("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const hydrated = useRef(false);
+
+  // Filter and layout changes rearrange the whole list, so they are worth
+  // animating. Typing is not: a transition per keystroke would fight the user.
+  const withTransition = useViewTransition();
 
   // Seed from the URL after mount so server and first client paint agree.
   useEffect(() => {
@@ -113,7 +118,7 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
             ariaLabel="View mode"
             size="sm"
             value={view}
-            onChange={setView}
+            onChange={(next) => withTransition(() => setView(next))}
             options={[
               {
                 value: "list",
@@ -137,7 +142,7 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
         <Segmented<RecorderFilter>
           ariaLabel="Filter by recorder"
           value={recorder}
-          onChange={setRecorder}
+          onChange={(next) => withTransition(() => setRecorder(next))}
           options={(["all", ...RECORDERS] as RecorderFilter[]).map((value) => ({
             value,
             label:
