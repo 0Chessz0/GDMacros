@@ -27,15 +27,29 @@ export default function ThemeToggle() {
     }
   }
 
+  const isLight = theme === "light";
+
+  // Both icons are always mounted and cross-faded on a rotation arc, so the
+  // swap reads as one control turning over rather than two icons blinking.
+  const iconBase =
+    "absolute h-[18px] w-[18px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none";
+
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+      aria-label={isLight ? "Switch to dark theme" : "Switch to light theme"}
       title="Toggle theme"
-      className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-text"
+      className="group grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75"
     >
-      {theme === "light" ? <MoonIcon className="h-[18px] w-[18px]" /> : <SunIcon className="h-[18px] w-[18px]" />}
+      <span className="relative grid h-[18px] w-[18px] place-items-center">
+        <SunIcon
+          className={`${iconBase} ${isLight ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
+        />
+        <MoonIcon
+          className={`${iconBase} ${isLight ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`}
+        />
+      </span>
     </button>
   );
 }

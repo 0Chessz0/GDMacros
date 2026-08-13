@@ -4,10 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RECORDERS, type Macro, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
 import MacroRow from "./MacroRow";
+import Segmented from "./Segmented";
 import { BotIcon, GridIcon, RowsIcon, SearchIcon, XIcon } from "./icons";
 
 type View = "list" | "grid";
 type RecorderFilter = Recorder | "all";
+
+/**
+ * Past this many rows the entrance delay stops growing. Without a cap, row 60
+ * would wait over a second and a half before appearing, which reads as broken
+ * rather than as staggered.
+ */
+const STAGGER_CAP = 12;
 
 export default function MacroBrowser({ macros }: { macros: Macro[] }) {
   const [query, setQuery] = useState("");
@@ -100,59 +108,51 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
           )}
         </div>
 
-        <div className="hidden items-center rounded-xl border border-border bg-surface p-1 sm:flex">
-          {([
-            { key: "list" as View, Icon: RowsIcon, label: "List view" },
-            { key: "grid" as View, Icon: GridIcon, label: "Grid view" },
-          ]).map(({ key, Icon, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setView(key)}
-              aria-label={label}
-              aria-pressed={view === key}
-              title={label}
-              className={`grid h-10 w-10 place-items-center rounded-lg transition-colors ${
-                view === key ? "bg-accent text-white" : "text-muted hover:bg-surface-2 hover:text-text"
-              }`}
-            >
-              <Icon className="h-[17px] w-[17px]" />
-            </button>
-          ))}
+        <div className="hidden sm:block">
+          <Segmented<View>
+            ariaLabel="View mode"
+            size="sm"
+            value={view}
+            onChange={setView}
+            options={[
+              {
+                value: "list",
+                label: <RowsIcon className="h-[17px] w-[17px]" />,
+                ariaLabel: "List view",
+                title: "List view",
+              },
+              {
+                value: "grid",
+                label: <GridIcon className="h-[17px] w-[17px]" />,
+                ariaLabel: "Grid view",
+                title: "Grid view",
+              },
+            ]}
+          />
         </div>
       </div>
 
       {/* Recorder filter. The guidelines only accept these two tools. */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 px-0.5">
-        <div
-          role="group"
-          aria-label="Filter by recorder"
-          className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1"
-        >
-          {(["all", ...RECORDERS] as RecorderFilter[]).map((value) => {
-            const active = recorder === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRecorder(value)}
-                aria-pressed={active}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-                  active ? "bg-accent text-white" : "text-text-dim hover:bg-surface-2 hover:text-text"
-                }`}
-              >
-                {value !== "all" && <BotIcon className="h-3.5 w-3.5 opacity-80" />}
-                {value === "all" ? (
-                  "All"
-                ) : (
+        <Segmented<RecorderFilter>
+          ariaLabel="Filter by recorder"
+          value={recorder}
+          onChange={setRecorder}
+          options={(["all", ...RECORDERS] as RecorderFilter[]).map((value) => ({
+            value,
+            label:
+              value === "all" ? (
+                "All"
+              ) : (
+                <>
+                  <BotIcon className="h-3.5 w-3.5 opacity-80" />
                   <span translate="no" className="notranslate">
                     {value}
                   </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                </>
+              ),
+          }))}
+        />
 
         <div className="flex items-center gap-3">
           <p className="text-[12.5px] text-muted">
@@ -186,7 +186,7 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
                 setQuery("");
                 setRecorder("all");
               }}
-              className="mt-1 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-accent-hover"
+              className="mt-1 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 active:duration-75"
             >
               Reset search and filter
             </button>
@@ -195,13 +195,13 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
       ) : view === "grid" ? (
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((m, i) => (
-            <MacroCard key={m.slug} macro={m} index={i} />
+            <MacroCard key={m.slug} macro={m} index={Math.min(i, STAGGER_CAP)} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">
           {results.map((m, i) => (
-            <MacroRow key={m.slug} macro={m} index={i} />
+            <MacroRow key={m.slug} macro={m} index={Math.min(i, STAGGER_CAP)} />
           ))}
         </div>
       )}

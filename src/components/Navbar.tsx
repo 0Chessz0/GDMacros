@@ -104,8 +104,7 @@ function NavMenu({ label, icon: NavIcon, items }: { label: string; icon: Icon; i
       {open && (
         <div
           role="menu"
-          className="absolute top-[calc(100%+6px)] left-0 z-50 w-64 origin-top-left rounded-xl border border-border bg-nav p-1.5 shadow-2xl"
-          style={{ animation: "rise 0.14s ease-out" }}
+          className="animate-menu-in absolute top-[calc(100%+6px)] left-0 z-50 w-64 rounded-xl border border-border bg-nav p-1.5 shadow-2xl"
         >
           {items.map((item) => (
             <MenuLink key={item.label} item={item} onNavigate={() => setOpen(false)} />
@@ -154,8 +153,7 @@ function LanguageMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute top-[calc(100%+6px)] left-0 z-50 max-h-[70vh] w-48 overflow-y-auto rounded-xl border border-border bg-nav p-1.5 shadow-2xl"
-          style={{ animation: "rise 0.14s ease-out" }}
+          className="animate-menu-in absolute top-[calc(100%+6px)] left-0 z-50 max-h-[70vh] w-48 overflow-y-auto rounded-xl border border-border bg-nav p-1.5 shadow-2xl"
         >
           {LANGUAGES.map((l) => (
             <button
@@ -184,8 +182,8 @@ export default function Navbar() {
   return (
     <header className="animate-fade-in sticky top-0 z-40 border-b border-border-soft bg-nav/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-1 px-4 sm:px-6">
-        <Link href="/" className="mr-3 flex shrink-0 items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/25">
+        <Link href="/" className="group mr-3 flex shrink-0 items-center gap-2.5 transition-transform duration-200 active:scale-95" onClick={() => setMobileOpen(false)}>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/25 transition-transform duration-300 ease-out group-hover:rotate-[18deg]">
             <GlobeIcon className="h-[18px] w-[18px]" />
           </span>
           <span className="text-[15px] font-extrabold tracking-[0.06em] text-text uppercase">{site.name}</span>
@@ -211,7 +209,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             aria-label="Submit a macro"
             title="Submit a macro"
-            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-text"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-[color,background-color,transform] duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75"
           >
             <UserPlusIcon className="h-[18px] w-[18px]" />
           </a>
@@ -221,7 +219,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             aria-label="GitHub repository"
             title="GitHub"
-            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-text"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-[color,background-color,transform] duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75"
           >
             <GithubIcon className="h-[17px] w-[17px]" />
           </a>

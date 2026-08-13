@@ -55,9 +55,10 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
     <div className="mx-auto w-full max-w-[740px] px-4 py-7 sm:px-6 sm:py-9">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-accent-soft"
+        className="group mb-6 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors duration-200 hover:text-accent-soft"
       >
-        <ArrowLeftIcon className="h-4 w-4" />
+        {/* The arrow leads the way back, so it moves first. */}
+        <ArrowLeftIcon className="h-4 w-4 transition-transform duration-200 ease-out group-hover:-translate-x-1" />
         Back to catalog
       </Link>
 
@@ -97,12 +98,12 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
             </p>
           </div>
         ) : (
-          <div className="card w-full max-w-[340px] overflow-hidden">
+          <div className="card group w-full max-w-[340px] overflow-hidden transition-[transform,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40">
             <a
               href={macro.downloadLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="block px-6 pt-5 pb-4 text-center transition-colors hover:bg-surface-2"
+              className="block px-6 pt-5 pb-4 text-center transition-colors duration-200 hover:bg-surface-2 active:scale-[0.98] active:duration-75"
             >
               <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
                 Download
@@ -130,9 +131,9 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           href={levelUrl(macro.levelId)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-[14px] font-semibold text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent-hover"
+          className="group inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-[14px] font-semibold text-white shadow-lg shadow-accent/20 transition-[background-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-95 active:duration-75"
         >
-          <GamepadIcon className="h-[19px] w-[19px]" />
+          <GamepadIcon className="h-[19px] w-[19px] transition-transform duration-300 ease-out group-hover:-rotate-12" />
           GD Browser
         </a>
       </div>
@@ -150,7 +151,7 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           {prev ? (
             <Link
               href={`/macro/${prev.slug}`}
-              className="card group px-4 py-3 transition-colors hover:border-accent/40"
+              className="card group px-4 py-3 transition-[border-color,transform] duration-200 ease-out hover:-translate-x-1 hover:border-accent/40 active:scale-[0.98] active:duration-75"
             >
               <p className="text-[11px] tracking-wider text-muted uppercase">Previous</p>
               <p
@@ -166,7 +167,7 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           {next && (
             <Link
               href={`/macro/${next.slug}`}
-              className="card group px-4 py-3 text-right transition-colors hover:border-accent/40 sm:col-start-2"
+              className="card group px-4 py-3 text-right transition-[border-color,transform] duration-200 ease-out hover:translate-x-1 hover:border-accent/40 active:scale-[0.98] active:duration-75 sm:col-start-2"
             >
               <p className="text-[11px] tracking-wider text-muted uppercase">Next</p>
               <p

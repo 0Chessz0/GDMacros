@@ -74,7 +74,7 @@ export default function GuidelinesPage() {
           href={SUBMIT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover"
+          className="mt-4 inline-flex rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-95 active:duration-75"
         >
           Submit a macro
         </a>

@@ -45,11 +45,16 @@ export default function CopyButton({
     <button
       type="button"
       onClick={copy}
-      className={`inline-flex items-center justify-center gap-1.5 text-[12.5px] font-medium transition-colors ${
+      className={`inline-flex items-center justify-center gap-1.5 text-[12.5px] font-medium transition-colors duration-200 active:scale-95 active:duration-75 ${
         copied ? "text-green" : "text-accent-soft hover:text-accent"
       } ${className}`}
     >
-      {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      {/* The tick is keyed so it remounts and replays its pop on every copy. */}
+      {copied ? (
+        <CheckIcon key="ok" className="animate-pop-in h-3.5 w-3.5" />
+      ) : (
+        <CopyIcon className="h-3.5 w-3.5" />
+      )}
       {copied ? "Copied!" : label}
     </button>
   );
