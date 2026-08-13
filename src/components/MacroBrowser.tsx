@@ -157,7 +157,9 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
         <div className="flex items-center gap-3">
           <p className="text-[12.5px] text-muted">
             <span className="font-semibold text-text-dim tabular-nums">{results.length}</span>
-            {results.length === macros.length ? " macros" : ` of ${macros.length} macros`}
+            {results.length === macros.length
+              ? ` macro${results.length === 1 ? "" : "s"}`
+              : ` of ${macros.length} macro${macros.length === 1 ? "" : "s"}`}
           </p>
           <span className="text-muted/40">·</span>
           <p className="text-[12.5px] text-muted">Sorted A-Z</p>
