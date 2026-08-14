@@ -795,7 +795,7 @@
     ]
   },
   {
-    "name": "Sakupen circles",
+    "name": "Unerfed sakupen circles",
     "creator": "Nick24",
     "levelId": "10887708",
     "video": "https://www.youtube.com/watch?v=DXdbTRjRylE",
@@ -1301,6 +1301,21 @@
         "recorder": "xdBot",
         "downloadType": "MediaFire",
         "downloadLink": "https://www.mediafire.com/file/fmdkbqyenjqctsg/Yatagarasu+.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Sakupen Circles",
+    "creator": "Diamond",
+    "levelId": "76962930",
+    "video": "https://youtu.be/b66_Oe4Xo1w?si=NNVXwxVHYAQKq3Fi",
+    "description": "By Nick24, DrCuber, korewa, Muffy450, Renn241, endevvor, Mzero, NineDice, GhostVandalf. Dedicated to Cursed",
+    "macros": [
+      {
+        "author": "Spypiexj8",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/lgo34po3b9e3unp/Sakupen+Circles.gdr2/file"
       }
     ]
   }
