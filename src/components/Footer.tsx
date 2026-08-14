@@ -24,6 +24,9 @@ export default function Footer() {
             <Link href="/" className="text-text-dim transition-colors hover:text-accent-soft">
               All macros
             </Link>
+            <Link href="/install" className="text-text-dim transition-colors hover:text-accent-soft">
+              How to install
+            </Link>
             <Link href="/guidelines" className="text-text-dim transition-colors hover:text-accent-soft">
               Guidelines
             </Link>

@@ -206,6 +206,17 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
             <MacroCardBlock key={`${macro.position}-${macro.author}`} macro={macro} />
           ))}
         </div>
+
+        {/* Right after the download is where someone actually needs this. */}
+        <p className="mt-4 text-center text-[13px] text-muted">
+          Not sure what to do with the file?{" "}
+          <Link
+            href="/install"
+            className="font-medium text-accent-soft underline-offset-2 hover:underline"
+          >
+            How to install a macro
+          </Link>
+        </p>
       </section>
 
       <div className="mt-8 flex justify-center">

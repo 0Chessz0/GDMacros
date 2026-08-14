@@ -1,12 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
 import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
 import MacroRow from "./MacroRow";
 import Segmented from "./Segmented";
-import { BotIcon, GridIcon, RowsIcon, SearchIcon, XIcon } from "./icons";
+import { BotIcon, DiceIcon, GridIcon, RowsIcon, SearchIcon, XIcon } from "./icons";
 
 type View = "list" | "grid";
 type RecorderFilter = Recorder | "all";
@@ -24,6 +25,7 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
   const [recorder, setRecorder] = useState<RecorderFilter>("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const hydrated = useRef(false);
+  const router = useRouter();
 
   // Filter and layout changes rearrange the whole list, so they are worth
   // animating. Typing is not: a transition per keystroke would fight the user.
@@ -83,6 +85,16 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
     });
   }, [levels, query, recorder]);
 
+  /**
+   * Jumps to a random level from whatever is currently on screen, so an active
+   * search or recorder filter narrows the pool instead of being ignored.
+   */
+  function goRandom() {
+    if (results.length === 0) return;
+    const pick = results[Math.floor(Math.random() * results.length)];
+    router.push(`/macro/${pick.slug}`);
+  }
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2.5">
@@ -136,6 +148,21 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
             ]}
           />
         </div>
+
+        <button
+          type="button"
+          onClick={goRandom}
+          disabled={results.length === 0}
+          aria-label="Open a random macro"
+          title={
+            results.length === levels.length
+              ? "Open a random macro"
+              : "Open a random macro from these results"
+          }
+          className="group grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-surface text-text-dim transition-[color,background-color,transform] duration-200 ease-out hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75 disabled:pointer-events-none disabled:opacity-40"
+        >
+          <DiceIcon className="h-[18px] w-[18px] transition-transform duration-300 ease-out group-hover:rotate-[18deg]" />
+        </button>
       </div>
 
       {/* Recorder filter. The guidelines only accept these two tools. */}

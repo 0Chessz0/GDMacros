@@ -41,6 +41,14 @@ export const CompassIcon = (p: IconProps) => (
   </Base>
 );
 
+/** Die face, for the "surprise me" control. */
+export const DiceIcon = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="4" />
+    <path d="M8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01" strokeWidth={2.6} />
+  </Base>
+);
+
 export const CopyIcon = (p: IconProps) => (
   <Base {...p}>
     <rect x="9" y="9" width="11" height="11" rx="2.5" />
