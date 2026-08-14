@@ -105,17 +105,17 @@
     ]
   },
   {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
+    "name": "Azurite",
+    "creator": "Sillow",
+    "levelId": "62214792",
+    "video": "https://www.youtube.com/watch?v=aH_ikb5HHdU&list=RDaH_ikb5HHdU",
+    "description": "Extreme/insane demon, one of my last pure design lvls for a long time.",
     "macros": [
       {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/o8h4nrpbblx110s/Azurite.gdr2/file"
       }
     ]
   }
