@@ -1243,5 +1243,65 @@
         "downloadLink": "https://www.mediafire.com/file/8tgk1l5b5sfqq1l/Cobwebs.gdr2/file"
       }
     ]
+  },
+  {
+    "name": "aftermath",
+    "creator": "IIExenityII",
+    "levelId": "25610878",
+    "video": "https://www.youtube.com/watch?v=yBpvgZ-4NAg",
+    "description": "Who will survive the last part of the triology? Verified by DaMeister, originally verified by Gonchus",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/9m92m7v1f8av9oh/aftermath.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Silent clubstep",
+    "creator": "TheRealSailent",
+    "levelId": "4125776",
+    "video": "https://www.youtube.com/watch?v=2Z-bI-MucsQ",
+    "description": "7 years and you still play me?!",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/v5ryqhbglmsawbb/Silent+clubstep.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Thinking Space",
+    "creator": "Atomic",
+    "levelId": "54953085",
+    "video": "https://www.youtube.com/watch?v=iHf2nanWjvE",
+    "description": "An early 2.0 level made by HidekiX, who I can't thank enough for letting me verify. 892 fails past 67% and 75594 attempts. Thanks everyone!",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/9757u3kllctgo3b/Thinking+Space.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Yatagarasu ",
+    "creator": "TrusTa",
+    "levelId": "28220417",
+    "video": "https://www.youtube.com/watch?v=QyoCDUKUsdI",
+    "description": "Update made by Mark Napkin and DragoonGD",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/fmdkbqyenjqctsg/Yatagarasu+.gdr2/file"
+      }
+    ]
   }
 ]
