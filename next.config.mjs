@@ -1,3 +1,5 @@
+const isExport = process.env.NEXT_OUTPUT === "export";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Thumbnails are mostly remote YouTube stills, and the site is fully static,
@@ -11,8 +13,27 @@ const nextConfig = {
 
   // Vercel wants the default build; GitHub Pages needs a static export into out/.
   // The Pages workflow sets these two env vars, so neither host needs a config edit.
-  output: process.env.NEXT_OUTPUT === "export" ? "export" : undefined,
+  output: isExport ? "export" : undefined,
   basePath: process.env.NEXT_BASE_PATH || undefined,
+
+  // `public/.well-known/discord` has no file extension, so it would otherwise be
+  // served as application/octet-stream, which makes browsers download it instead
+  // of showing it. Verification crawlers generally cope either way, but text/plain
+  // is what the file actually is.
+  //
+  // Skipped for static export, where a headers() rule has no server to run on.
+  ...(isExport
+    ? {}
+    : {
+        async headers() {
+          return [
+            {
+              source: "/.well-known/:path*",
+              headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+            },
+          ];
+        },
+      }),
 };
 
 export default nextConfig;

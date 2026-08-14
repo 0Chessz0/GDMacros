@@ -2,89 +2,121 @@
   {
     "name": "Acheron",
     "creator": "ryamu",
-    "macroAuthor": "ChesszDC",
     "levelId": "73667628",
-    "recorder": "xdBot",
-    "downloadType": "MediaFire",
-    "downloadLink": "https://www.mediafire.com/file/w2imwmuxdlp585c/Acheron.gdr2/file",
     "video": "https://www.youtube.com/watch?v=EpNIkIBPOhw",
-    "description": "verified by zoink. get ricch or die trying -50 cent"
+    "description": "verified by zoink. get ricch or die trying -50 cent",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/w2imwmuxdlp585c/Acheron.gdr2/file"
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   },
   {
     "name": "",
     "creator": "",
-    "macroAuthor": "",
     "levelId": "",
-    "recorder": "",
-    "downloadType": "",
-    "downloadLink": "",
     "video": "",
-    "description": ""
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   }
 ]

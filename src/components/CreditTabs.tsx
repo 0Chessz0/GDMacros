@@ -1,58 +1,68 @@
-import type { Macro } from "@/lib/types";
+import type { Level } from "@/lib/types";
 import { BotIcon } from "./icons";
 
 /**
- * The two credit tabs: green for whoever built the level, blue for whoever
- * recorded the macro, followed by which tool was used.
+ * Level credits for the catalog rows.
  *
- * All three carry `translate="no"`: these are handles and product names, and
- * Google Translate would happily turn "Bloodbath" into "Baño de sangre".
+ * The green tab is always the level creator. What follows depends on how many
+ * macros the level has: with one, there is room to name its author outright;
+ * with several, the count is the useful thing and the authors are listed
+ * per-macro on the detail page instead.
  */
 export default function CreditTabs({
-  macro,
-  verbose = false,
+  level,
   className = "",
 }: {
-  macro: Macro;
-  verbose?: boolean;
+  level: Level;
   className?: string;
 }) {
-  const size = verbose ? "px-3 py-1.5 text-[13px]" : "px-2 py-0.5 text-[11.5px]";
+  const size = "px-2 py-0.5 text-[11.5px]";
+  const single = level.macros.length === 1 ? level.macros[0] : null;
+
+  // Deduped, so a level with three xdBot macros shows one xdBot chip.
+  const recorders = [...new Set(level.macros.map((m) => m.recorder))];
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
       <span
-        title={`Level created by ${macro.creator}`}
-        aria-label={`Level created by ${macro.creator}`}
+        title={`Level created by ${level.creator}`}
         className={`rounded-md border border-green/35 bg-green/12 font-medium text-green ${size}`}
       >
-        {verbose && <span className="opacity-70">Level by </span>}
         <span translate="no" className="notranslate">
-          {macro.creator}
+          {level.creator}
         </span>
       </span>
 
-      <span
-        title={`Macro created by ${macro.macroAuthor}`}
-        aria-label={`Macro created by ${macro.macroAuthor}`}
-        className={`rounded-md border border-accent/35 bg-accent/12 font-medium text-accent-soft ${size}`}
-      >
-        {verbose && <span className="opacity-70">Macro by </span>}
-        <span translate="no" className="notranslate">
-          {macro.macroAuthor}
+      {single ? (
+        <span
+          title={`Macro by ${single.author}`}
+          className={`rounded-md border border-accent/35 bg-accent/12 font-medium text-accent-soft ${size}`}
+        >
+          <span translate="no" className="notranslate">
+            {single.author}
+          </span>
         </span>
-      </span>
+      ) : (
+        <span
+          title={`${level.macros.length} macros available for this level`}
+          className={`rounded-md border border-accent/35 bg-accent/12 font-semibold text-accent-soft ${size}`}
+        >
+          {level.macros.length} macros
+        </span>
+      )}
 
-      <span
-        title={`Recorded with ${macro.recorder}`}
-        aria-label={`Recorded with ${macro.recorder}`}
-        className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 font-medium text-text-dim ${size}`}
-      >
-        <BotIcon className={verbose ? "h-4 w-4 text-muted" : "h-3.5 w-3.5 text-muted"} />
-        <span translate="no" className="notranslate">
-          {macro.recorder}
+      {recorders.map((recorder) => (
+        <span
+          key={recorder}
+          title={`Recorded with ${recorder}`}
+          className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 font-medium text-text-dim ${size}`}
+        >
+          <BotIcon className="h-3.5 w-3.5 text-muted" />
+          <span translate="no" className="notranslate">
+            {recorder}
+          </span>
         </span>
-      </span>
+      ))}
     </div>
   );
 }

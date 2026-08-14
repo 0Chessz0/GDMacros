@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import Link from "next/link";
-import { getAllMacros } from "@/lib/macros";
+import { getAllLevels, getMacroCount } from "@/lib/macros";
 import { SUBMIT_URL, site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -30,7 +30,8 @@ const SECTIONS = [
 ];
 
 export default function AboutPage() {
-  const count = getAllMacros().length;
+  const count = getMacroCount();
+  const levelCount = getAllLevels().length;
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
@@ -43,7 +44,7 @@ export default function AboutPage() {
       {count > 0 && (
         <p className="mt-6 text-[14.5px] text-text-dim">
           <span className="text-[19px] font-bold text-accent-soft tabular-nums">{count}</span>{" "}
-          macro{count === 1 ? "" : "s"} in the catalog right now.
+          macro{count === 1 ? "" : "s"} across {levelCount} level{levelCount === 1 ? "" : "s"} right now.
         </p>
       )}
 

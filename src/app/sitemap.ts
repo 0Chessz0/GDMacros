@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllMacros } from "@/lib/macros";
+import { getAllLevels } from "@/lib/macros";
 import { site } from "@/lib/site";
 
 // Required by `output: 'export'` (the GitHub Pages path); a no-op on Vercel.
@@ -15,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.5,
   }));
 
-  const macroPages = getAllMacros().map((m) => ({
+  const macroPages = getAllLevels().map((m) => ({
     url: `${base}/macro/${m.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.8,

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
-import { RECORDERS, type Macro, type Recorder } from "@/lib/types";
+import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
 import MacroRow from "./MacroRow";
 import Segmented from "./Segmented";
@@ -18,7 +18,7 @@ type RecorderFilter = Recorder | "all";
  */
 const STAGGER_CAP = 12;
 
-export default function MacroBrowser({ macros }: { macros: Macro[] }) {
+export default function MacroBrowser({ levels }: { levels: Level[] }) {
   const [query, setQuery] = useState("");
   const [view, setView] = useState<View>("list");
   const [recorder, setRecorder] = useState<RecorderFilter>("all");
@@ -71,16 +71,17 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // `macros` arrives already sorted A-Z; filtering preserves that order.
+  // `levels` arrives already sorted A-Z; filtering preserves that order.
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const terms = needle ? needle.split(/\s+/) : [];
 
-    return macros.filter((m) => {
-      if (recorder !== "all" && m.recorder !== recorder) return false;
-      return terms.every((t) => m.searchIndex.includes(t));
+    return levels.filter((level) => {
+      // A level matches when *any* of its macros used the selected recorder.
+      if (recorder !== "all" && !level.macros.some((m) => m.recorder === recorder)) return false;
+      return terms.every((t) => level.searchIndex.includes(t));
     });
-  }, [macros, query, recorder]);
+  }, [levels, query, recorder]);
 
   return (
     <div>
@@ -162,9 +163,9 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
         <div className="flex items-center gap-3">
           <p className="text-[12.5px] text-muted">
             <span className="font-semibold text-text-dim tabular-nums">{results.length}</span>
-            {results.length === macros.length
-              ? ` macro${results.length === 1 ? "" : "s"}`
-              : ` of ${macros.length} macro${macros.length === 1 ? "" : "s"}`}
+            {results.length === levels.length
+              ? ` level${results.length === 1 ? "" : "s"}`
+              : ` of ${levels.length} level${levels.length === 1 ? "" : "s"}`}
           </p>
           <span className="text-muted/40">·</span>
           <p className="text-[12.5px] text-muted">Sorted A-Z</p>
@@ -178,7 +179,7 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
           </span>
           <p className="text-[15px] font-semibold text-text">No macros found</p>
           <p className="max-w-sm text-[13px] text-muted">
-            {macros.length === 0
+            {levels.length === 0
               ? "The catalog is empty. Add an entry to data/macros.json to get started."
               : query
                 ? `Nothing matches "${query}"${recorder !== "all" ? ` for ${recorder}` : ""}.`
@@ -200,13 +201,13 @@ export default function MacroBrowser({ macros }: { macros: Macro[] }) {
       ) : view === "grid" ? (
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((m, i) => (
-            <MacroCard key={m.slug} macro={m} index={Math.min(i, STAGGER_CAP)} />
+            <MacroCard key={m.slug} level={m} index={Math.min(i, STAGGER_CAP)} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">
           {results.map((m, i) => (
-            <MacroRow key={m.slug} macro={m} index={Math.min(i, STAGGER_CAP)} />
+            <MacroRow key={m.slug} level={m} index={Math.min(i, STAGGER_CAP)} />
           ))}
         </div>
       )}

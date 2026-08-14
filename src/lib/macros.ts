@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { RECORDERS, type Macro, type MacroInput } from "./types";
+import { RECORDERS, type Level, type LevelInput, type Macro } from "./types";
 
 const DATA_FILE = path.join(process.cwd(), "data", "macros.json");
 
@@ -29,33 +29,47 @@ export function youtubeIdFrom(url: string | undefined): string | null {
   return null;
 }
 
-/** Every field required for a real entry. */
-const REQUIRED_FIELDS = [
-  "name",
-  "creator",
-  "macroAuthor",
-  "levelId",
-  "recorder",
-  "downloadType",
-  "downloadLink",
-] as const;
+const blank = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
 
 /**
- * True when an entry is an untouched template row, with every required field blank.
- * These are ignored so `data/macros.json` can ship with empty slots to fill in.
- * A row with *some* fields filled is a typo, not a placeholder, and still errors.
+ * Reads the macro list off a level, accepting either the current `macros` array
+ * or the older flat shape where a single macro's fields sat on the level itself.
  */
-export function isBlankTemplate(entry: Partial<MacroInput>): boolean {
-  return REQUIRED_FIELDS.every((f) => {
-    const v = entry[f];
-    return v === undefined || v === null || String(v).trim() === "";
-  });
+function readMacros(entry: LevelInput): Partial<Macro>[] {
+  if (Array.isArray(entry.macros) && entry.macros.length > 0) return entry.macros;
+
+  const legacy = [entry.macroAuthor, entry.recorder, entry.downloadType, entry.downloadLink];
+  if (legacy.some((v) => !blank(v))) {
+    return [
+      {
+        author: entry.macroAuthor,
+        recorder: entry.recorder,
+        downloadType: entry.downloadType,
+        downloadLink: entry.downloadLink,
+      },
+    ];
+  }
+  return [];
 }
 
-let cache: Macro[] | null = null;
+/**
+ * True when an entry is an untouched template row: no level details and no
+ * macro details anywhere. These are skipped so `data/macros.json` can ship with
+ * empty slots. A row with *some* fields filled is a typo, not a placeholder,
+ * and still errors.
+ */
+export function isBlankTemplate(entry: LevelInput): boolean {
+  const levelBlank = blank(entry.name) && blank(entry.creator) && blank(entry.levelId);
+  const macrosBlank = readMacros(entry).every((m) =>
+    [m.author, m.recorder, m.downloadType, m.downloadLink].every(blank),
+  );
+  return levelBlank && macrosBlank;
+}
+
+let cache: Level[] | null = null;
 
 /** Read and normalise `data/macros.json` at build time. */
-export function getAllMacros(): Macro[] {
+export function getAllLevels(): Level[] {
   if (cache) return cache;
 
   if (!fs.existsSync(DATA_FILE)) {
@@ -71,31 +85,45 @@ export function getAllMacros(): Macro[] {
   }
 
   if (!Array.isArray(raw)) {
-    throw new Error("data/macros.json must contain an array of macros.");
+    throw new Error("data/macros.json must contain an array of levels.");
   }
 
   const seen = new Set<string>();
 
-  const macros = (raw as MacroInput[])
-    // Blank template rows are placeholders waiting to be filled in, so skip them.
-    // A row with *some* fields filled is a genuine mistake and still throws below.
+  const levels = (raw as LevelInput[])
     .filter((entry) => !isBlankTemplate(entry))
     .map((entry, i) => {
       const where = `data/macros.json[${i}]`;
 
-      for (const field of ["name", "creator", "macroAuthor", "levelId", "recorder"] as const) {
-        if (entry[field] === undefined || entry[field] === "") {
+      for (const field of ["name", "creator", "levelId"] as const) {
+        if (blank(entry[field])) {
           throw new Error(`${where} is missing required field "${field}".`);
         }
       }
 
-      if (!RECORDERS.includes(entry.recorder)) {
-        throw new Error(
-          `${where} has recorder "${entry.recorder}". Must be one of: ${RECORDERS.join(", ")}.`,
-        );
+      const macroList = readMacros(entry);
+      if (macroList.length === 0) {
+        throw new Error(`${where} ("${entry.name}") has no macros. Add at least one to "macros".`);
       }
 
-      const slug = entry.slug || `${slugify(entry.name)}-${slugify(entry.macroAuthor)}`;
+      const macros: Macro[] = macroList.map((m, j) => {
+        const at = `${where}.macros[${j}]`;
+        for (const field of ["author", "recorder", "downloadType", "downloadLink"] as const) {
+          if (blank(m[field])) {
+            throw new Error(`${at} is missing required field "${field}".`);
+          }
+        }
+        if (!RECORDERS.includes(m.recorder as (typeof RECORDERS)[number])) {
+          throw new Error(
+            `${at} has recorder "${m.recorder}". Must be one of: ${RECORDERS.join(", ")}.`,
+          );
+        }
+        return { ...(m as Macro), position: j + 1 };
+      });
+
+      // The slug is the level now, not the level plus one author, because a
+      // level can hold several macros under the same page.
+      const slug = entry.slug || slugify(entry.name);
       if (seen.has(slug)) {
         throw new Error(
           `${where} produces the duplicate URL "${slug}". Add a unique "slug" field to one of them.`,
@@ -106,7 +134,12 @@ export function getAllMacros(): Macro[] {
       const youtubeId = youtubeIdFrom(entry.video);
 
       return {
-        ...entry,
+        name: entry.name,
+        creator: entry.creator,
+        levelId: entry.levelId,
+        macros,
+        video: entry.video,
+        description: entry.description,
         slug,
         youtubeId,
         thumbnailUrl:
@@ -115,35 +148,38 @@ export function getAllMacros(): Macro[] {
         searchIndex: [
           entry.name,
           entry.creator,
-          entry.macroAuthor,
           entry.levelId,
-          entry.downloadType,
-          entry.recorder,
+          ...macros.flatMap((m) => [m.author, m.recorder, m.downloadType]),
         ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase(),
-      } satisfies Macro;
+      } satisfies Level;
     });
 
   // Ordering is alphabetical by level name, always. numeric:true keeps
   // "Level 2" ahead of "Level 10"; base sensitivity ignores case and accents.
-  macros.sort((a, b) =>
+  levels.sort((a, b) =>
     a.name.localeCompare(b.name, "en", { numeric: true, sensitivity: "base" }),
   );
 
-  cache = macros;
+  cache = levels;
   return cache;
 }
 
-export function getMacroBySlug(slug: string): Macro | undefined {
-  return getAllMacros().find((m) => m.slug === slug);
+export function getLevelBySlug(slug: string): Level | undefined {
+  return getAllLevels().find((l) => l.slug === slug);
 }
 
 /** Alphabetical neighbours, for the prev/next links on a detail page. */
-export function getNeighbours(slug: string): { prev: Macro | null; next: Macro | null } {
-  const all = getAllMacros();
-  const i = all.findIndex((m) => m.slug === slug);
+export function getNeighbours(slug: string): { prev: Level | null; next: Level | null } {
+  const all = getAllLevels();
+  const i = all.findIndex((l) => l.slug === slug);
   if (i === -1) return { prev: null, next: null };
   return { prev: all[i - 1] ?? null, next: all[i + 1] ?? null };
+}
+
+/** Total macro count across every level, for the About page and metadata. */
+export function getMacroCount(): number {
+  return getAllLevels().reduce((sum, l) => sum + l.macros.length, 0);
 }

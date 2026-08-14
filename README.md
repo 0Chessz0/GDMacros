@@ -40,41 +40,77 @@ Fill a row in like this:
 
 ```json
 {
-  "name": "Society",
-  "creator": "Neomarbilan",
-  "macroAuthor": "wPopoff",
-  "levelId": 127323087,
-  "recorder": "xdBot",
-  "downloadType": "Google Drive",
-  "downloadLink": "https://drive.google.com/file/d/YOUR_FILE_ID/view",
-  "video": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+  "name": "Acheron",
+  "creator": "ryamu",
+  "levelId": 73667628,
+  "video": "https://www.youtube.com/watch?v=EpNIkIBPOhw",
+  "description": "Optional note shown on the page.",
+  "macros": [
+    {
+      "author": "ChesszDC",
+      "recorder": "xdBot",
+      "downloadType": "MediaFire",
+      "downloadLink": "https://www.mediafire.com/file/.../Acheron.gdr2/file"
+    }
+  ]
 }
 ```
 
 Order doesn't matter, the site always sorts alphabetically by `name`.
 
+### More than one macro per level
+
+Add another object to `macros`. There is no limit.
+
+```json
+"macros": [
+  { "author": "ChesszDC", "recorder": "xdBot",     "downloadType": "MediaFire",    "downloadLink": "https://..." },
+  { "author": "Zoink",    "recorder": "Mega Hack", "downloadType": "Google Drive", "downloadLink": "https://..." }
+]
+```
+
+They are numbered by their position in the array, so the level page shows **Macro 1 by ChesszDC**
+and **Macro 2 by Zoink**, each with its own recorder, download host and copy button. Reorder the
+array to renumber them.
+
+With a single macro the catalog row names its author directly. With several it shows a "3 macros"
+badge instead, and the authors appear on each macro card on the level page.
+
 ### Field reference
 
-| Field          | Required | Notes                                                                       |
-| -------------- | -------- | --------------------------------------------------------------------------- |
-| `name`         | **yes**  | The level the macro plays. This is what's sorted and searched                |
-| `creator`      | **yes**  | Who built the level → the **green** tab                                      |
-| `macroAuthor`  | **yes**  | Who recorded the macro → the **blue** tab                                    |
-| `levelId`      | **yes**  | Powers the GD Browser button: `https://gdbrowser.com/<levelId>`               |
-| `recorder`     | **yes**  | `"Mega Hack"` or `"xdBot"`. Anything else fails the build                    |
-| `downloadType` | **yes**  | Where it's hosted: `"Google Drive"`, `"MediaFire"`, `"MEGA"`, `"Dropbox"`, etc. |
-| `downloadLink` | **yes**  | Direct URL to the macro file                                                 |
-| `video`        | no       | YouTube URL. Renders the embed *and* auto-generates the list thumbnail      |
-| `thumbnail`    | no       | Image override: an absolute URL, or a path like `/thumbnails/x.png`          |
-| `description`  | no       | Short blurb shown under the video on the detail page                        |
-| `slug`         | no       | URL override. Defaults to `<name>-<macroAuthor>` slugified                   |
+Level fields:
+
+| Field         | Required | Notes                                                            |
+| ------------- | -------- | ---------------------------------------------------------------- |
+| `name`        | **yes**  | The level. Sorted, searched, and used for the URL                 |
+| `creator`     | **yes**  | Who built the level, shown as the green tab                       |
+| `levelId`     | **yes**  | Powers the GD Browser button: `https://gdbrowser.com/<levelId>`    |
+| `macros`      | **yes**  | Array of one or more macros, fields below                         |
+| `video`       | no       | YouTube URL. Renders the embed and auto-generates the thumbnail   |
+| `thumbnail`   | no       | Image override: absolute URL, or a path like `/thumbnails/x.png`  |
+| `description` | no       | Short note shown under the video                                  |
+| `slug`        | no       | URL override. Defaults to the level name, slugified               |
+
+Macro fields, inside `macros[]`:
+
+| Field          | Required | Notes                                                          |
+| -------------- | -------- | -------------------------------------------------------------- |
+| `author`       | **yes**  | Who recorded this macro, shown as "Macro N by ..."              |
+| `recorder`     | **yes**  | `"Mega Hack"` or `"xdBot"`. Anything else fails the build       |
+| `downloadType` | **yes**  | Where it's hosted: `"Google Drive"`, `"MediaFire"`, `"MEGA"`, etc. |
+| `downloadLink` | **yes**  | Direct URL to the macro file                                    |
 
 `recorder` is a closed set defined by `RECORDERS` in [`src/lib/types.ts`](src/lib/types.ts). The
-guidelines only accept those two tools, and the home page filters on it. To allow another tool,
-add it there and to the matching list in `scripts/validate-macros.mjs`.
+guidelines only accept those two tools, and the home page filters on it. A level matches the filter
+when **any** of its macros used the selected recorder.
 
 `downloadType` is free text, so any host works. These get a tinted icon:
 Google Drive, MediaFire, Dropbox, MEGA, GitHub, Discord, OneDrive.
+
+### Older entries
+
+The previous flat shape, where a single macro's fields sat directly on the level, is still read and
+converted on load. Nothing breaks if you have old entries, but new ones should use `macros`.
 
 ### Thumbnails
 
@@ -152,6 +188,51 @@ Two details worth knowing:
 
 Edit the offered languages in `LANGUAGES` in [`src/lib/site.ts`](src/lib/site.ts). Any code Google
 Translate accepts works.
+
+---
+
+## Search / SEO
+
+The site is built to be indexed well for "geometry dash macros" and related phrases.
+
+**What the code already does**
+
+- `<title>` leads with the phrase, not the brand: `Geometry Dash Macros | GDMacros`. Level pages use
+  `<Level> Macro (Geometry Dash) | GDMacros`.
+- The home `<h1>` is literally "Geometry Dash Macros". Heading text is the strongest on-page signal.
+- Every page has a unique meta description. Level pages generate one containing the level, the
+  creator, the macro authors and the recorders. A custom `description` is appended to it, never
+  substituted for it, so a personal note can't cost the page its keywords.
+- Canonical URLs on every page, so `?q=` and `?view=` variants don't split ranking.
+- `sitemap.xml` regenerates from the catalog on every build, and `robots.txt` points at it.
+- JSON-LD structured data: `WebSite` with a `SearchAction` (site-wide), `CollectionPage` +
+  `ItemList` (home), and `CreativeWork` per level.
+- OpenGraph and Twitter card tags, so shared links show a title, description and thumbnail.
+- Static prerendered HTML with no client-side data fetching, which is the easiest thing for a
+  crawler to read.
+
+**What no amount of code can do**
+
+Ranking is not something a build step decides. Google has to discover the site, crawl it, and judge
+it worth showing above the pages already ranking for that phrase. That depends on the domain being
+live, on other sites linking to yours, and on time. A brand new domain does not rank on day one no
+matter how the HTML is written.
+
+**What you have to do yourself, in order**
+
+1. Point `gdmacros.com` at the Vercel deployment and confirm it loads over HTTPS.
+2. Add the site to [Google Search Console](https://search.google.com/search-console) and verify
+   ownership via the DNS TXT record.
+3. Submit `https://gdmacros.com/sitemap.xml` there, then use "Request indexing" on the home page.
+4. Get a few real links: your YouTube channel description, a pinned Discord message, a Reddit or
+   forum post. Links from places people already are matter more than anything on this list.
+5. Add macros. A catalog with 60 levels has 60 more chances to match a search than one with 5, and
+   each level page targets its own long-tail phrase like "acheron macro".
+6. Wait. Two to eight weeks for a new domain to settle is normal.
+
+If `site.url` in [`src/lib/site.ts`](src/lib/site.ts) does not exactly match the domain you serve
+on, the sitemap and canonical tags will point at the wrong place and indexing will suffer. That one
+value matters more than everything else in this section.
 
 ---
 

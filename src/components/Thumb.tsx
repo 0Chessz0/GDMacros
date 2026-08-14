@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Macro } from "@/lib/types";
+import type { Level } from "@/lib/types";
 
 /** Stable pseudo-random hue per macro so placeholder tiles stay distinguishable. */
 function hueFor(seed: string): number {
@@ -13,17 +13,17 @@ function hueFor(seed: string): number {
 type Status = "loading" | "loaded" | "failed";
 
 export default function Thumb({
-  macro,
+  level,
   className = "",
   rounded = "rounded-lg",
 }: {
-  macro: Macro;
+  level: Level;
   className?: string;
   rounded?: string;
 }) {
   const [status, setStatus] = useState<Status>("loading");
   const imgRef = useRef<HTMLImageElement>(null);
-  const src = macro.thumbnailUrl;
+  const src = level.thumbnailUrl;
 
   /*
    * Server-rendered <img> tags start downloading as soon as the HTML parses,
@@ -44,7 +44,7 @@ export default function Thumb({
     }
   }, [src]);
 
-  const hue = hueFor(macro.slug);
+  const hue = hueFor(level.slug);
   const showImage = src && status !== "failed";
 
   return (
@@ -77,7 +77,7 @@ export default function Thumb({
             background: `linear-gradient(135deg, hsl(${hue} 45% 26%), hsl(${(hue + 48) % 360} 50% 15%))`,
           }}
         >
-          <span className="text-2xl font-black text-white/70">{macro.name.charAt(0).toUpperCase()}</span>
+          <span className="text-2xl font-black text-white/70">{level.name.charAt(0).toUpperCase()}</span>
         </div>
       )}
     </div>
