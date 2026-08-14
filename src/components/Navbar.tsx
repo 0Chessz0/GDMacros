@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from "react";
 import { LANGUAGES, SUBMIT_URL, site } from "@/lib/site";
 import { currentTranslateLang, setTranslateLang } from "./GoogleTranslate";
 import ThemeToggle from "./ThemeToggle";
@@ -119,12 +119,23 @@ function NavMenu({ label, icon: NavIcon, items }: { label: string; icon: Icon; i
 function LanguageMenu() {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState("en");
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const ref = useDismiss(() => setOpen(false), open);
 
   // Google's own cookie is the source of truth, so a reload keeps the choice.
   useEffect(() => {
     setLang(currentTranslateLang());
   }, []);
+
+  // Reset the filter each time it opens, and put the caret in the box, since
+  // scanning 100+ languages by eye is slower than typing three letters.
+  useEffect(() => {
+    if (!open) return;
+    setQuery("");
+    const id = requestAnimationFrame(() => searchRef.current?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [open]);
 
   function pick(code: string) {
     setLang(code);
@@ -133,6 +144,19 @@ function LanguageMenu() {
   }
 
   const active = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
+
+  // Matches the native name, the English name or the code, so "de", "German"
+  // and "Deutsch" all find the same entry.
+  const shown = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return LANGUAGES;
+    return LANGUAGES.filter(
+      (l) =>
+        l.label.toLowerCase().includes(needle) ||
+        l.english.toLowerCase().includes(needle) ||
+        l.code.toLowerCase().includes(needle),
+    );
+  }, [query]);
 
   return (
     <div ref={ref} className="relative">
@@ -154,21 +178,58 @@ function LanguageMenu() {
       {open && (
         <div
           role="menu"
-          className="animate-menu-in absolute top-[calc(100%+6px)] left-0 z-50 max-h-[70vh] w-48 overflow-y-auto rounded-xl border border-border bg-nav p-1.5 shadow-2xl"
+          className="animate-menu-in absolute top-[calc(100%+6px)] left-0 z-50 flex max-h-[70vh] w-[280px] flex-col rounded-xl border border-border bg-nav shadow-2xl"
         >
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              type="button"
-              onClick={() => pick(l.code)}
-              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13.5px] transition-colors hover:bg-surface-2 ${
-                l.code === lang ? "font-medium text-accent-soft" : "text-text-dim"
-              }`}
-            >
-              {l.label}
-              <span className="font-mono text-[11px] text-muted uppercase">{l.code}</span>
-            </button>
-          ))}
+          <div className="border-b border-border-soft p-1.5">
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search ${LANGUAGES.length} languages...`}
+              aria-label="Search languages"
+              className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-[13px] text-text outline-none placeholder:text-muted focus:border-accent"
+            />
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
+            {shown.length === 0 ? (
+              <p className="px-3 py-6 text-center text-[12.5px] text-muted">
+                No language matches &ldquo;{query}&rdquo;.
+              </p>
+            ) : (
+              shown.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => pick(l.code)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-2 ${
+                    l.code === lang ? "bg-surface-2" : ""
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span
+                      className={`block truncate text-[13.5px] ${
+                        l.code === lang ? "font-semibold text-accent-soft" : "text-text-dim"
+                      }`}
+                    >
+                      {l.label}
+                    </span>
+                    {/* The English name is what most people will recognise when
+                        the native script is unfamiliar. */}
+                    {l.english !== l.label && (
+                      <span className="mt-0.5 block truncate text-[11.5px] text-muted">
+                        {l.english}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 font-mono text-[11px] text-muted uppercase">
+                    {l.code}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -195,7 +195,14 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
               : ` of ${levels.length} level${levels.length === 1 ? "" : "s"}`}
           </p>
           <span className="text-muted/40">·</span>
-          <p className="text-[12.5px] text-muted">Sorted A-Z</p>
+          {/* "A-Z" is pinned: Google Translate reads it as the state code and
+              renders "sorted in Arizona" in several languages. */}
+          <p className="text-[12.5px] text-muted">
+            Sorted{" "}
+            <span translate="no" className="notranslate">
+              A-Z
+            </span>
+          </p>
         </div>
       </div>
 
