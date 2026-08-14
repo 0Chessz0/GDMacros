@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "How to Install Geometry Dash Macros",
   description:
-    "Step-by-step guide to installing and playing Geometry Dash macros. Load a .gdr2 macro with xdBot or Mega Hack, and fix desync problems.",
+    "Step-by-step guide to installing and playing Geometry Dash macros. Get xdBot free or buy Mega Hack, install the .geode file by hand, and fix desync problems.",
   alternates: { canonical: "/install" },
   openGraph: {
     title: `How to Install Geometry Dash Macros | ${site.name}`,
@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   },
 };
 
+const XDBOT_PC = "https://www.mediafire.com/file/kk33lxumpzit8y8/zilko.xdbot.geode/file";
+const XDBOT_MOBILE = "https://www.mediafire.com/file/gdxapqjqgkbcgmy/zilko.xdbot.geode/file";
+const MEGA_HACK_STORE = "https://absolllute.com/store/mega-hack";
+
 /** Numbered step in one of the walkthroughs. */
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -26,9 +30,23 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
       </span>
       <div className="min-w-0 pt-0.5">
         <p className="text-[14.5px] font-semibold text-text">{title}</p>
-        <p className="mt-1 text-[14px] leading-relaxed text-text-dim">{children}</p>
+        <div className="mt-1 text-[14px] leading-relaxed text-text-dim">{children}</div>
       </div>
     </li>
+  );
+}
+
+/** Outbound link. nofollow because we do not vouch for third-party hosts. */
+function Ext({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="font-medium text-accent-soft underline-offset-2 hover:underline"
+    >
+      {children}
+    </a>
   );
 }
 
@@ -41,10 +59,11 @@ const howToJsonLd = {
   "@type": "HowTo",
   name: "How to install Geometry Dash macros",
   description:
-    "Install a mod menu, download a macro file, and load it into Geometry Dash with xdBot or Mega Hack.",
+    "Install the Geode mod loader, add a macro bot, download a macro, and play it back in Geometry Dash.",
   step: [
     { "@type": "HowToStep", name: "Install Geode", text: "Install the Geode mod loader for Geometry Dash." },
-    { "@type": "HowToStep", name: "Install a macro bot", text: "Install xdBot or Mega Hack from the Geode mod browser." },
+    { "@type": "HowToStep", name: "Get a macro bot", text: "Download xdBot for free, or buy Mega Hack." },
+    { "@type": "HowToStep", name: "Install the mod", text: "Drop the .geode file into the geode/mods folder." },
     { "@type": "HowToStep", name: "Download a macro", text: "Download the macro file for the level you want." },
     { "@type": "HowToStep", name: "Load the macro", text: "Pause the level, open the bot, and load the macro file." },
   ],
@@ -68,21 +87,42 @@ export default function InstallPage() {
         check that first, then follow the matching section below.
       </p>
 
-      {/* Prerequisite, shared by both tools. */}
+      {/* The free/paid split is the first thing anyone wants to know. */}
+      <div className="mt-8 grid gap-2.5 sm:grid-cols-2">
+        <div className="card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p translate="no" className="notranslate text-[16px] font-bold text-text">
+              xdBot
+            </p>
+            <span className="rounded-md border border-green/35 bg-green/12 px-2 py-0.5 text-[11.5px] font-semibold text-green">
+              Free
+            </span>
+          </div>
+          <p className="mt-1.5 text-[13px] leading-snug text-muted">
+            What most macros here use. Needs a manual install now, see below.
+          </p>
+        </div>
+        <div className="card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p translate="no" className="notranslate text-[16px] font-bold text-text">
+              Mega Hack
+            </p>
+            <span className="rounded-md border border-amber/35 bg-amber/12 px-2 py-0.5 text-[11.5px] font-semibold text-amber">
+              Paid
+            </span>
+          </div>
+          <p className="mt-1.5 text-[13px] leading-snug text-muted">
+            A paid mod menu with its own replay system.
+          </p>
+        </div>
+      </div>
+
       <section className="card mt-8 p-5">
         <h2 className="text-[17px] font-bold text-text">Before you start</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          Both tools run on{" "}
-          <a
-            href="https://geode-sdk.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-accent-soft underline-offset-2 hover:underline"
-          >
-            Geode
-          </a>
-          , the Geometry Dash mod loader. Install Geode first, launch the game once so it sets
-          itself up, then install your bot from the in-game mod browser.
+          Both tools run on <Ext href="https://geode-sdk.org">Geode</Ext>, the Geometry Dash mod
+          loader. Install Geode first and launch the game once so it sets itself up. Everything below
+          assumes Geode is already working.
         </p>
         <p className="mt-3 text-[13px] leading-relaxed text-muted">
           Macros only work in a modded client. They will not do anything in a clean copy of the game,
@@ -90,11 +130,15 @@ export default function InstallPage() {
         </p>
       </section>
 
+      {/* ------------------------------- xdBot ------------------------------- */}
       <section className="mt-10">
-        <div className="flex items-baseline gap-2.5">
+        <div className="flex flex-wrap items-baseline gap-2.5">
           <h2 translate="no" className="notranslate text-[20px] font-bold text-text">
             xdBot
           </h2>
+          <span className="rounded-md border border-green/35 bg-green/12 px-2 py-0.5 text-[11.5px] font-semibold text-green">
+            Free
+          </span>
           <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11.5px] text-muted">
             .gdr2 .gdr
           </span>
@@ -103,41 +147,93 @@ export default function InstallPage() {
           Most macros in the catalog are xdBot recordings.
         </p>
 
-        <ol className="mt-5 space-y-4">
-          <Step n={1} title="Install xdBot">
-            Open the Geode mod browser inside Geometry Dash, search for{" "}
-            <span translate="no" className="notranslate font-medium text-text-dim">
-              xdBot
+        <div className="mt-4 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3">
+          <p className="text-[13.5px] leading-relaxed text-amber">
+            <span className="font-semibold">xdBot is no longer in the Geode mod browser.</span> The
+            original owner abandoned it, so searching for it in game will not find it. A newer build
+            is still maintained, and you install it by hand using the links below.
+          </p>
+        </div>
+
+        <ol className="mt-6 space-y-4">
+          <Step n={1} title="Download the .geode file">
+            Pick the build for your device:
+            <span className="mt-2 flex flex-wrap gap-2">
+              <Ext href={XDBOT_PC}>
+                <span className="inline-flex rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-text-dim transition-colors hover:border-accent/40 hover:text-accent-soft">
+                  Download for PC
+                </span>
+              </Ext>
+              <Ext href={XDBOT_MOBILE}>
+                <span className="inline-flex rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-text-dim transition-colors hover:border-accent/40 hover:text-accent-soft">
+                  Download for mobile
+                </span>
+              </Ext>
             </span>
-            , and install it. Restart the game when it asks.
+            <span className="mt-2 block text-[12.5px] text-muted">
+              Both are hosted on MediaFire. The file is called{" "}
+              <span className="font-mono">zilko.xdbot.geode</span>.
+            </span>
           </Step>
-          <Step n={2} title="Download the macro">
-            Find the level in the{" "}
+
+          <Step n={2} title="Find your Geode mods folder">
+            Geode keeps installed mods in a <span className="font-mono">geode/mods</span> folder
+            inside the game directory:
+            <span className="mt-2 block space-y-1.5">
+              <span className="block rounded-lg bg-surface-2 px-3 py-2 font-mono text-[12.5px] text-text-dim">
+                Windows &nbsp;<span className="text-muted">Geometry Dash/geode/mods</span>
+              </span>
+              <span className="block rounded-lg bg-surface-2 px-3 py-2 font-mono text-[12.5px] text-text-dim">
+                Android &nbsp;<span className="text-muted">
+                  (launcher media folder)/game/geode/mods
+                </span>
+              </span>
+              <span className="block rounded-lg bg-surface-2 px-3 py-2 font-mono text-[12.5px] text-text-dim">
+                iOS &nbsp;<span className="text-muted">Documents/game/geode/mods</span>
+              </span>
+            </span>
+            <span className="mt-2 block text-[12.5px] text-muted">
+              On Steam you can reach the Windows folder with Manage, then Browse local files.
+            </span>
+          </Step>
+
+          <Step n={3} title="Drop the file in and restart">
+            Put <span className="font-mono">zilko.xdbot.geode</span> straight into that mods folder.
+            Do not unzip it and do not rename it. Close Geometry Dash fully and open it again, and
+            Geode loads the mod on startup.
+          </Step>
+
+          <Step n={4} title="Check it loaded">
+            Open the Geode menu in game and look for xdBot in your installed mods. If it is not
+            there, the file is in the wrong folder or the game was not restarted.
+          </Step>
+
+          <Step n={5} title="Download a macro and load it">
+            Grab a macro from the{" "}
             <Link href="/" className="font-medium text-accent-soft underline-offset-2 hover:underline">
               catalog
-            </Link>{" "}
-            and download its file. Keep it somewhere you can find again, like your Downloads folder.
+            </Link>
+            , start the level it was made for, then pause. Open xdBot from its button in the corner
+            of the pause screen, press <span className="font-medium text-text-dim">Load</span> and
+            pick the file.
           </Step>
-          <Step n={3} title="Open the level and pause">
-            Start the level the macro was made for, then pause. xdBot is opened from its small button
-            in the corner of the pause screen.
-          </Step>
-          <Step n={4} title="Load the file">
-            Press <span className="font-medium text-text-dim">Load</span> and pick the macro you
-            downloaded. xdBot reads several formats, so both .gdr2 and .gdr work.
-          </Step>
-          <Step n={5} title="Play it back">
+
+          <Step n={6} title="Play it back">
             Make sure playback is enabled rather than recording, then unpause. The macro drives the
             level from wherever you started it.
           </Step>
         </ol>
       </section>
 
+      {/* ----------------------------- Mega Hack ----------------------------- */}
       <section className="mt-10">
-        <div className="flex items-baseline gap-2.5">
+        <div className="flex flex-wrap items-baseline gap-2.5">
           <h2 translate="no" className="notranslate text-[20px] font-bold text-text">
             Mega Hack
           </h2>
+          <span className="rounded-md border border-amber/35 bg-amber/12 px-2 py-0.5 text-[11.5px] font-semibold text-amber">
+            Paid
+          </span>
           <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11.5px] text-muted">
             .mhr
           </span>
@@ -146,9 +242,23 @@ export default function InstallPage() {
           Mega Hack ships its own replay system with its own file format.
         </p>
 
-        <ol className="mt-5 space-y-4">
-          <Step n={1} title="Install Mega Hack">
-            Install Mega Hack, then open the mod menu in game and find the replay or macro section.
+        <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
+          <p className="text-[13.5px] leading-relaxed text-text-dim">
+            <span className="font-semibold text-text">Mega Hack is not free.</span> It is a paid mod
+            menu, bought from its developer.
+          </p>
+          <Ext href={MEGA_HACK_STORE}>
+            <span className="inline-flex rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover">
+              Buy Mega Hack
+            </span>
+          </Ext>
+        </div>
+
+        <ol className="mt-6 space-y-4">
+          <Step n={1} title="Buy and install it">
+            Purchase Mega Hack from <Ext href={MEGA_HACK_STORE}>absolllute.com</Ext> and follow the
+            installer. Once it is running, open the mod menu in game and find the replay or macro
+            section.
           </Step>
           <Step n={2} title="Put the macro where it can find it">
             Mega Hack loads replays from its own macros folder. Drop the downloaded file in there, or
@@ -166,6 +276,7 @@ export default function InstallPage() {
         </p>
       </section>
 
+      {/* --------------------------- troubleshooting -------------------------- */}
       <section className="mt-10">
         <h2 className="text-[17px] font-bold text-text">If the macro desyncs</h2>
         <p className="mt-2 text-[14px] leading-relaxed text-text-dim">
@@ -189,7 +300,23 @@ export default function InstallPage() {
         </ul>
       </section>
 
-      <section className="card mt-10 p-5">
+      <section className="card mt-10 border-l-2 border-l-accent p-5">
+        <h2 className="text-[17px] font-bold text-text">More tools are coming</h2>
+        <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
+          Right now the catalog only accepts xdBot and Mega Hack recordings. Support for other ways
+          of botting is planned, including{" "}
+          <span translate="no" className="notranslate font-medium text-text">
+            zBot
+          </span>{" "}
+          and{" "}
+          <span translate="no" className="notranslate font-medium text-text">
+            Eclipse
+          </span>
+          , and this page will be updated as each one is added.
+        </p>
+      </section>
+
+      <section className="card mt-6 p-5">
         <h2 className="text-[17px] font-bold text-text">Ready to grab one?</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
           Every macro in the catalog is free, hosted by us, and shows which tool it needs.
