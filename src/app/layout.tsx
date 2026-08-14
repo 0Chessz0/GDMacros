@@ -7,6 +7,7 @@ import PageTransition from "@/components/PageTransition";
 import Navbar from "@/components/Navbar";
 import { KEYWORDS, site } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <Footer />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
