@@ -210,36 +210,6 @@
     ]
   },
   {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
-    "macros": [
-      {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
-      }
-    ]
-  },
-  {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
-    "macros": [
-      {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
-      }
-    ]
-  },
-  {
     "name": "Cataclysm",
     "creator": "Ggb0y",
     "levelId": "3979721",
@@ -750,51 +720,6 @@
     ]
   },
   {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
-    "macros": [
-      {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
-      }
-    ]
-  },
-  {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
-    "macros": [
-      {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
-      }
-    ]
-  },
-  {
-    "name": "",
-    "creator": "",
-    "levelId": "",
-    "video": "",
-    "description": "",
-    "macros": [
-      {
-        "author": "",
-        "recorder": "",
-        "downloadType": "",
-        "downloadLink": ""
-      }
-    ]
-  },
-  {
     "name": "prismatic",
     "creator": "CatGeo",
     "levelId": "107341811",
@@ -1271,6 +1196,51 @@
         "recorder": "xdBot",
         "downloadType": "Mediafire",
         "downloadLink": "https://www.mediafire.com/file/spcigcpm0ydrm1f/Zodiac.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Silentlocked",
+    "creator": "GDSkele",
+    "levelId": "113959291",
+    "video": "https://www.youtube.com/watch?v=QGdtGu4YnzQ",
+    "description": "Silent - Cleared by TFIBB",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/vqwgf4nr6aba6hk/Silentlocked.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "HyperSonic",
+    "creator": "ViPriN",
+    "levelId": "30219145",
+    "video": "https://www.youtube.com/watch?v=yFwPswAfvqw",
+    "description": "Megacollab by Dudex, Serponge, Manix648, Vlacc, Rustam, nasgubb, ZenthicAlpha, me, PanMan, Evasium, Etzer & Terron. Verified by Combined",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/6m2jzug10mszbtf/HyperSonic.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Cobwebs",
+    "creator": "NineDice",
+    "levelId": "82172844",
+    "video": "https://www.youtube.com/watch?v=cV1iYMF6dGg",
+    "description": "Dedicated to xEl3cTr0",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/8tgk1l5b5sfqq1l/Cobwebs.gdr2/file"
       }
     ]
   }
