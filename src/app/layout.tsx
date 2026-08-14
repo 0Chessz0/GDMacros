@@ -6,6 +6,7 @@ import GoogleTranslate from "@/components/GoogleTranslate";
 import PageTransition from "@/components/PageTransition";
 import Navbar from "@/components/Navbar";
 import { KEYWORDS, site } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PageTransition>{children}</PageTransition>
         </main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
