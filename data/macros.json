@@ -118,5 +118,125 @@
         "downloadLink": "https://www.mediafire.com/file/o8h4nrpbblx110s/Azurite.gdr2/file"
       }
     ]
+  },
+  {
+    "name": "Bloodbath Infinity",
+    "creator": "Doggie",
+    "levelId": "103366915",
+    "video": "https://www.youtube.com/watch?v=mtjBvjdVqtk",
+    "description": "The cycle of blood shed continues. This time, it's endless. Can you escape the bounds of infinity? Good luck...",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/jowcvqkm3ggzxtq/Bloodbath_Infinity.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Tartarus",
+    "creator": "ItzDolphy",
+    "levelId": "59075347",
+    "video": "https://www.youtube.com/watch?v=up3S1xndxbM&list=RDup3S1xndxbM",
+    "description": "By Riot and more.",
+    "macros": [
+      {
+        "author": "Spypiexj8",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/k7vx222t845amh7/Tartarus.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Bloodbath",
+    "creator": "Riot",
+    "levelId": "10565740",
+    "video": "https://www.youtube.com/watch?v=A6xe4tKdx_c&list=RDA6xe4tKdx_c&start_radio=1",
+    "description": "Whose blood will be spilt in the Bloodbath? Who will the victors be? How many will survive? Good luck...",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/lhmccz73dxy0pxz/Bloodbath.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Bloodlust",
+    "creator": "Knobbelboy",
+    "levelId": "42584142",
+    "video": "https://www.youtube.com/watch?v=y3cvKK9wDUw",
+    "description": "Your thirst for blood continues? Very well, let the blood spill. Let the demons feed off your unfortunate soul...",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/fp4xlzkgg0j0090/Bloodlust.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "BRITNEY NO SCLEARS",
+    "creator": "wabas",
+    "levelId": "125317359",
+    "video": "https://www.youtube.com/watch?v=5SCuEsdj12c&list=RD5SCuEsdj12c",
+    "description": "you're gonna have to remove me... 'cause i ain't going nowhere... // VERIFIED BY SCOTCHTAPE",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/yb0zn3r12vhkq1z/BRITNEY_NO_SCLEARS.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "",
+    "creator": "",
+    "levelId": "",
+    "video": "",
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
+  },
+  {
+    "name": "",
+    "creator": "",
+    "levelId": "",
+    "video": "",
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
+  },
+  {
+    "name": "",
+    "creator": "",
+    "levelId": "",
+    "video": "",
+    "description": "",
+    "macros": [
+      {
+        "author": "",
+        "recorder": "",
+        "downloadType": "",
+        "downloadLink": ""
+      }
+    ]
   }
 ]
