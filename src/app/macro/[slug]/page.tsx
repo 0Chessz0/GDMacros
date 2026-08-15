@@ -4,8 +4,20 @@ import { notFound } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
 import Thumb from "@/components/Thumb";
 import VideoEmbed from "@/components/VideoEmbed";
-import { ArrowLeftIcon, BotIcon, DownloadIcon, GamepadIcon } from "@/components/icons";
-import { hostAccent, isPlaceholderLink, levelUrl } from "@/lib/format";
+import {
+  ArrowLeftIcon,
+  BotIcon,
+  DownloadIcon,
+  ExternalIcon,
+  GamepadIcon,
+} from "@/components/icons";
+import {
+  fileNameFromUrl,
+  hostAccent,
+  hostNameFromUrl,
+  isPlaceholderLink,
+  levelUrl,
+} from "@/lib/format";
 import { getAllLevels, getLevelBySlug, getNeighbours } from "@/lib/macros";
 import { site } from "@/lib/site";
 import type { Level, Macro } from "@/lib/types";
@@ -60,6 +72,8 @@ export async function generateMetadata({
 function MacroCardBlock({ macro }: { macro: Macro }) {
   const accent = hostAccent(macro.downloadType);
   const unavailable = isPlaceholderLink(macro.downloadLink);
+  const fileName = unavailable ? null : fileNameFromUrl(macro.downloadLink);
+  const host = unavailable ? null : hostNameFromUrl(macro.downloadLink);
 
   // Fixed width rather than w-full, so several cards sit side by side and wrap
   // onto a new line only when they actually run out of room.
@@ -90,10 +104,15 @@ function MacroCardBlock({ macro }: { macro: Macro }) {
         </div>
       ) : (
         <>
+          {/*
+            Names the exact file and the third-party host it lives on before the
+            click. A button that only says "DOWNLOAD" and jumps to a file locker
+            is the shape Google's deceptive-download rule is written against.
+          */}
           <a
             href={macro.downloadLink}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className="block px-5 pt-4 pb-3 text-center transition-colors duration-200 hover:bg-surface-2 active:scale-[0.98] active:duration-75"
           >
             <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
@@ -107,6 +126,19 @@ function MacroCardBlock({ macro }: { macro: Macro }) {
               <span translate="no" className="notranslate">
                 {macro.downloadType}
               </span>
+            </p>
+            {fileName && (
+              <p
+                translate="no"
+                className="notranslate mt-1.5 truncate font-mono text-[12px] text-text-dim"
+                title={fileName}
+              >
+                {fileName}
+              </p>
+            )}
+            <p className="mt-1.5 flex items-center justify-center gap-1 text-[11.5px] text-muted">
+              <ExternalIcon className="h-3 w-3" />
+              Opens {host ?? "an external site"} in a new tab
             </p>
           </a>
           <div className="border-t border-border-soft px-5 py-2.5 text-center">
@@ -162,11 +194,13 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
       </Link>
 
       <div className="flex flex-col items-center text-center">
-        <h1
-          translate="no"
-          className="notranslate text-[30px] leading-tight font-extrabold tracking-tight text-text sm:text-[38px]"
-        >
-          {level.name}
+        {/* The level name is pinned against translation, but "Macro" is ordinary
+            copy and carries the search phrase, so it is left translatable. */}
+        <h1 className="text-[30px] leading-tight font-extrabold tracking-tight text-text sm:text-[38px]">
+          <span translate="no" className="notranslate">
+            {level.name}
+          </span>{" "}
+          Macro
         </h1>
         <p className="mt-3">
           <span className="rounded-lg border border-green/35 bg-green/12 px-3 py-1.5 text-[13px] font-medium text-green">
@@ -207,8 +241,19 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           ))}
         </div>
 
+        {/*
+          States plainly what the file is. A macro is a list of inputs, not a
+          program, and saying so is both true and the fact an automated
+          "unwanted software" classifier cannot infer on its own.
+        */}
+        <p className="mx-auto mt-5 max-w-[540px] text-center text-[12.5px] leading-relaxed text-muted">
+          Macro files are input recordings, not programs. They cannot be run on their own and
+          nothing here installs software on your device. {site.name} does not host, bundle or
+          distribute the mod tools themselves.
+        </p>
+
         {/* Right after the download is where someone actually needs this. */}
-        <p className="mt-4 text-center text-[13px] text-muted">
+        <p className="mt-3 text-center text-[13px] text-muted">
           Not sure what to do with the file?{" "}
           <Link
             href="/install"

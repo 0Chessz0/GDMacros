@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import MacroBrowser from "@/components/MacroBrowser";
 import { getAllLevels, getMacroCount } from "@/lib/macros";
@@ -50,6 +51,22 @@ export default function HomePage() {
           ) : (
             site.description
           )}
+        </p>
+
+        {/*
+          A couple of real sentences above the catalog. A page that is almost
+          entirely a list of links has very little for a search engine to read,
+          and this is also the first thing a human lands on.
+        */}
+        <p className="mt-3 max-w-[640px] text-[13.5px] leading-relaxed text-muted">
+          A macro is a recording of every input in a Geometry Dash level, played back frame by
+          frame. Every one in this catalog is free, hosted by us so the links stay alive, and
+          labelled with the tool it needs. Browse extreme demon macros and everything else below,
+          then read{" "}
+          <Link href="/install" className="font-medium text-accent-soft underline-offset-2 hover:underline">
+            how to install a macro
+          </Link>{" "}
+          if you have not used one before.
         </p>
       </div>
 

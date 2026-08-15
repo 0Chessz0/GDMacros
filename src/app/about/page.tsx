@@ -5,8 +5,12 @@ import { getAllLevels, getMacroCount } from "@/lib/macros";
 import { SUBMIT_URL, site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "About",
-  description: `What ${site.name} is.`,
+  // Leads with the search phrase rather than the word "About", which nobody
+  // types into Google.
+  title: "About Geometry Dash Macros",
+  description:
+    "GDMacros is a free catalog of Geometry Dash macros for extreme demons and every other level, recorded with Mega Hack and xdBot and hosted by us.",
+  alternates: { canonical: "/about" },
 };
 
 const SECTIONS = [
@@ -35,10 +39,13 @@ export default function AboutPage() {
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
-      <AnimatedHeading text={`About ${site.name}`} className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]" />
+      <AnimatedHeading
+        text="About Geometry Dash Macros"
+        className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]"
+      />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        {site.name} is a place to find macros for Geometry Dash levels. Everything listed here was
-        recorded with either Mega Hack or xdBot, and everything is free to download.
+        {site.name} is a free catalog of Geometry Dash macros. Every macro here plays back a real
+        level, was recorded with either Mega Hack or xdBot, and costs nothing to download.
       </p>
 
       {count > 0 && (

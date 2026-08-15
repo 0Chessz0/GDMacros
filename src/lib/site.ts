@@ -19,7 +19,10 @@ export const site = {
    * robots.txt. Must match the domain you actually serve on, with no trailing
    * slash, or Google will index the wrong URLs.
    */
-  url: "https://gdmacros.com",
+  // Must match the domain Vercel serves as primary, including whether it has
+  // "www". If Vercel lists gdmacros.com without www as the primary domain,
+  // change this line, because every canonical tag and sitemap URL derives from it.
+  url: "https://www.gdmacros.com",
 
   /** Where "Submit a macro" and the GitHub button point. */
   repo: "https://github.com/0Chessz0/GDMacros",
