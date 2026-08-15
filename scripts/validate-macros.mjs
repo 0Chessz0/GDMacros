@@ -102,11 +102,20 @@ data.forEach((entry, i) => {
     }
   });
 
-  // Two macros by the same person on one level is almost always a copy/paste slip.
-  const authors = macros.map((m) => String(m.author || "").trim().toLowerCase()).filter(Boolean);
-  const dupeAuthor = authors.find((a, k) => authors.indexOf(a) !== k);
-  if (dupeAuthor) {
-    warnings.push(`${label}: has two macros credited to the same author ("${dupeAuthor}")`);
+  // One person recording the same level for both tools is normal, so the slip
+  // worth catching is the same author *and* the same recorder twice over.
+  const pairs = macros
+    .map((m) => `${String(m.author || "").trim().toLowerCase()}|${String(m.recorder || "").trim()}`)
+    .filter((p) => p !== "|");
+  const dupePair = pairs.find((p, k) => pairs.indexOf(p) !== k);
+  if (dupePair) {
+    const [who, tool] = dupePair.split("|");
+    warnings.push(`${label}: has two "${tool}" macros both credited to "${who}"`);
+  }
+
+  // Stray whitespace survives into the page title but is invisible in review.
+  if (typeof entry.name === "string" && entry.name !== entry.name.trim()) {
+    warnings.push(`${label}: name has leading or trailing whitespace`);
   }
 
   if (entry.video && !/(youtube\.com|youtu\.be)/i.test(entry.video)) {

@@ -235,11 +235,11 @@ export default function InstallPage() {
             Paid
           </span>
           <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11.5px] text-muted">
-            .mhr
+            .gdr2
           </span>
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-muted">
-          Mega Hack ships its own replay system with its own file format.
+          Mega Hack ships its own replay system and reads the same .gdr2 files.
         </p>
 
         <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
@@ -270,10 +270,20 @@ export default function InstallPage() {
           </Step>
         </ol>
 
-        <p className="mt-4 text-[13px] leading-relaxed text-muted">
-          Mega Hack replays and xdBot recordings are different formats. A .gdr2 file will not load in
-          Mega Hack, and a .mhr will not load in xdBot, unless you convert it first.
-        </p>
+        {/* Both tools share the .gdr2 extension, so people assume any macro works
+            anywhere. It does not, and finding that out mid-level is worse than
+            reading it here. */}
+        <div className="mt-5 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3">
+          <p className="text-[13.5px] leading-relaxed text-amber">
+            <span className="font-semibold">
+              A macro only works in the tool that recorded it.
+            </span>{" "}
+            Mega Hack and xdBot both use the .gdr2 extension, so the files look identical, but a
+            recording made in xdBot will not play in Mega Hack and a Mega Hack one will not play in
+            xdBot. Check the recorder on each download card and take the one that matches your
+            setup.
+          </p>
+        </div>
       </section>
 
       {/* --------------------------- troubleshooting -------------------------- */}
