@@ -2242,5 +2242,93 @@
         "downloadLink": "https://www.mediafire.com/file/5pocqbirq51r49t/The+Hell+Tribute.gdr2/file"
       }
     ]
+  },
+  {
+    "name": "Freedom08",
+    "creator": "Pennutoh",
+    "levelId": "55274070",
+    "video": "https://youtu.be/61QsScKXZ5M",
+    "description": "Sometimes you just need to sit down and relax. Verified by Golden, special effects by Enlex",
+    "addedAt": "2026-08-19",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/659tg3r0mnotop6/Freedom08.gdr2/file"
+      },
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/lssre1wkty7182m/Freedom08.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Generic Wave",
+    "creator": "Pennutoh",
+    "levelId": "49576382",
+    "video": "https://youtu.be/pHKlsMRG-_Y",
+    "description": "The only level in the entire game. Verified by Mullsy, collab with Enlex",
+    "addedAt": "2026-08-19",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/u2cbpivq7nsgdhz/Generic+Wave.gdr2/file"
+      },
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/xvfn8ib7gp89r9f/Generic+Wave.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Hatred",
+    "creator": "AZuLer4",
+    "levelId": "27580467",
+    "video": "https://youtu.be/ez5Y6jM_C-M",
+    "description": "Decoration by me, layout and verification by SrGuillester, Extreme Demon I guess",
+    "addedAt": "2026-08-19",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/1df8vzt3t6oq37f/Hatred.gdr2/file"
+      },
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/xptqwvp734jeybj/Hatred.gdr2/file"
+      }
+    ]
+  },
+  {
+    "name": "Ziroikabi",
+    "creator": "MikeWheelerFan",
+    "levelId": "44773500",
+    "video": "https://youtu.be/-1AmDUezDVs",
+    "description": "Kapinapi killed VerifyZiroikabi",
+    "addedAt": "2026-08-19",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/azo1pau5czdsf5d/Ziroikabi.gdr2/file"
+      },
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "MediaFire",
+        "downloadLink": "https://www.mediafire.com/file/x6en0sd6xqrvmhb/Ziroikabi.gdr2/file"
+      }
+    ]
   }
 ]
