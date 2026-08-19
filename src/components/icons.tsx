@@ -135,6 +135,12 @@ export const GridIcon = (p: IconProps) => (
   </Base>
 );
 
+export const SortAzIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M4 6h9M4 12h7M4 18h5M17 5v14M17 19l-3-3M17 19l3-3" />
+  </Base>
+);
+
 export const ClockIcon = (p: IconProps) => (
   <Base {...p}>
     <circle cx="12" cy="12" r="9" />

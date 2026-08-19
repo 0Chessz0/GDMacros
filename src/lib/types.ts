@@ -72,7 +72,10 @@ export interface Level {
   description?: string;
   addedAt?: string;
   slug: string;
+  /** Small, for list rows and cards. */
   thumbnailUrl: string | null;
+  /** Full size, for share cards and anything rendered large. */
+  thumbnailLargeUrl: string | null;
   youtubeId: string | null;
   /** Pre-lowercased haystack for the search box. */
   searchIndex: string;

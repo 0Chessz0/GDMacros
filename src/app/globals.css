@@ -231,6 +231,17 @@ body {
   }
 }
 
+/*
+ * A pointer that cannot hover gets no spotlight at all. On a phone the glow
+ * would only ever flash on tap, while still costing a gradient repaint, and
+ * phones are exactly where that budget is tightest.
+ */
+@media (hover: none) {
+  .spotlight::before {
+    display: none;
+  }
+}
+
 @utility card {
   background-color: var(--surface);
   border: 1px solid var(--border-soft);
@@ -437,6 +448,28 @@ body {
 }
 
 /* Entry animation for list rows, staggered via an inline --i on each row. */
+/*
+ * A hundred rows is a lot to keep rendered. content-visibility lets the browser
+ * skip layout, paint and compositing for anything scrolled out of view, which
+ * is the single biggest saving available on a weak phone.
+ *
+ * It also solves a subtler problem for free: an element that is not rendered
+ * cannot take part in a View Transition, so re-sorting morphs only the handful
+ * of rows actually on screen instead of all 102. No device sniffing needed.
+ *
+ * contain-intrinsic-size keeps the scrollbar honest before a row has ever been
+ * measured. `auto` means the real height is remembered once it has.
+ */
+.defer-offscreen {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 161px;
+}
+
+.defer-offscreen-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 232px;
+}
+
 @keyframes rise {
   from {
     opacity: 0;

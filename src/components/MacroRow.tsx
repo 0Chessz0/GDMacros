@@ -28,7 +28,7 @@ export default function MacroRow({ level, index }: { level: Level; index: number
           viewTransitionName: `macro-${level.slug}`,
         } as React.CSSProperties
       }
-      className="animate-rise card spotlight group flex items-center gap-3.5 p-3.5 transition-[border-color,transform] duration-200 ease-out hover:-translate-y-px hover:border-accent/40 active:scale-[0.995] active:duration-75 sm:gap-4 sm:p-4"
+      className="animate-rise card spotlight group defer-offscreen flex items-center gap-3.5 p-3.5 transition-[border-color,transform] duration-200 ease-out hover:-translate-y-px hover:border-accent/40 active:scale-[0.995] active:duration-75 sm:gap-4 sm:p-4"
     >
       <Thumb level={level} className="aspect-video w-[116px] sm:w-[170px] lg:w-[225px]" />
 

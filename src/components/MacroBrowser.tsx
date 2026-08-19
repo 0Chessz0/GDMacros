@@ -5,12 +5,54 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
 import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
-import RecentlyAdded from "./RecentlyAdded";
 import MacroRow from "./MacroRow";
 import Segmented from "./Segmented";
-import { BotIcon, DiceIcon, GridIcon, RowsIcon, SearchIcon, XIcon } from "./icons";
+import {
+  BotIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  DiceIcon,
+  GridIcon,
+  RowsIcon,
+  SearchIcon,
+  SortAzIcon,
+  XIcon,
+} from "./icons";
 
 type View = "list" | "grid";
+
+/**
+ * How the list is ordered. The button cycles through these in order, so the
+ * next one is always predictable.
+ */
+type Sort = "az" | "newest" | "oldest";
+
+const SORTS: { id: Sort; label: string; short: string; next: string }[] = [
+  { id: "az", label: "Sorted A-Z", short: "A-Z", next: "newest first" },
+  { id: "newest", label: "Newest first", short: "Newest", next: "oldest first" },
+  { id: "oldest", label: "Oldest first", short: "Oldest", next: "A to Z" },
+];
+
+/** Remembered between visits, so a chosen order is still there on the way back. */
+const SORT_KEY = "gdmacros:sort";
+const VIEW_KEY = "gdmacros:view";
+
+/* localStorage throws in private mode and when the quota is full. A remembered
+   preference is never worth breaking the page over, so both sides swallow it. */
+function safeRead(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function safeWrite(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    /* nothing to do */
+  }
+}
 type RecorderFilter = Recorder | "all";
 
 /**
@@ -20,10 +62,11 @@ type RecorderFilter = Recorder | "all";
  */
 const STAGGER_CAP = 12;
 
-export default function MacroBrowser({ levels, recent }: { levels: Level[]; recent: Level[] }) {
+export default function MacroBrowser({ levels }: { levels: Level[] }) {
   const [query, setQuery] = useState("");
   const [view, setView] = useState<View>("list");
   const [recorder, setRecorder] = useState<RecorderFilter>("all");
+  const [sort, setSort] = useState<Sort>("az");
   const inputRef = useRef<HTMLInputElement>(null);
   const hydrated = useRef(false);
   const router = useRouter();
@@ -42,6 +85,16 @@ export default function MacroBrowser({ levels, recent }: { levels: Level[]; rece
     const matched = RECORDERS.find((v) => v.toLowerCase() === r?.toLowerCase());
     if (matched) setRecorder(matched);
 
+    // A link wins over the remembered preference, so a shared URL always shows
+    // what the sender saw. Only presentation is remembered, never the recorder
+    // filter: silently hiding levels on a return visit would be baffling.
+    const urlSort = SORTS.find((o) => o.id === p.get("sort"));
+    const savedSort = SORTS.find((o) => o.id === safeRead(SORT_KEY));
+    if (urlSort) setSort(urlSort.id);
+    else if (savedSort) setSort(savedSort.id);
+
+    if (p.get("view") !== "grid" && safeRead(VIEW_KEY) === "grid") setView("grid");
+
     hydrated.current = true;
   }, []);
 
@@ -52,9 +105,13 @@ export default function MacroBrowser({ levels, recent }: { levels: Level[]; rece
     if (query) p.set("q", query);
     if (view !== "list") p.set("view", view);
     if (recorder !== "all") p.set("recorder", recorder);
+    if (sort !== "az") p.set("sort", sort);
     const qs = p.toString();
     window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
-  }, [query, view, recorder]);
+
+    safeWrite(SORT_KEY, sort);
+    safeWrite(VIEW_KEY, view);
+  }, [query, view, recorder, sort]);
 
   // "/" focuses search, Escape clears it. Standard for a search-first page.
   useEffect(() => {
@@ -79,12 +136,32 @@ export default function MacroBrowser({ levels, recent }: { levels: Level[]; rece
     const needle = query.trim().toLowerCase();
     const terms = needle ? needle.split(/\s+/) : [];
 
-    return levels.filter((level) => {
+    const matched = levels.filter((level) => {
       // A level matches when *any* of its macros used the selected recorder.
       if (recorder !== "all" && !level.macros.some((m) => m.recorder === recorder)) return false;
       return terms.every((t) => level.searchIndex.includes(t));
     });
-  }, [levels, query, recorder]);
+
+    if (sort === "az") return matched;
+
+    // Anything without a date goes last either way, rather than being treated
+    // as impossibly old or impossibly new. Array.sort is stable, so levels
+    // sharing a date keep their A-Z order instead of shuffling per render.
+    const dated = matched.filter((l) => l.addedAt);
+    const undated = matched.filter((l) => !l.addedAt);
+    dated.sort((a, b) =>
+      sort === "newest" ? b.addedAt!.localeCompare(a.addedAt!) : a.addedAt!.localeCompare(b.addedAt!),
+    );
+    return [...dated, ...undated];
+  }, [levels, query, recorder, sort]);
+
+  const activeSort = SORTS.find((o) => o.id === sort) ?? SORTS[0];
+
+  /** Steps to the next order. Wraps, so the button never dead-ends. */
+  function cycleSort() {
+    const i = SORTS.findIndex((o) => o.id === sort);
+    withTransition(() => setSort(SORTS[(i + 1) % SORTS.length].id));
+  }
 
   /**
    * Jumps to a random level from whatever is currently on screen, so an active
@@ -196,20 +273,36 @@ export default function MacroBrowser({ levels, recent }: { levels: Level[]; rece
               : ` of ${levels.length} level${levels.length === 1 ? "" : "s"}`}
           </p>
           <span className="text-muted/40">·</span>
-          {/* "A-Z" is pinned: Google Translate reads it as the state code and
+          {/* Cycles A-Z, newest, oldest. The title says what the next click
+              does, because a cycling control otherwise hides its options.
+              "A-Z" is pinned: Google Translate reads it as the state code and
               renders "sorted in Arizona" in several languages. */}
-          <p className="text-[12.5px] text-muted">
-            Sorted{" "}
-            <span translate="no" className="notranslate">
-              A-Z
-            </span>
-          </p>
+          <button
+            type="button"
+            onClick={cycleSort}
+            title={`Sorted ${activeSort.short}. Click to sort by ${activeSort.next}.`}
+            aria-label={`Change sorting. Currently ${activeSort.label}. Click to sort by ${activeSort.next}.`}
+            className="group/sort flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12.5px] font-medium text-text-dim transition-[border-color,background-color,transform] duration-200 ease-out hover:border-accent/40 hover:bg-surface-2 hover:text-text active:scale-95 active:duration-75"
+          >
+            {activeSort.id === "az" ? (
+              <SortAzIcon className="h-3.5 w-3.5 text-muted transition-colors group-hover/sort:text-accent-soft" />
+            ) : (
+              <ClockIcon className="h-3.5 w-3.5 text-muted transition-colors group-hover/sort:text-accent-soft" />
+            )}
+            {activeSort.id === "az" ? (
+              <span>
+                Sorted{" "}
+                <span translate="no" className="notranslate">
+                  A-Z
+                </span>
+              </span>
+            ) : (
+              <span>{activeSort.label}</span>
+            )}
+            <ChevronDownIcon className="h-3 w-3 text-muted/60 transition-transform duration-200 group-hover/sort:translate-y-px" />
+          </button>
         </div>
       </div>
-
-      {/* Only when nothing is narrowed down. Mid-search it would be noise,
-          and it would sit above results that do not match it. */}
-      {!query && recorder === "all" && <RecentlyAdded levels={recent} />}
 
       {results.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">

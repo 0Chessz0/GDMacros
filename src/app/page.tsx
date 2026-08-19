@@ -1,13 +1,12 @@
 import Link from "next/link";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import MacroBrowser from "@/components/MacroBrowser";
-import { getAllLevels, getMacroCount, getRecentLevels } from "@/lib/macros";
+import { getAllLevels, getMacroCount } from "@/lib/macros";
 import { site } from "@/lib/site";
 
 export default function HomePage() {
   const levels = getAllLevels();
   const macroCount = getMacroCount();
-  const recent = getRecentLevels(6);
 
   /** Lets Google see the catalog as a list of things rather than a wall of divs. */
   const listJsonLd = {
@@ -71,7 +70,7 @@ export default function HomePage() {
         </p>
       </div>
 
-      <MacroBrowser levels={levels} recent={recent} />
+      <MacroBrowser levels={levels} />
     </div>
   );
 }

@@ -143,7 +143,14 @@ export function getAllLevels(): Level[] {
         addedAt: entry.addedAt,
         slug,
         youtubeId,
+        // Two sizes on purpose. The list renders these between 74 and 225px
+        // wide, where mqdefault (320x180) is still oversampled and weighs 44%
+        // less: about 1.23 MB saved across the whole home page. Share cards and
+        // anything full width need the bigger one.
         thumbnailUrl:
+          entry.thumbnail ||
+          (youtubeId ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` : null),
+        thumbnailLargeUrl:
           entry.thumbnail ||
           (youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : null),
         searchIndex: [
@@ -178,21 +185,6 @@ export function getNeighbours(slug: string): { prev: Level | null; next: Level |
   const i = all.findIndex((l) => l.slug === slug);
   if (i === -1) return { prev: null, next: null };
   return { prev: all[i - 1] ?? null, next: all[i + 1] ?? null };
-}
-
-/**
- * The most recently added levels, newest first. Levels with no `addedAt` are
- * skipped rather than guessed at, so an entry only appears here once it has a
- * real date.
- *
- * Ties are broken alphabetically, because a whole batch usually shares one date
- * and an arbitrary order would reshuffle on every build.
- */
-export function getRecentLevels(limit = 6): Level[] {
-  return getAllLevels()
-    .filter((l) => Boolean(l.addedAt))
-    .sort((a, b) => (a.addedAt! === b.addedAt! ? a.name.localeCompare(b.name) : a.addedAt! < b.addedAt! ? 1 : -1))
-    .slice(0, limit);
 }
 
 /** Total macro count across every level, for the About page and metadata. */

@@ -57,13 +57,13 @@ export async function generateMetadata({
       description,
       url: `/macro/${level.slug}`,
       type: "article",
-      images: level.thumbnailUrl ? [level.thumbnailUrl] : undefined,
+      images: level.thumbnailLargeUrl ? [level.thumbnailLargeUrl] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | ${site.name}`,
       description,
-      images: level.thumbnailUrl ? [level.thumbnailUrl] : undefined,
+      images: level.thumbnailLargeUrl ? [level.thumbnailLargeUrl] : undefined,
     },
   };
 }
