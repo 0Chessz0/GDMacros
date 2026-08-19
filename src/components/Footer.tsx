@@ -27,6 +27,9 @@ export default function Footer() {
             <Link href="/install" className="text-text-dim transition-colors hover:text-accent-soft">
               How to install
             </Link>
+            <Link href="/favorites" className="text-text-dim transition-colors hover:text-accent-soft">
+              Favorites
+            </Link>
             <Link href="/faq" className="text-text-dim transition-colors hover:text-accent-soft">
               FAQ
             </Link>
@@ -35,6 +38,9 @@ export default function Footer() {
             </Link>
             <Link href="/about" className="text-text-dim transition-colors hover:text-accent-soft">
               About
+            </Link>
+            <Link href="/privacy" className="text-text-dim transition-colors hover:text-accent-soft">
+              Privacy
             </Link>
             <a
               href={SUBMIT_URL}

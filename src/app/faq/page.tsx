@@ -42,17 +42,22 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
   {
     q: "Are Geometry Dash macros bannable?",
     plain:
-      "Using a macro in normal play is not detected or punished by the game itself. Submitting a macro completion as a legitimate record to a demon list or a level creator is cheating, and those communities do ban for it.",
+      "There is a real risk. That decision is not ours to make: it is up to RobTop and the community lists. Completions done with a macro can get you removed from the in-game leaderboards, and submitting one as a legitimate record to a demon list is cheating and gets banned. Use macros for practice and for watching a level, not for claiming a record.",
     a: (
       <>
-        The game itself does not detect or punish macro playback, so using one privately is not going
-        to get your account banned.
+        <span className="font-semibold text-text">There is a real risk, and it is not our call.</span>{" "}
+        Nobody here can promise you are safe. What happens to an account is decided by RobTop and by
+        the community lists, not by this site.
         <br />
         <br />
-        Submitting a macro completion as though you played it yourself is a different matter. Demon
-        lists, leaderboards and creators treat that as cheating and will remove or ban the
-        submission. Macros are for practice, for seeing a route, and for watching a level get beaten,
-        not for claiming a record.
+        A completion done with a macro can get you{" "}
+        <span className="font-semibold text-text-dim">removed from the in-game leaderboards</span>,
+        and submitting one to a demon list as though you played it yourself is cheating: those
+        communities remove records and ban people for it.
+        <br />
+        <br />
+        Macros are for practice, for learning a route, and for watching a level get beaten. If you
+        use one, do not put the result forward as your own achievement.
       </>
     ),
   },
@@ -139,12 +144,12 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
     ),
   },
   {
-    q: "Can I request a level, or send in my own macro?",
+    q: "Can I send in my own macro?",
     plain:
       "Yes. Submissions go through the form linked in the navigation. Recordings must come from Mega Hack or xdBot, and reuploads of someone else's macro are rejected.",
     a: (
       <>
-        Yes. Everything goes through{" "}
+        Yes. Submissions go through{" "}
         <a
           href={SUBMIT_URL}
           target="_blank"
@@ -153,7 +158,7 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
         >
           the form
         </a>
-        , for both requests and submissions.
+        .
         <br />
         <br />
         Recordings have to come from Mega Hack or xdBot, and reuploads of someone else's macro are
@@ -162,6 +167,23 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
           guidelines
         </Link>{" "}
         cover the rest.
+      </>
+    ),
+  },
+  {
+    q: "A download is dead, or a macro does not play properly. What do I do?",
+    plain:
+      "Use the Report broken button on that macro's page. It opens a prefilled issue on the GitHub repository with the level already filled in.",
+    a: (
+      <>
+        Every macro page has a{" "}
+        <span className="font-semibold text-text">Report broken</span> button. It opens an issue on
+        our GitHub with the level already filled in, so all you have to add is what went wrong.
+        <br />
+        <br />
+        Before reporting a macro that loads but plays badly: check you downloaded the version for
+        the tool you actually use. An xdBot recording will not play correctly in Mega Hack, which is
+        the single most common cause.
       </>
     ),
   },

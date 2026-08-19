@@ -141,6 +141,18 @@ export const SortAzIcon = (p: IconProps) => (
   </Base>
 );
 
+export const StarIcon = ({ filled = false, ...p }: IconProps & { filled?: boolean }) => (
+  <Base {...p} fill={filled ? "currentColor" : "none"}>
+    <path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.9l-5.25 2.8 1-5.85L3.5 9.7l5.9-.9z" />
+  </Base>
+);
+
+export const BugIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M9 7a3 3 0 0 1 6 0M6 11a6 6 0 0 1 12 0v3a6 6 0 0 1-12 0zM3 12h3M18 12h3M4.5 7.5 7 9M19.5 7.5 17 9M4.5 17.5 7 16M19.5 17.5 17 16" />
+  </Base>
+);
+
 export const ClockIcon = (p: IconProps) => (
   <Base {...p}>
     <circle cx="12" cy="12" r="9" />

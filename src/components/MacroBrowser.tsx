@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
 import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
+import RecentlyViewed from "./RecentlyViewed";
 import MacroRow from "./MacroRow";
 import Segmented from "./Segmented";
 import {
@@ -303,6 +304,10 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
           </button>
         </div>
       </div>
+
+      {/* Only with nothing narrowed down: mid-search it would sit above results
+          it does not match. Renders nothing until localStorage has been read. */}
+      {!query && recorder === "all" && <RecentlyViewed levels={levels} />}
 
       {results.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">

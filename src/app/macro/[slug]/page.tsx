@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
+import FavoriteButton from "@/components/FavoriteButton";
+import ReportBroken from "@/components/ReportBroken";
+import TrackView from "@/components/TrackView";
 import Thumb from "@/components/Thumb";
 import VideoEmbed from "@/components/VideoEmbed";
 import {
@@ -183,6 +186,8 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="mx-auto w-full max-w-[740px] px-4 py-7 sm:px-6 sm:py-9">
       <StructuredData level={level} />
+      {/* Records the visit in this browser only, for "Recently viewed". */}
+      <TrackView slug={level.slug} />
 
       <Link
         href="/"
@@ -264,7 +269,7 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
         </p>
       </section>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
         <a
           href={levelUrl(level.levelId)}
           target="_blank"
@@ -274,6 +279,9 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           <GamepadIcon className="h-[19px] w-[19px] transition-transform duration-300 ease-out group-hover:-rotate-12" />
           GD Browser
         </a>
+
+        <FavoriteButton slug={level.slug} name={level.name} />
+        <ReportBroken name={level.name} levelId={level.levelId} slug={level.slug} />
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-2 text-[12px] text-muted">

@@ -1,0 +1,81 @@
+name: Broken macro
+description: A download is dead, or a macro does not play the level correctly.
+title: "[Broken] "
+labels: ["broken macro"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. If you arrived here from the Report broken button,
+        the first two fields are already filled in for you.
+
+  - type: input
+    id: level
+    attributes:
+      label: Level
+      description: The level name, and its ID if you have it.
+      placeholder: Acheron (ID 73667628)
+    validations:
+      required: true
+
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The GDMacros page for this macro.
+      placeholder: https://www.gdmacros.com/macro/acheron
+    validations:
+      required: false
+
+  - type: dropdown
+    id: which
+    attributes:
+      label: Which macro
+      description: Most levels have one of each. Pick the one that is broken.
+      options:
+        - Mega Hack
+        - xdBot
+        - Both
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What is wrong
+      options:
+        - The download link is dead or the file is gone
+        - The file downloads but will not load in the mod
+        - It loads but does not play the level correctly
+        - Wrong level, or wrong macro attached
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What happens
+      description: >
+        What did you expect, and what happened instead? If it desyncs, roughly how
+        far in does it go wrong?
+      placeholder: Loads fine, then dies at about 40% every time.
+    validations:
+      required: true
+
+  - type: input
+    id: setup
+    attributes:
+      label: Your setup
+      description: Which tool and version, and PC or mobile.
+      placeholder: Mega Hack v8, PC
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        Note: an xdBot recording will not play correctly in Mega Hack. If that is
+        the case, download the Mega Hack version of the same level instead. The
+        [FAQ](https://www.gdmacros.com/faq) explains why.

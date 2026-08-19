@@ -28,10 +28,12 @@ interface MenuItem {
 
 const MORE_ITEMS: MenuItem[] = [
   { label: "How to install", href: "/install", desc: "Loading a macro into the game" },
+  { label: "Favorites", href: "/favorites", desc: "Macros you saved in this browser" },
   { label: "FAQ", href: "/faq", desc: "Bannable? How to open a .gdr2?" },
   { label: "Guidelines", href: "/guidelines", desc: "What gets accepted, and how" },
   { label: "Submit a macro", href: SUBMIT_URL, desc: "Send one in through the form", external: true },
   { label: "About", href: "/about", desc: "What this site is" },
+  { label: "Privacy", href: "/privacy", desc: "Analytics, cookies and third parties" },
 ];
 
 /* -------------------------------------------------------------------------- */
