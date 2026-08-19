@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from "react";
 import { LANGUAGES, SUBMIT_URL, site } from "@/lib/site";
 import { currentTranslateLang, setTranslateLang } from "./GoogleTranslate";
+import AccountLink from "./AccountLink";
 import ThemeToggle from "./ThemeToggle";
 import {
   ChevronDownIcon,
@@ -268,6 +269,7 @@ export default function Navbar() {
 
         <div className="ml-auto flex items-center gap-0.5">
           <ThemeToggle />
+          <AccountLink />
           <a
             href={SUBMIT_URL}
             target="_blank"

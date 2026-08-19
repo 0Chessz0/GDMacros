@@ -32,29 +32,30 @@ export default function PrivacyPage() {
         Privacy
       </h1>
       <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-        {site.name} has no accounts, no logins and no database of visitors. Nothing you do here is
-        tied to a name or an email address, because there is nowhere to put one. This page covers
-        the website only.
+        Accounts on {site.name} are optional. Browsing and downloading macros needs no account and
+        collects nothing about you. If you do create one, the only personal data involved is your
+        email address. This page covers the website only.
       </p>
 
       <div className="mt-7 flex flex-col gap-3">
         <Section title="What is stored in your browser">
           <p>
             A few small preferences are kept in your browser's local storage. This is not a cookie,
-            it is never sent to a server, and it never leaves your device:
+            it is never sent to a server, and it never leaves your device. This is separate from
+            the account session cookie described below:
           </p>
           <ul className="ml-4 list-disc space-y-1 text-[13px]">
             <li>
-              <span className="font-mono text-[12px] text-text">gdmacros:recent</span> — the last few
+              <span className="font-mono text-[12px] text-text">gdmacros:recent</span>: the last few
               macros you opened, for the "Recently viewed" row.
             </li>
             <li>
-              <span className="font-mono text-[12px] text-text">gdmacros:favorites</span> — the
+              <span className="font-mono text-[12px] text-text">gdmacros:favorites</span>: the
               macros you starred.
             </li>
             <li>
               <span className="font-mono text-[12px] text-text">gdmacros:sort</span> and{" "}
-              <span className="font-mono text-[12px] text-text">gdmacros:view</span> — how you like
+              <span className="font-mono text-[12px] text-text">gdmacros:view</span>: how you like
               the catalog ordered and laid out.
             </li>
           </ul>
@@ -65,6 +66,30 @@ export default function PrivacyPage() {
           <div className="pt-1">
             <ClearStored />
           </div>
+        </Section>
+
+        <Section title="If you create an account">
+          <p>
+            Accounts are handled by <span className="font-semibold text-text">Supabase</span>, which
+            stores your email address and a hashed password on your behalf. We never see or store
+            your password ourselves.
+          </p>
+          <p>
+            An email address is required so the account can be verified and so a password can be
+            reset. Those emails are delivered by <span className="font-semibold text-text">Resend</span>,
+            which handles the sending on our behalf and therefore sees the address the message goes
+            to. Nothing else about you is collected, and there is no profile, no display name and no
+            public page.
+          </p>
+          <p>
+            Being signed in sets a session cookie so the site knows it is you between pages. Signing
+            out removes it and revokes the session.
+          </p>
+          <p>
+            You do not need an account to use this site, and having one changes nothing about what
+            you can download. Favorites and recently viewed are still stored in your browser rather
+            than on your account, so they do not follow you between devices.
+          </p>
         </Section>
 
         <Section title="Analytics">
@@ -85,7 +110,7 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="Translation, and the only cookies here">
+        <Section title="Translation">
           <p>
             The language picker uses the{" "}
             <span className="font-semibold text-text">Google Translate website widget</span>. If you
@@ -94,8 +119,8 @@ export default function PrivacyPage() {
           <p>
             If you do pick a language, Google sets its own cookies to remember that choice and the
             text of the page is sent to Google to be translated. That is Google's processing, under
-            Google's privacy policy, not ours. These are the only cookies involved anywhere on the
-            site.
+            Google's privacy policy, not ours. Apart from these and the account session cookie, the
+            site sets no cookies at all.
           </p>
         </Section>
 
@@ -137,9 +162,8 @@ export default function PrivacyPage() {
 
         <Section title="Changes">
           <p>
-            If accounts are ever added to {site.name}, that would mean storing real personal data
-            for the first time, and this page will be rewritten before any of it goes live rather
-            than after.
+            Accounts arrived in August 2026, and this page was updated before they went live rather
+            than after. If anything else changes about what is collected, this page changes first.
           </p>
           <p className="text-[13px] text-muted">
             Questions, or something here that looks wrong? Open an issue on{" "}

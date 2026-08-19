@@ -89,6 +89,13 @@ export const MoonIcon = (p: IconProps) => (
   </Base>
 );
 
+export const UserIcon = (p: IconProps) => (
+  <Base {...p}>
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20a7 7 0 0 1 14 0" />
+  </Base>
+);
+
 export const LoginIcon = (p: IconProps) => (
   <Base {...p}>
     <path d="M15 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3" />
