@@ -40,6 +40,12 @@ export interface LevelInput {
   slug?: string;
   /** Optional blurb shown on the detail page. */
   description?: string;
+  /**
+   * ISO date (YYYY-MM-DD) this level was added to the catalog. Written by the
+   * GDMacros App. Drives the "recently added" section; a level without one is
+   * simply never treated as new.
+   */
+  addedAt?: string;
 
   /** @deprecated Legacy single-macro fields, still read if `macros` is absent. */
   macroAuthor?: string;
@@ -64,6 +70,7 @@ export interface Level {
   macros: Macro[];
   video?: string;
   description?: string;
+  addedAt?: string;
   slug: string;
   thumbnailUrl: string | null;
   youtubeId: string | null;

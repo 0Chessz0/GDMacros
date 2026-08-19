@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = site.url.replace(/\/$/, "");
   const lastModified = catalogModified();
 
-  const staticPages = ["", "/install", "/guidelines", "/about"].map((page) => ({
+  const staticPages = ["", "/install", "/faq", "/guidelines", "/about"].map((page) => ({
     url: `${base}${page}`,
     lastModified,
     changeFrequency: "weekly" as const,

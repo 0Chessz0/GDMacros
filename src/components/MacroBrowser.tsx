@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
 import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
+import RecentlyAdded from "./RecentlyAdded";
 import MacroRow from "./MacroRow";
 import Segmented from "./Segmented";
 import { BotIcon, DiceIcon, GridIcon, RowsIcon, SearchIcon, XIcon } from "./icons";
@@ -19,7 +20,7 @@ type RecorderFilter = Recorder | "all";
  */
 const STAGGER_CAP = 12;
 
-export default function MacroBrowser({ levels }: { levels: Level[] }) {
+export default function MacroBrowser({ levels, recent }: { levels: Level[]; recent: Level[] }) {
   const [query, setQuery] = useState("");
   const [view, setView] = useState<View>("list");
   const [recorder, setRecorder] = useState<RecorderFilter>("all");
@@ -205,6 +206,10 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
           </p>
         </div>
       </div>
+
+      {/* Only when nothing is narrowed down. Mid-search it would be noise,
+          and it would sit above results that do not match it. */}
+      {!query && recorder === "all" && <RecentlyAdded levels={recent} />}
 
       {results.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">
