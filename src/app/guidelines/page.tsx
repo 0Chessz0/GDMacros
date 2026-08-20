@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AnimatedHeading from "@/components/AnimatedHeading";
-import { SUBMIT_URL, site } from "@/lib/site";
+import Link from "next/link";
+import { site } from "@/lib/site";
 import { RECORDERS } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -67,18 +68,16 @@ export default function GuidelinesPage() {
       <section className="card mt-10 p-5">
         <h2 className="text-[17px] font-bold text-text">Submitting</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          You don&apos;t need to host the file anywhere. Fill in the form with your macro, the level
-          name, the level creator, your name and the level ID. We upload it to our own Google Drive
-          and add it to the catalog for you.
+          You don&apos;t need to host the file anywhere. Sign in, fill in the level name, the level
+          creator, the level ID and who recorded it, then attach the .gdr2. We review it, upload it
+          ourselves and add it to the catalog for you.
         </p>
-        <a
-          href={SUBMIT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/submit"
           className="mt-4 inline-flex rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-95 active:duration-75"
         >
           Submit a macro
-        </a>
+        </Link>
       </section>
     </div>
   );

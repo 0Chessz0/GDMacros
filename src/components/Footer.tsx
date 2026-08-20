@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SUBMIT_URL, site } from "@/lib/site";
+import { site } from "@/lib/site";
 import { GithubIcon, GlobeIcon } from "./icons";
 
 export default function Footer() {
@@ -42,14 +42,12 @@ export default function Footer() {
             <Link href="/privacy" className="text-text-dim transition-colors hover:text-accent-soft">
               Privacy
             </Link>
-            <a
-              href={SUBMIT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/submit"
               className="text-text-dim transition-colors hover:text-accent-soft"
             >
               Submit a macro
-            </a>
+            </Link>
           </nav>
 
           <a

@@ -52,8 +52,7 @@ export default async function AccountPage() {
         Your account
       </h1>
       <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-        There is not much here yet. Accounts exist so that submitting and managing macros can be
-        tied to a person later.
+        Your account holds your public username, your favorites and the macros you have sent in.
       </p>
 
       <div className="card mt-6 px-5 py-1.5">
@@ -101,6 +100,12 @@ export default async function AccountPage() {
           </button>
         </form>
         <Link
+          href="/submissions"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"
+        >
+          Your submissions
+        </Link>
+        <Link
           href="/favorites"
           className="rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"
         >
@@ -109,8 +114,8 @@ export default async function AccountPage() {
       </div>
 
       <p className="mt-6 text-[12.5px] leading-relaxed text-muted">
-        Favorites are still saved in this browser rather than to your account, so they do not follow
-        you to another device yet. What is stored where is listed on the{" "}
+        While you are signed in, your favorites are saved to your account, so the same list appears
+        on your other devices. What is stored where is listed on the{" "}
         <Link href="/privacy" className="text-accent-soft hover:underline">
           privacy page
         </Link>

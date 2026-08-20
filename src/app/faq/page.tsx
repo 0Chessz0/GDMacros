@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getMacroCount, getAllLevels } from "@/lib/macros";
-import { site, SUBMIT_URL } from "@/lib/site";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Geometry Dash macros FAQ: are they bannable, how to use a GDR2 file",
@@ -146,18 +146,13 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
   {
     q: "Can I send in my own macro?",
     plain:
-      "Yes. Submissions go through the form linked in the navigation. Recordings must come from Mega Hack or xdBot, and reuploads of someone else's macro are rejected.",
+      "Yes. Sign in and use the submit page. Recordings must come from Mega Hack or xdBot, and reuploads of someone else's macro are rejected.",
     a: (
       <>
         Yes. Submissions go through{" "}
-        <a
-          href={SUBMIT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-accent-soft hover:underline"
-        >
+        <Link href="/submit" className="text-accent-soft hover:underline">
           the form
-        </a>
+        </Link>
         .
         <br />
         <br />
