@@ -5,7 +5,12 @@ import MySubmissions from "@/components/submissions/MySubmissions";
 import { getUserAndProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { OWN_COLUMNS, type SubmissionRow } from "@/lib/submissions";
+import {
+  NOTIFICATION_COLUMNS,
+  OWN_COLUMNS,
+  type NotificationRow,
+  type SubmissionRow,
+} from "@/lib/submissions";
 
 export const metadata: Metadata = {
   title: "Your submissions",
@@ -22,14 +27,21 @@ export default async function SubmissionsPage() {
   if (!profile) redirect("/welcome");
 
   const supabase = await createClient();
-  // No user_id filter is needed: the select policy already scopes this to the
-  // caller's own rows. Filtering here would be a comment, not a control.
-  // Only the columns a submitter should see are requested, so no storage path
-  // and no reviewer id ever reach the page.
-  const { data } = (await supabase!
-    .from("submissions")
-    .select(OWN_COLUMNS)
-    .order("created_at", { ascending: false })) as { data: SubmissionRow[] | null };
+
+  // No user_id filter is needed on either query: the select policies already
+  // scope both tables to the caller's own rows. Filtering here would be a
+  // comment, not a control. Only the columns a submitter should see are
+  // requested, so no storage path and no admin identity reaches the page.
+  const [live, outcomes] = await Promise.all([
+    supabase!.from("submissions").select(OWN_COLUMNS).order("created_at", { ascending: false }),
+    supabase!
+      .from("submission_notifications")
+      .select(NOTIFICATION_COLUMNS)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const data = live.data as SubmissionRow[] | null;
+  const notifications = outcomes.data as NotificationRow[] | null;
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-10 sm:px-6 sm:py-14">
@@ -39,7 +51,7 @@ export default async function SubmissionsPage() {
             Your submissions
           </h1>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-            Everything you have sent in, and where each one got to.
+            What you have sent in, and how each one turned out.
           </p>
         </div>
         <Link
@@ -50,7 +62,7 @@ export default async function SubmissionsPage() {
         </Link>
       </div>
 
-      <MySubmissions rows={data ?? []} />
+      <MySubmissions rows={data ?? []} notifications={notifications ?? []} />
     </div>
   );
 }

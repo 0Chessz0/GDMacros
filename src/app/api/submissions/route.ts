@@ -6,6 +6,8 @@ import {
   putSubmissionObject,
 } from "@/lib/supabase/storage-admin";
 import { checkGdr2 } from "@/lib/gdr2";
+import { lookupLevel } from "@/lib/gdbrowser";
+import { canonicalUrl, verifyVideo, videoIdFromUrl } from "@/lib/youtube";
 import {
   MAX_FILE_BYTES,
   isClean,
@@ -31,6 +33,11 @@ import {
  *   2. require a profile, because a submission is attributed publicly;
  *   3. validate every field and the file itself, server side, because a browser
  *      check is advice rather than enforcement;
+ *   3b. RE-FETCH the level from GDBrowser and the video from YouTube, and store
+ *      what THEY say. The search UI is not a security boundary: a modified
+ *      request could otherwise pair a real level id with any name and creator
+ *      it liked. Only the id is taken from the request; the name and creator
+ *      are whatever GDBrowser returns for it;
  *   4. generate the submission id here, so the caller cannot choose it;
  *   5. upload the object FIRST;
  *   6. create the row second, as the user, so RLS and the RPC's own checks
@@ -114,6 +121,51 @@ export async function POST(request: NextRequest) {
     return bad(400, "Some fields need fixing.", { file: gdr.error });
   }
 
+  /*
+   * Re-verify the level. What the browser sent for name and creator is
+   * discarded entirely: only the id survives, and GDBrowser decides the rest.
+   * Failing closed here is deliberate. A submission whose level cannot be
+   * confirmed is worth rejecting, because an admin would have to check it by
+   * hand anyway.
+   */
+  const level = await lookupLevel(fields.levelId.trim());
+  if (!level.ok) {
+    const message =
+      level.reason === "not-found"
+        ? "That level ID is invalid."
+        : "We couldn't verify that Geometry Dash level right now. Please try again.";
+    return bad(level.reason === "not-found" ? 400 : 502, "Some fields need fixing.", {
+      levelId: message,
+    });
+  }
+
+  /*
+   * Re-verify the video, when one was given. oEmbed is official and keyless,
+   * and it answers 400 for anything that is not a real public video. Only a
+   * canonical watch URL is ever stored, built from the id rather than from the
+   * string the browser sent.
+   */
+  let videoUrl: string | null = null;
+  const rawVideo = fields.videoUrl.trim();
+  if (rawVideo) {
+    const videoId = videoIdFromUrl(rawVideo);
+    if (!videoId) {
+      return bad(400, "Some fields need fixing.", {
+        videoUrl: "That does not look like a YouTube link.",
+      });
+    }
+    const verified = await verifyVideo(videoId);
+    if (!verified.ok) {
+      return bad(verified.reason === "not-found" ? 400 : 502, "Some fields need fixing.", {
+        videoUrl:
+          verified.reason === "not-found"
+            ? "That video could not be found on YouTube. Check the link."
+            : "We couldn't check that video right now. Please try again.",
+      });
+    }
+    videoUrl = canonicalUrl(videoId);
+  }
+
   // Generated here. The caller never supplies it, so it cannot be aimed at
   // another user's folder or at an existing object.
   const submissionId = crypto.randomUUID();
@@ -127,10 +179,12 @@ export async function POST(request: NextRequest) {
   const values = normaliseSubmission(fields);
   const { error: rpcError } = await supabase.rpc("create_submission", {
     p_id: submissionId,
-    p_level_name: values.levelName,
-    p_level_id: values.levelId,
-    p_level_creator: values.levelCreator,
-    p_video_url: values.videoUrl,
+    // From GDBrowser, not from the request.
+    p_level_name: level.data.name,
+    p_level_id: level.data.levelId,
+    p_level_creator: level.data.creator,
+    // Canonical, rebuilt from the verified id.
+    p_video_url: videoUrl,
     p_recorder: values.recorder,
     p_macro_author: values.macroAuthor,
     p_notes: values.notes,

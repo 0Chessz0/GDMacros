@@ -138,6 +138,13 @@ export function submissionErrorMessage(raw: unknown): string {
   if (t.includes("not authenticated")) return "Sign in again and retry.";
   if (t.includes("no uploaded file")) return "The upload did not finish. Try sending it again.";
   if (t.includes("not authorised")) return "You do not have permission to do that.";
+  // Deliberately says nothing about why, by whom, or for how long, and never
+  // the private moderation note.
+  if (t.includes("submission ban")) return "You are not allowed to make macro submissions.";
+  if (t.includes("already being handled"))
+    return "Another admin is already handling that submission.";
+  if (t.includes("not being processed"))
+    return "That submission is no longer being processed.";
   if (t.includes("already reviewed") || t.includes("not found or already reviewed"))
     return "This submission has already been reviewed.";
   if (t.includes("not found, not yours, or already reviewed"))
@@ -161,12 +168,29 @@ export function submissionErrorMessage(raw: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
-/** The three states a submission can be in, for display. */
+/**
+ * The two states a LIVE submission can be in.
+ *
+ * There is no approved or rejected submission any more: an outcome deletes the
+ * row and leaves a small notification instead, so those live in
+ * `submission_notifications` rather than here.
+ */
 export const STATUS_LABEL: Record<string, string> = {
   pending: "Pending",
-  approved: "Approved",
-  rejected: "Rejected",
+  processing: "Being published",
 };
+
+/** One outcome the submitter is told about, after the submission itself is gone. */
+export interface NotificationRow {
+  id: string;
+  level_name: string;
+  outcome: "accepted" | "rejected";
+  rejection_reason: string | null;
+  created_at: string;
+}
+
+/** Everything a submitter may see about their own outcomes. Nothing else exists. */
+export const NOTIFICATION_COLUMNS = "id,level_name,outcome,rejection_reason,created_at";
 
 export interface SubmissionRow {
   id: string;
@@ -178,14 +202,12 @@ export interface SubmissionRow {
   macro_author: string;
   notes: string | null;
   status: string;
-  rejection_reason: string | null;
   created_at: string;
-  reviewed_at: string | null;
 }
 
 /** The columns a submitter is allowed to see. No storage path, no reviewer. */
 export const OWN_COLUMNS =
-  "id,level_name,level_id,level_creator,video_url,recorder,macro_author,notes,status,rejection_reason,created_at,reviewed_at";
+  "id,level_name,level_id,level_creator,video_url,recorder,macro_author,notes,status,created_at";
 
 export function formatDate(iso: string | null): string {
   if (!iso) return "";
