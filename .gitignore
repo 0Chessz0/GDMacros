@@ -22,3 +22,4 @@ supabase/.temp/
 # Screenshots written by the verification scripts. Evidence for a test run, not
 # part of the site.
 shots/
+.test-build/

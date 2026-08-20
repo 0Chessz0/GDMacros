@@ -1,11 +1,15 @@
 /**
  * Supabase configuration, read from the environment in exactly one place.
  *
- * Only the publishable (anon) key is ever referenced. It is designed to be
+ * Only the publishable (anon) key is referenced HERE. It is designed to be
  * public and is protected by row level security on the database side, which is
- * why it carries the NEXT_PUBLIC_ prefix. A service role key, a secret key or a
- * database password must never appear anywhere in this project: any of those in
- * a NEXT_PUBLIC_ variable would be shipped to every visitor's browser.
+ * why it carries the NEXT_PUBLIC_ prefix.
+ *
+ * There is exactly one privileged key in the project, SUPABASE_SECRET_KEY, and
+ * it lives in `storage-admin.ts` behind `import "server-only"`, never in this
+ * file. It has no NEXT_PUBLIC_ prefix, so Next cannot inline it into a browser
+ * bundle. Nothing privileged may ever be added here: a secret key or a database
+ * password in a NEXT_PUBLIC_ variable would be shipped to every visitor.
  */
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
