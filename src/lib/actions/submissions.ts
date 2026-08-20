@@ -179,6 +179,10 @@ export async function rejectSubmission(id: string, reason: string): Promise<Resu
 /**
  * A short-lived signed URL for one submission's file. Admin only.
  *
+ * Used from two places: inspecting a submission before deciding on it, and
+ * while publishing one by hand. Both are READ ONLY. This changes no status,
+ * claims nothing, notifies nobody and writes no database field.
+ *
  * The path is built from the row's own submitted_by, read back from the
  * database, rather than from anything the caller sends, so even a real admin
  * cannot ask this to sign an arbitrary path. Nothing permanent is ever stored
@@ -198,11 +202,17 @@ export async function getSubmissionDownloadUrl(
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("id,submitted_by")
+    .select("id,submitted_by,status")
     .eq("id", id)
     .maybeSingle();
 
   if (error || !data) return { error: "That submission could not be found." };
+
+  // Only a live submission has a file. Redundant today, since those are the
+  // only two states that exist, but it keeps the rule explicit if that changes.
+  if (data.status !== "pending" && data.status !== "processing") {
+    return { error: "That submission is no longer available." };
+  }
 
   const signed = await createSubmissionSignedUrl(data.submitted_by, data.id, 120);
   if ("error" in signed) {

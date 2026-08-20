@@ -48,9 +48,6 @@ export const KEYWORDS = [
 /** Level pages on GD Browser, e.g. https://gdbrowser.com/128 */
 export const GD_BROWSER = "https://gdbrowser.com";
 
-/** Google Form that macro submissions go through. */
-export const SUBMIT_URL = "https://forms.gle/WLJwL9Y82KZNnaQp8";
-
 /**
  * Every language the Google Translate widget accepts.
  *

@@ -149,9 +149,9 @@ const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
       "Yes. Sign in and use the submit page. Recordings must come from Mega Hack or xdBot, and reuploads of someone else's macro are rejected.",
     a: (
       <>
-        Yes. Submissions go through{" "}
+        Yes. Sign in and use{" "}
         <Link href="/submit" className="text-accent-soft hover:underline">
-          the form
+          the submit page
         </Link>
         .
         <br />

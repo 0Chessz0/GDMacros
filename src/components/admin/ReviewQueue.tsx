@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { rejectSubmission, startProcessing } from "@/lib/actions/submissions";
+import {
+  getSubmissionDownloadUrl,
+  rejectSubmission,
+  startProcessing,
+} from "@/lib/actions/submissions";
 import { LIMITS, MIN_REJECTION_REASON, STATUS_LABEL, formatDate } from "@/lib/submissions";
 import ProcessingModal from "./ProcessingModal";
 
@@ -53,7 +57,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"accept" | "reject" | null>(null);
+  const [busy, setBusy] = useState<"accept" | "reject" | "download" | null>(null);
   const [open, setOpen] = useState(false);
   // Set the moment a claim succeeds, so this card shows the right buttons
   // without waiting for a refresh that would remove it from this filter.
@@ -79,6 +83,26 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
         setError(res.error);
       }
     });
+  }
+
+  /**
+   * Inspect the macro before deciding.
+   *
+   * Read only in every sense: it mints a short-lived signed URL and changes
+   * nothing. No claim, no status change, no notification, no database write.
+   * The path is derived server side from the row, so the browser cannot ask for
+   * an arbitrary object.
+   */
+  async function download() {
+    setError(null);
+    setBusy("download");
+    const res = await getSubmissionDownloadUrl(row.id);
+    setBusy(null);
+    if ("error" in res) {
+      setError(res.error);
+      return;
+    }
+    window.open(res.url, "_blank", "noopener,noreferrer");
   }
 
   function reject() {
@@ -144,6 +168,9 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
             </span>
           </Field>
           <Field label="Recorder">{row.recorder}</Field>
+          <Field label="File size">
+            {row.file_size ? `${(row.file_size / 1024).toFixed(1)} KB` : "Unknown"}
+          </Field>
           <Field label="Submitted">{formatDate(row.created_at)}</Field>
           <Field label="Video">
             {row.video_url ? (
@@ -188,11 +215,19 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
             <>
               <button
                 type="button"
+                onClick={download}
+                disabled={busy !== null}
+                className="rounded-lg border border-accent/40 bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent-soft transition-[background-color,border-color,transform] duration-200 ease-out hover:bg-accent/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {busy === "download" ? "Preparing..." : "Download .gdr2"}
+              </button>
+              <button
+                type="button"
                 onClick={accept}
                 disabled={busy !== null}
                 className="rounded-lg bg-accent px-3.5 py-2 text-[12.5px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {busy === "accept" ? "Opening..." : "Accept and publish"}
+                {busy === "accept" ? "Opening..." : "Start Publishing"}
               </button>
               <button
                 type="button"
@@ -207,6 +242,14 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
 
           {status === "processing" && (
             <>
+              <button
+                type="button"
+                onClick={download}
+                disabled={busy !== null}
+                className="rounded-lg border border-accent/40 bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent-soft transition-[background-color,border-color,transform] duration-200 ease-out hover:bg-accent/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {busy === "download" ? "Preparing..." : "Download .gdr2"}
+              </button>
               <button
                 type="button"
                 onClick={() => setOpen(true)}
