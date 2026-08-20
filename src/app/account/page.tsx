@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/supabase/server";
+import ChangeUsernameForm from "@/components/auth/ChangeUsernameForm";
+import { getUserAndProfile } from "@/lib/profile";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
@@ -30,8 +31,11 @@ export default async function AccountPage() {
   // Middleware already turns anonymous visitors away, but this is the check
   // that actually guards the data. Middleware can be bypassed by configuration
   // mistakes; a server-side getUser() on the page itself cannot.
-  const user = await getUser();
+  const { user, profile } = await getUserAndProfile();
   if (!user) redirect("/login?next=/account");
+  // No profile row means no username chosen yet. Absence of the row is the
+  // signal, which is why a half-built profile is never written.
+  if (!profile) redirect("/welcome");
 
   const verified = Boolean(user.email_confirmed_at);
   const joined = user.created_at
@@ -53,6 +57,11 @@ export default async function AccountPage() {
       </p>
 
       <div className="card mt-6 px-5 py-1.5">
+        <Row label="Username">
+          <span translate="no" className="notranslate selectable">
+            {profile.username}
+          </span>
+        </Row>
         <Row label="Email">
           <span className="selectable">{user.email}</span>
         </Row>
@@ -64,6 +73,14 @@ export default async function AccountPage() {
           )}
         </Row>
         {joined && <Row label="Joined">{joined}</Row>}
+      </div>
+
+      <div className="card mt-3 p-5">
+        <h2 className="text-[15px] font-bold text-text">Your username</h2>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+          This is your public identity on GDMacros. Your email is never shown to anyone.
+        </p>
+        <ChangeUsernameForm current={profile.username} />
       </div>
 
       {!verified && (
