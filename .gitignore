@@ -14,3 +14,7 @@ next-env.d.ts
 
 # Backups the GDMacros App writes next to a file when it saves over it.
 *.json.bak
+
+# Supabase CLI scratch state. Machine-local, and it carries the project ref,
+# organisation id and pooler host, none of which belong in a public repo.
+supabase/.temp/

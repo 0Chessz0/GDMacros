@@ -12,5 +12,12 @@ export const config = {
    * would add latency for no reason. Only the routes that actually care about a
    * session are matched.
    */
-  matcher: ["/account/:path*", "/login", "/signup", "/forgot-password", "/reset-password"],
+  matcher: [
+    "/account/:path*",
+    "/welcome",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ],
 };
