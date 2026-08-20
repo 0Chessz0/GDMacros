@@ -6,13 +6,13 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Your saved Geometry Dash macros",
   description:
-    "The macros you saved, kept in this browser. No account needed and nothing is uploaded.",
+    "The macros you saved. No account needed, and synced to your account if you have one.",
   alternates: { canonical: "/favorites" },
   // Nothing here is the same for two visitors, so there is nothing to rank.
   robots: { index: false, follow: true },
   openGraph: {
     title: `Favorites | ${site.name}`,
-    description: "The macros you saved, kept in this browser.",
+    description: "The macros you saved.",
     url: "/favorites",
     type: "website",
   },
@@ -29,8 +29,8 @@ export default function FavoritesPage() {
         Your favorites
       </h1>
       <p className="mt-1.5 mb-6 text-[13.5px] leading-relaxed text-muted">
-        Saved in this browser only. There is no account, nothing is uploaded, and clearing your
-        browser data clears this list. See the{" "}
+        Signed out, this list is saved in this browser only and nothing is uploaded. Signed in, it
+        is saved to your account as well, so it appears on your other devices. See the{" "}
         <a href="/privacy" className="text-accent-soft hover:underline">
           privacy page
         </a>{" "}

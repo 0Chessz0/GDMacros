@@ -1,26 +1,42 @@
 "use client";
 
-import { useFavorites } from "@/lib/localStore";
+import { useEffect } from "react";
+import { migrateStoredFavorites, useFavorites } from "@/lib/favorites";
 import { StarIcon } from "./icons";
 
 /**
- * Stars a macro, saved to this browser only. There are no accounts, so the list
- * does not follow anyone to another device, and the button says so on hover
- * rather than pretending otherwise.
+ * Stars a macro. Kept in this browser, and synced to the account when signed in.
+ *
+ * Keyed on the level id rather than the slug, because the slug is derived from
+ * the level name and a rename would orphan the favorite.
  */
-export default function FavoriteButton({ slug, name }: { slug: string; name: string }) {
+export default function FavoriteButton({
+  levelId,
+  slug,
+  name,
+}: {
+  levelId: string;
+  slug: string;
+  name: string;
+}) {
   const { isFavorite, toggle, ready } = useFavorites();
-  const active = isFavorite(slug);
+  const active = isFavorite(levelId);
+
+  // This page knows one level, so it can only migrate that one entry. Anything
+  // it does not recognise is left for a page that has the whole catalog.
+  useEffect(() => {
+    migrateStoredFavorites([{ slug, levelId }], false);
+  }, [slug, levelId]);
 
   return (
     <button
       type="button"
-      onClick={() => toggle(slug)}
+      onClick={() => toggle(levelId)}
       // Disabled until the stored list has been read, so it cannot flash the
       // wrong state and then correct itself.
       disabled={!ready}
       aria-pressed={active}
-      title={active ? `Remove ${name} from favorites` : `Save ${name} to favorites, on this device`}
+      title={active ? `Remove ${name} from favorites` : `Save ${name} to favorites`}
       className={`group inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-[14px] font-semibold transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 active:duration-75 disabled:opacity-60 ${
         active
           ? "border-amber/50 bg-amber/12 text-amber"

@@ -280,7 +280,11 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           GD Browser
         </a>
 
-        <FavoriteButton slug={level.slug} name={level.name} />
+        <FavoriteButton
+          levelId={String(level.levelId)}
+          slug={level.slug}
+          name={level.name}
+        />
         <ReportBroken name={level.name} levelId={level.levelId} slug={level.slug} />
       </div>
 
