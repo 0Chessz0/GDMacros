@@ -130,6 +130,27 @@ export async function deleteSubmissionObject(
 }
 
 /**
+ * Removes an object by the exact path the DATABASE returned.
+ *
+ * Used after finish_processing and reject_submission, both of which read
+ * storage_path off the row they deleted and hand it back. The path is therefore
+ * trusted, but it is still shape-checked here rather than taken on faith: this
+ * module should not be able to delete something outside the one path pattern it
+ * owns, whoever called it.
+ */
+export async function deleteSubmissionObjectByPath(path: string): Promise<{ ok: boolean }> {
+  const OBJECT_PATH =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.gdr2$/i;
+  if (!OBJECT_PATH.test(String(path ?? ""))) return { ok: false };
+  try {
+    const { error } = await adminClient().storage.from(BUCKET).remove([path]);
+    return { ok: !error };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
  * A short-lived signed URL, for an admin reviewing a submission.
  *
  * The bucket is never public and cannot be listed, so this is the only way to

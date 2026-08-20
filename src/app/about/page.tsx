@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import Link from "next/link";
 import { getAllLevels, getMacroCount } from "@/lib/macros";
-import { SUBMIT_URL, site } from "@/lib/site";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   // Leads with the search phrase rather than the word "About", which nobody
@@ -76,14 +76,12 @@ export default function AboutPage() {
           accepted.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <a
-            href={SUBMIT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/submit"
             className="rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-95 active:duration-75"
           >
             Submit a macro
-          </a>
+          </Link>
           <Link
             href="/guidelines"
             className="rounded-xl border border-border bg-surface-2 px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[color,border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-muted/50 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"

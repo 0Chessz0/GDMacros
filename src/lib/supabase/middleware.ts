@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config";
 
 /** Requires a signed-in user. */
-const PROTECTED = ["/account"];
+const PROTECTED = ["/account", "/submit", "/submissions", "/admin"];
 /** Pointless once signed in, so they bounce to the account page. */
 const AUTH_ONLY = ["/login", "/signup", "/forgot-password"];
 

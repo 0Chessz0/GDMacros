@@ -14,6 +14,9 @@ export const config = {
    */
   matcher: [
     "/account/:path*",
+    "/submit",
+    "/submissions",
+    "/admin",
     "/welcome",
     "/login",
     "/signup",

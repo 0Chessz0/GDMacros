@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from "react";
-import { LANGUAGES, SUBMIT_URL, site } from "@/lib/site";
+import { LANGUAGES, site } from "@/lib/site";
 import { currentTranslateLang, setTranslateLang } from "./GoogleTranslate";
 import AccountLink from "./AccountLink";
+import AdminLink from "./AdminLink";
 import ThemeToggle from "./ThemeToggle";
 import {
   ChevronDownIcon,
@@ -32,7 +33,8 @@ const MORE_ITEMS: MenuItem[] = [
   { label: "Favorites", href: "/favorites", desc: "Macros you saved in this browser" },
   { label: "FAQ", href: "/faq", desc: "Bannable? How to open a .gdr2?" },
   { label: "Guidelines", href: "/guidelines", desc: "What gets accepted, and how" },
-  { label: "Submit a macro", href: SUBMIT_URL, desc: "Send one in through the form", external: true },
+  { label: "Submit a macro", href: "/submit", desc: "Send a .gdr2 in for review" },
+  { label: "Your submissions", href: "/submissions", desc: "Status of what you sent in" },
   { label: "About", href: "/about", desc: "What this site is" },
   { label: "Privacy", href: "/privacy", desc: "Analytics, cookies and third parties" },
 ];
@@ -268,18 +270,24 @@ export default function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-0.5">
+          <AdminLink />
+
+          {/* The main call to action. A label rather than an icon, because an
+              icon does not tell a first-time visitor that they can send their
+              own macro in. */}
+          <Link
+            href="/submit"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-[12.5px] font-bold tracking-wide text-white uppercase shadow-lg shadow-accent/20 transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 active:duration-75 sm:px-3.5"
+          >
+            <UserPlusIcon className="h-[15px] w-[15px]" />
+            {/* "Submit" always shows, so the button is never a bare icon.
+                "Macro" is added once there is room for it. */}
+            <span>Submit</span>
+            <span className="hidden sm:inline">&nbsp;Macro</span>
+          </Link>
+
           <ThemeToggle />
           <AccountLink />
-          <a
-            href={SUBMIT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Submit a macro"
-            title="Submit a macro"
-            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-[color,background-color,transform] duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75"
-          >
-            <UserPlusIcon className="h-[18px] w-[18px]" />
-          </a>
           <a
             href={site.repo}
             target="_blank"
@@ -311,6 +319,16 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div className="border-t border-border-soft bg-nav px-4 py-3 lg:hidden">
+          <div className="mb-2 flex flex-col gap-2">
+            <Link
+              href="/submit"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg bg-accent px-3 py-2.5 text-center text-[13px] font-bold tracking-wide text-white uppercase transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95"
+            >
+              Submit Macro
+            </Link>
+            <AdminLink mobile />
+          </div>
           <MenuLink item={{ label: "All macros", href: "/" }} onNavigate={() => setMobileOpen(false)} />
           {MORE_ITEMS.map((item) => (
             <MenuLink key={item.label} item={item} onNavigate={() => setMobileOpen(false)} />
