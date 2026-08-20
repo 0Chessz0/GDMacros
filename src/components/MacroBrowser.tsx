@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewTransition } from "@/lib/useViewTransition";
+import { migrateStoredFavorites } from "@/lib/favorites";
 import { RECORDERS, type Level, type Recorder } from "@/lib/types";
 import MacroCard from "./MacroCard";
 import RecentlyViewed from "./RecentlyViewed";
@@ -75,6 +76,16 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
   // Filter and layout changes rearrange the whole list, so they are worth
   // animating. Typing is not: a transition per keystroke would fight the user.
   const withTransition = useViewTransition();
+
+  // Favorites were keyed by slug before Phase 2B. This page has the whole
+  // catalog, so it is the natural place to finish that migration: almost every
+  // visit passes through here, and nothing has to be fetched to do it.
+  useEffect(() => {
+    migrateStoredFavorites(
+      levels.map((l) => ({ slug: l.slug, levelId: String(l.levelId) })),
+      true,
+    );
+  }, [levels]);
 
   // Seed from the URL after mount so server and first client paint agree.
   useEffect(() => {

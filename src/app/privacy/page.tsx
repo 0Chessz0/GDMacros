@@ -41,8 +41,9 @@ export default function PrivacyPage() {
         <Section title="What is stored in your browser">
           <p>
             A few small preferences are kept in your browser's local storage. This is not a cookie,
-            it is never sent to a server, and it never leaves your device. This is separate from
-            the account session cookie described below:
+            and it is separate from the account session cookie described below. None of it is sent
+            anywhere while you are signed out. The one exception, once you are signed in, is your
+            favorites, noted below:
           </p>
           <ul className="ml-4 list-disc space-y-1 text-[13px]">
             <li>
@@ -51,7 +52,23 @@ export default function PrivacyPage() {
             </li>
             <li>
               <span className="font-mono text-[12px] text-text">gdmacros:favorites</span>: the
-              macros you starred.
+              macros you starred. Signed out, this stays on your device. Signed in, it is also
+              saved to your account so the same list appears on your other devices.
+            </li>
+            <li>
+              <span className="font-mono text-[12px] text-text">gdmacros:favorites-owner</span> and{" "}
+              <span className="font-mono text-[12px] text-text">gdmacros:favorites-dirty</span>:
+              which account this browser's copy of the list belongs to, and whether it has changes
+              still to be saved. These exist so that on a shared browser one person's favorites are
+              never added to somebody else's account.
+            </li>
+            <li>
+              <span className="font-mono text-[12px] text-text">gdmacros:favorites-pending:</span>
+              followed by an account id: if you change your favorites while signed out and somebody
+              else then signs in on the same browser, your unsaved changes are set aside here rather
+              than being lost. They are never added to the other account, and they are saved to
+              yours the next time you sign in on this browser. Clearing your browser data, below,
+              removes these too.
             </li>
             <li>
               <span className="font-mono text-[12px] text-text">gdmacros:sort</span> and{" "}
@@ -60,8 +77,9 @@ export default function PrivacyPage() {
             </li>
           </ul>
           <p>
-            Because it lives on your device, this list does not follow you to another browser or
-            another phone, and clearing your browser data clears it.
+            Clearing your browser data clears all of it. If you are signed in, your favorites are
+            also on your account, so they come back when you sign in again. Signed out, these lists
+            do not follow you to another browser or another phone.
           </p>
           <div className="pt-1">
             <ClearStored />

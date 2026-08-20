@@ -18,3 +18,7 @@ next-env.d.ts
 # Supabase CLI scratch state. Machine-local, and it carries the project ref,
 # organisation id and pooler host, none of which belong in a public repo.
 supabase/.temp/
+
+# Screenshots written by the verification scripts. Evidence for a test run, not
+# part of the site.
+shots/
