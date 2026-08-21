@@ -24,8 +24,13 @@ export const site = {
   // change this line, because every canonical tag and sitemap URL derives from it.
   url: "https://www.gdmacros.com",
 
-  /** Where "Submit a macro" and the GitHub button point. */
-  repo: "https://github.com/0Chessz0/GDMacros",
+  /**
+   * The official repository. Drives the GitHub buttons and the prefilled
+   * "Report broken" issue link, so it must point at the repo that actually has
+   * issues enabled. Moved to the GDMacros-com organisation in August 2026; the
+   * old 0Chessz0/GDMacros path is historical and only redirects.
+   */
+  repo: "https://github.com/GDMacros-com/GDMacros",
 } as const;
 
 /**
