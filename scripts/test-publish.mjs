@@ -493,7 +493,16 @@ async function main() {
   /* ---------------- 2. catalog transformation ---------------- */
   console.log("Catalog");
 
-  const real = fs.readFileSync(path.join(ROOT, "data", "macros.json"), "utf8");
+  /*
+   * Normalise line endings. Git stores this file with LF and GitHub serves LF,
+   * which is what the publisher writes, but `.gitattributes` `text=auto` checks
+   * it out as CRLF on Windows. Comparing against the raw checkout would test the
+   * developer's platform rather than the serialiser.
+   */
+  const real = fs
+    .readFileSync(path.join(ROOT, "data", "macros.json"), "utf8")
+    .split("\r\n")
+    .join("\n");
   const counts = catalog.catalogCounts(real);
   eq("baseline levels", counts.levels, 106);
   eq("baseline macros", counts.macros, 212);
@@ -758,7 +767,9 @@ async function main() {
     eq("post-commit retry: no extra assets", gh.assets.get(gh.releases[0].id).length, 1);
     const parsed = JSON.parse(gh.catalog.text);
     const lvl = parsed.find((l) => l.levelId === "73667628");
-    const hits = lvl.macros.filter((m) => m.downloadType === "GitHub").length;
+    // Count THIS publication, not every GitHub-hosted macro: since the
+    // MediaFire migration the catalog legitimately contains 212 of those.
+    const hits = lvl.macros.filter((m) => m.author === "Zoink").length;
     eq("post-commit retry: macro appears exactly once", hits, 1);
   });
 
@@ -795,7 +806,7 @@ async function main() {
     eq("concurrent: two distinct assets", list.length, 2);
     eq("concurrent: distinct filenames", new Set(list.map((a) => a.name)).size, 2);
     const lvl = JSON.parse(gh.catalog.text).find((l) => l.levelId === "73667628");
-    const gitHubMacros = lvl.macros.filter((m) => m.downloadType === "GitHub");
+    const gitHubMacros = lvl.macros.filter((m) => ["Zoink", "OtherPlayer"].includes(m.author));
     eq("concurrent: both macros in the catalog", gitHubMacros.length, 2);
     eq("concurrent: neither overwrote the other", gh.commits.length, 2);
   });
@@ -908,7 +919,7 @@ async function main() {
     eq("E1 retry: still one commit", gh.commits.length, commitsBefore);
     const lvl = JSON.parse(gh.catalog.text).find((l) => l.levelId === "73667628");
     eq("E1 retry: macro appears exactly once in the catalog",
-      lvl.macros.filter((m) => m.downloadType === "GitHub").length, 1);
+      lvl.macros.filter((m) => m.author === "Zoink").length, 1);
   });
 
   // E2. AMBIGUOUS: the transaction committed, the response was lost.
