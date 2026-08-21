@@ -223,6 +223,43 @@ check("matching bytes verify", tool.sha256(original) === tool.sha256(same));
 check("mismatched bytes are caught", tool.sha256(original) !== tool.sha256(different));
 check("a truncated copy is caught by size", original.byteLength !== original.slice(0, 3).byteLength);
 
+/* ---------------- post-cutover safety ---------------- */
+//
+// The migration is finished and the real catalog now holds 212 GitHub URLs.
+// Rerunning the upload against it must do nothing, and must never mistake a
+// finished migration for a new one.
+
+console.log("Post-cutover safety");
+
+const migrated = [
+  level(111, "Acheron", [
+    macro("Zoink", "xdBot",
+      "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-111/Zoink-Acheron-xdBot.gdr2", "GitHub"),
+  ]),
+];
+eq("a fully migrated catalog reports 0 MediaFire entries", tool.mediafireCount(migrated), 0);
+eq("a MediaFire catalog reports its count", tool.mediafireCount(catalog), 3);
+eq("a mixed catalog counts only the MediaFire ones", tool.mediafireCount([
+  level(1, "A", [macro("x", "xdBot", mf("a", "a")), macro("y", "xdBot", "https://github.com/x", "GitHub")]),
+]), 1);
+
+// The real production catalog must report zero.
+const realCatalog = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "macros.json"), "utf8"));
+eq("the REAL current catalog has 0 MediaFire entries", tool.mediafireCount(realCatalog), 0);
+eq("the REAL current catalog has 212 macros",
+  realCatalog.reduce((n, l) => n + (l.macros ?? []).length, 0), 212);
+
+// A rebuilt inventory over migrated entries must not look like pending work.
+const migratedPlan = tool.planInventory(migrated);
+eq("a migrated entry is recognised as github-hosted", migratedPlan[0].sourceHost, "github.com");
+check("upload's filter excludes non-MediaFire entries",
+  ![migratedPlan[0]].filter((e) => e.sourceHost === "mediafire.com").length);
+
+// And a mediafire entry still IS work, so the guard gets out of the way when it should.
+const stillWork = tool.planInventory(catalog);
+check("MediaFire entries are still selected as work",
+  stillWork.filter((e) => e.sourceHost === "mediafire.com").length === 3);
+
 /* ---------------- results ---------------- */
 console.log("");
 for (const f of failures) console.error("FAIL  " + f);

@@ -405,8 +405,41 @@ async function existingAssetsByTag() {
   return { names: out, releases };
 }
 
+/**
+ * How many catalog macros still point at MediaFire.
+ *
+ * This is the whole safety question after the cutover. The migration finished
+ * on 2026-08-21 and the catalog now holds 212 GitHub URLs, so the honest answer
+ * for the foreseeable future is zero, and "zero" must mean "there is nothing to
+ * do" rather than "start again".
+ */
+export function mediafireCount(catalog) {
+  return catalog.reduce(
+    (n, l) => n + (l.macros ?? []).filter((m) => m.downloadType === "MediaFire").length, 0);
+}
+
 async function cmdInventory() {
   const catalog = readCatalog();
+
+  /*
+   * Refuse to rewrite state when there is nothing to migrate.
+   *
+   * Rebuilding the inventory against today's catalog would replace every entry
+   * with a GitHub-sourced one, and because progress only carries forward when
+   * the source URL still matches, that would silently DISCARD the record of the
+   * completed migration: the hashes, asset ids and verified mapping. That record
+   * is the reason this tool is being kept.
+   */
+  if (mediafireCount(catalog) === 0) {
+    console.log("Nothing to migrate: the catalog contains 0 MediaFire entries.");
+    console.log("The MediaFire migration is already complete.");
+    console.log("");
+    console.log("Refusing to rebuild the inventory, because doing so would overwrite the");
+    console.log("completed migration state in .migration/ and lose the verified mapping.");
+    console.log("Use --status to read it, or --verify to re-check the uploaded assets.");
+    return;
+  }
+
   console.log("Catalog");
   const macroCount = catalog.reduce((n, l) => n + (l.macros?.length ?? 0), 0);
   console.log("  levels :", catalog.length);
@@ -478,11 +511,37 @@ function pickProgress(o) {
 }
 
 async function cmdUpload({ concurrency = 3, limit = 0 } = {}) {
+  /*
+   * POST-CUTOVER GUARD. The catalog is the authority on whether there is work,
+   * not the state file. With zero MediaFire entries this exits without touching
+   * GitHub at all.
+   *
+   * There is deliberately no override flag. If a MediaFire entry ever appears in
+   * the catalog again the guard simply stops applying, so an override would only
+   * exist to defeat a check that already gets out of the way on its own.
+   */
+  const catalog = readCatalog();
+  const remaining = mediafireCount(catalog);
+  if (remaining === 0) {
+    console.log("Nothing to migrate: the catalog contains 0 MediaFire entries.");
+    console.log("The MediaFire migration is already complete and production serves GitHub Releases.");
+    console.log("No release was created and no asset was uploaded.");
+    return;
+  }
+  console.log(`${remaining} MediaFire entr${remaining === 1 ? "y" : "ies"} in the catalog\n`);
+
   const state = loadState();
   if (!state) throw new Error("no state; run --inventory first");
 
   const todo = state.entries.filter(
-    (e) => e.status !== "blocked" && !(e.status === "uploaded" && e.verified) && e.status !== "failed-permanent",
+    (e) =>
+      // Only MediaFire-sourced entries are migration work. A GitHub URL in the
+      // catalog is a FINISHED migration, and must never be mistaken for a new
+      // one just because a state rebuild left it looking pending.
+      e.sourceHost === "mediafire.com" &&
+      e.status !== "blocked" &&
+      !(e.status === "uploaded" && e.verified) &&
+      e.status !== "failed-permanent",
   );
   const work = limit ? todo.slice(0, limit) : todo;
   console.log(`uploading ${work.length} of ${state.entries.length} entries, concurrency ${concurrency}\n`);
