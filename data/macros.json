@@ -2330,20 +2330,5 @@
         "downloadLink": "https://www.mediafire.com/file/x6en0sd6xqrvmhb/Ziroikabi.gdr2/file"
       }
     ]
-  },
-  {
-    "name": "The Nightmare",
-    "creator": "Jax",
-    "levelId": "13519",
-    "video": "https://www.youtube.com/watch?v=IGc9D5rH3f8",
-    "addedAt": "2026-08-21",
-    "macros": [
-      {
-        "author": "GDMacrosPipelineTest",
-        "recorder": "Mega Hack",
-        "downloadType": "GitHub",
-        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-13519/GDMacrosPipelineTest-The-Nightmare-Mega-Hack.gdr2"
-      }
-    ]
   }
 ]
