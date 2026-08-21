@@ -23,3 +23,12 @@ supabase/.temp/
 # part of the site.
 shots/
 .test-build/
+
+# Agent instruction files that `next dev` generates at the repository root on
+# every run (Next 16 does this unless `agentRules: false` is set). They are
+# machine-generated local scratch, have never been tracked here, and are
+# regenerated on demand, so ignoring them is preferable to editing unrelated
+# Next configuration. Without this a `git add -A` sweeps them into what is a
+# PUBLIC repository, which is the same near-miss `supabase/.temp/` caused.
+/AGENTS.md
+/CLAUDE.md

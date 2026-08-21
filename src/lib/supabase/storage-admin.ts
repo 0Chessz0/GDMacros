@@ -151,6 +151,32 @@ export async function deleteSubmissionObjectByPath(path: string): Promise<{ ok: 
 }
 
 /**
+ * Reads an object's bytes on the server.
+ *
+ * Added for the automated publisher, which has to hand the actual file to
+ * GitHub. It deliberately does NOT go via a signed URL: that would mean minting
+ * a public link and fetching it back over the internet, when this process is
+ * already the one identity allowed to read the bucket directly.
+ *
+ * Same path discipline as everything else here: built from two validated uuids,
+ * never from a caller-supplied string.
+ */
+export async function downloadSubmissionObject(
+  userId: string,
+  submissionId: string,
+): Promise<{ ok: true; bytes: Uint8Array } | { ok: false; error: string }> {
+  try {
+    const { data, error } = await adminClient()
+      .storage.from(BUCKET)
+      .download(objectPath(userId, submissionId));
+    if (error || !data) return { ok: false, error: error?.message ?? "download failed" };
+    return { ok: true, bytes: new Uint8Array(await data.arrayBuffer()) };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "download failed" };
+  }
+}
+
+/**
  * A short-lived signed URL, for an admin reviewing a submission.
  *
  * The bucket is never public and cannot be listed, so this is the only way to
