@@ -1,27 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import {
-  finishProcessing,
-  getSubmissionDownloadUrl,
-  releaseProcessing,
-} from "@/lib/actions/submissions";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { getSubmissionDownloadUrl, releaseProcessing } from "@/lib/actions/submissions";
+import { checkPublishProgress, getPublishState, publishMacro } from "@/lib/actions/publish";
+import type { PublishProgress } from "@/lib/publish/publisher";
 import { formatDate } from "@/lib/submissions";
 import type { AdminRow } from "./ReviewQueue";
 
 /**
- * The manual publishing screen.
+ * The publishing screen.
  *
- * Everything needed to publish a macro by hand, in one place, so the admin does
- * not have to go hunting. Nothing here finalises anything.
+ * Publishing is now automated: the admin still decides, and pressing Publish
+ * Macro hands the rest to the server, which uploads the file to a GitHub
+ * Release, commits the catalog, waits for production to actually serve it, and
+ * only then finalises.
  *
- * CLOSING IS NOT FINISHING. The X, Escape, clicking outside, refreshing,
- * navigating away and closing the browser all leave the submission exactly
- * where it is: still Processing, still in the queue, still resumable. Only the
- * explicit Done and Close button calls finish_processing.
- *
- * That is why the close affordances are deliberately plain and the finish
- * button is deliberately the only prominent one.
+ * CLOSING IS NOT FINISHING, and that is now true in a stronger sense than
+ * before. The X, Escape, clicking outside, refreshing, navigating away and
+ * closing the browser all leave the submission Processing with its publish
+ * progress recorded in the database. Reopening resumes from wherever it got to,
+ * and any admin can resume it, because the state lives in the database rather
+ * than in this component.
  */
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -44,6 +43,81 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** The four steps, in the order the server performs them. */
+const STEPS = [
+  { key: "asset_uploaded", label: "Publish the file to GDMacros Downloads" },
+  { key: "catalog_committed", label: "Add the macro to the catalog and commit it" },
+  { key: "live_verified", label: "Wait for production to serve the new catalog" },
+  { key: "finished", label: "Finalise and tell the submitter" },
+] as const;
+
+const ORDER: Record<string, number> = {
+  not_started: 0,
+  asset_uploaded: 1,
+  catalog_committed: 2,
+  live_verified: 3,
+  finished: 4,
+};
+
+/**
+ * Shows exactly how far the publication has got.
+ *
+ * This is not decoration. Every step below is an irreversible external action,
+ * and after a failure the admin needs to know which of them already happened
+ * before deciding what to do, so the panel stays visible after an error rather
+ * than being replaced by it.
+ */
+function PublishProgressPanel({ progress }: { progress: PublishProgress | null }) {
+  if (!progress || progress.state === "not_started") return null;
+
+  const reached = ORDER[progress.state] ?? 0;
+  const waiting = progress.stage === "waiting-for-production";
+
+  return (
+    <div className="mb-4 rounded-xl border border-accent/30 bg-accent/5 p-3.5">
+      <p className="mb-2.5 text-[11.5px] font-bold tracking-wide text-accent-soft uppercase">
+        Publishing progress
+      </p>
+      <ol className="flex flex-col gap-1.5">
+        {STEPS.map((step, i) => {
+          const done = reached > i;
+          const active = reached === i;
+          return (
+            <li key={step.key} className="flex items-start gap-2 text-[12.5px] leading-relaxed">
+              <span
+                aria-hidden
+                className={
+                  done
+                    ? "text-green"
+                    : active
+                      ? "animate-spin-slow text-accent-soft"
+                      : "text-muted/50"
+                }
+              >
+                {done ? "✓" : active ? "○" : "○"}
+              </span>
+              <span className={done ? "text-text-dim" : active ? "text-text" : "text-muted"}>
+                {step.label}
+                {active && waiting && i === 2 && (
+                  <span className="block text-[11.5px] text-muted">
+                    Vercel usually takes a minute or two. This keeps checking.
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+
+      {progress.assetName && (
+        <p className="mt-2.5 border-t border-border-soft pt-2.5 font-mono text-[11.5px] break-all text-muted">
+          {progress.assetName}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function ProcessingModal({
   row,
   onClose,
@@ -54,15 +128,25 @@ export default function ProcessingModal({
   onFinished: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"download" | "finish" | "release" | null>(null);
+  const [busy, setBusy] = useState<"download" | "publish" | "release" | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [releasing, setReleasing] = useState(false);
+  const [progress, setProgress] = useState<PublishProgress | null>(null);
   const [, startTransition] = useTransition();
   const dialogRef = useRef<HTMLDivElement>(null);
   // Guards against a double click firing two requests before the first returns.
-  const finishing = useRef(false);
+  // The server is idempotent regardless; this just avoids the second call.
+  const publishing = useRef(false);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Escape closes. It does NOT finish, which is the whole point.
+  // Publishing has started once anything irreversible has happened. From that
+  // point the submission cannot be handed back to the Pending queue, because a
+  // public GitHub asset already exists for it.
+  const started = progress != null && progress.state !== "not_started";
+  const waiting = progress?.stage === "waiting-for-production";
+
+  // Escape closes. It does NOT finish, and it does not cancel work already in
+  // flight on the server, which continues regardless of this component.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && busy === null) onClose();
@@ -70,6 +154,41 @@ export default function ProcessingModal({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, busy]);
+
+  useEffect(() => {
+    return () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    };
+  }, []);
+
+  /*
+   * Resume. Reads the recorded state WITHOUT doing any work: opening this
+   * window must never upload anything. If a previous attempt got part way, the
+   * progress panel shows it and the button becomes Retry.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await getPublishState(row.id);
+      if (cancelled || "error" in res) return;
+      if (res.state === "none" || res.state === "not_started") return;
+
+      setProgress({
+        ok: true,
+        state: res.state,
+        stage: res.state === "catalog_committed" ? "waiting-for-production" : "uploading",
+        assetName: res.assetName,
+        assetUrl: res.assetUrl,
+        commitSha: res.commitSha,
+      });
+      if (res.lastError) {
+        setError(`${res.lastError} The submission is still Processing, so retrying is safe.`);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [row.id]);
 
   async function download() {
     setError(null);
@@ -83,23 +202,68 @@ export default function ProcessingModal({
     window.open(res.url, "_blank", "noopener,noreferrer");
   }
 
-  function finish() {
-    // The database is idempotent anyway: the row is deleted and the
-    // notification written in one transaction, so a second call finds nothing.
-    // This just avoids sending the second call at all.
-    if (finishing.current) return;
-    finishing.current = true;
-    setError(null);
-    setBusy("finish");
-    startTransition(async () => {
-      const res = await finishProcessing(row.id);
-      setBusy(null);
-      if (res.ok) {
-        onFinished();
-      } else {
-        finishing.current = false;
-        setError(res.error);
+  /**
+   * Polls while Vercel builds and deploys the catalog commit.
+   *
+   * The server never sleeps waiting for a deployment: each call does one cheap
+   * check of https://www.gdmacros.com/api/version and returns. This schedules
+   * the next one. Closing the modal stops the polling, not the publication:
+   * the state is in the database and reopening resumes it.
+   */
+  const poll = useCallback(
+    (attempt = 0) => {
+      // ~5 minutes of checking, then stop asking and let the admin retry. The
+      // submission stays Processing the whole time, so nothing is lost.
+      if (attempt > 40) {
+        setBusy(null);
+        setError(
+          "The catalog was committed, but production has not deployed it yet. The submission is still Processing. Reopen this and press Retry in a minute.",
+        );
+        return;
       }
+      pollTimer.current = setTimeout(async () => {
+        const res = await checkPublishProgress(row.id);
+        setProgress(res);
+        if (res.finished) {
+          setBusy(null);
+          onFinished();
+          return;
+        }
+        if (!res.ok) {
+          setBusy(null);
+          setError(res.error ?? "Publishing stopped. The submission is still Processing.");
+          return;
+        }
+        poll(attempt + 1);
+      }, 7_000);
+    },
+    [row.id, onFinished],
+  );
+
+  function publish() {
+    if (publishing.current) return;
+    publishing.current = true;
+    setError(null);
+    setBusy("publish");
+    setConfirming(false);
+    startTransition(async () => {
+      const res = await publishMacro(row.id);
+      setProgress(res);
+      publishing.current = false;
+
+      if (res.finished) {
+        setBusy(null);
+        onFinished();
+        return;
+      }
+      if (!res.ok) {
+        setBusy(null);
+        setError(res.error ?? "Publishing stopped. Nothing was finalised.");
+        return;
+      }
+      // ok but not finished means the commit landed and we are waiting on the
+      // deployment. Keep the button busy and start checking.
+      poll(0);
     });
   }
 
@@ -134,7 +298,7 @@ export default function ProcessingModal({
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11.5px] font-bold tracking-wide text-accent-soft uppercase">
-              Publishing by hand
+              Publishing
             </p>
             <h2 className="mt-0.5 text-[19px] font-extrabold tracking-tight text-text">
               {row.level_name}
@@ -151,9 +315,12 @@ export default function ProcessingModal({
         </div>
 
         <p className="mb-4 rounded-xl border border-amber/30 bg-amber/10 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-text-dim">
-          Closing this does not finish anything. The submission stays in the Processing list until
-          you press Done and Close, so you can come back to it.
+          {started
+            ? "Publishing has started for this submission. Closing this window does not stop it and does not lose progress: reopen from the Processing list to carry on."
+            : "Closing this does not publish anything. The submission stays in the Processing list until you press Publish Macro, so you can come back to it."}
         </p>
+
+        <PublishProgressPanel progress={progress} />
 
         <div className="flex flex-col gap-3">
           <Section title="Level">
@@ -263,26 +430,42 @@ export default function ProcessingModal({
               disabled={busy !== null}
               className="h-11 w-full rounded-xl bg-accent text-[14px] font-bold text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Done and Close
+              {busy === "publish"
+                ? waiting
+                  ? "Waiting for production..."
+                  : "Publishing..."
+                : started
+                  ? "Retry publishing"
+                  : "Publish Macro"}
             </button>
           ) : (
             <div className="rounded-xl border border-accent/40 bg-accent/5 p-3.5">
-              <p className="text-[13px] leading-relaxed text-text-dim">
-                Have you finished adding this macro to the site? This deletes the submission and its
-                file, and tells{" "}
-                <span translate="no" className="notranslate font-semibold text-text">
-                  {row.submitter}
-                </span>{" "}
-                it was accepted. It cannot be undone.
+              <p className="text-[13px] leading-relaxed text-text-dim">This will:</p>
+              <ul className="mt-2 flex flex-col gap-1 text-[12.5px] leading-relaxed text-text-dim">
+                <li>publish the .gdr2 to GDMacros Downloads, permanently and publicly</li>
+                <li>add the macro to the GDMacros catalog</li>
+                <li>commit the catalog to GitHub</li>
+                <li>trigger the production deployment</li>
+                <li>
+                  finalise only after the new catalog is live, then tell{" "}
+                  <span translate="no" className="notranslate font-semibold text-text">
+                    {row.submitter}
+                  </span>{" "}
+                  it was accepted
+                </li>
+              </ul>
+              <p className="mt-2.5 text-[12.5px] leading-relaxed text-muted">
+                The published file cannot be unpublished from here. Nothing is finalised, and the
+                submitter is told nothing, unless every step above succeeds.
               </p>
               <div className="mt-3 flex flex-wrap gap-2.5">
                 <button
                   type="button"
-                  onClick={finish}
+                  onClick={publish}
                   disabled={busy !== null}
                   className="rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-bold text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {busy === "finish" ? "Finishing..." : "Yes, I have published it"}
+                  {busy === "publish" ? "Publishing..." : "Yes, publish it"}
                 </button>
                 <button
                   type="button"
@@ -297,7 +480,20 @@ export default function ProcessingModal({
           )}
 
           <div className="mt-3">
-            {!releasing ? (
+            {started ? (
+              /*
+               * Deliberately not offered any more. Once the .gdr2 is a public
+               * GitHub Release asset, handing the submission back to Pending
+               * would leave a published file with nothing tracking it, and the
+               * next admin would publish a second copy. The server refuses this
+               * too; hiding the button just avoids offering an action that
+               * would be rejected.
+               */
+              <p className="text-[12px] leading-relaxed text-muted">
+                This can no longer be returned to the pending queue: the macro file is already
+                published. Finish it here, or retry if a step failed.
+              </p>
+            ) : !releasing ? (
               <button
                 type="button"
                 onClick={() => setReleasing(true)}

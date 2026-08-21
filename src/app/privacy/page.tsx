@@ -167,13 +167,15 @@ export default function PrivacyPage() {
           </p>
           <p>
             <span className="font-semibold text-text">Being published.</span> When an administrator
-            starts publishing a macro by hand, the submission and its file are still kept, because
-            they are what the work is done from.
+            starts publishing a macro, the submission and its file are still kept, because they are
+            what the work is done from.
           </p>
           <p>
-            <span className="font-semibold text-text">Accepted.</span> Once the administrator marks
-            the publishing as finished, the full submission record is deleted and its .gdr2 is
-            deleted with it.
+            <span className="font-semibold text-text">Accepted.</span> Your macro file is copied to
+            our public downloads repository on GitHub, where it becomes a permanent public download,
+            and the macro is added to the catalog. Only once that is live is the full submission
+            record deleted, along with the private copy of your .gdr2. The published file stays
+            public: that is the point of submitting it.
           </p>
           <p>
             <span className="font-semibold text-text">Rejected.</span> The full submission record
@@ -332,9 +334,14 @@ export default function PrivacyPage() {
         <Section title="Downloads">
           <p>
             Published macro files are hosted on{" "}
-            <span className="font-semibold text-text">MediaFire</span>. Every download button says
-            so, and names the file, before you click it. Following one takes you to MediaFire, which
-            is a separate company with its own privacy policy, its own cookies and its own adverts.
+            <span className="font-semibold text-text">GitHub</span> as public release downloads, or
+            on <span className="font-semibold text-text">MediaFire</span> for older entries. Every
+            download button names the host and the file before you click it. Following one takes you
+            to that company, which has its own privacy policy and its own cookies.
+          </p>
+          <p>
+            A published macro file carries the level, the macro author and the recorder in its name.
+            It does not carry the uploader&apos;s account, username or email.
           </p>
           <p>
             {site.name} does not see who downloads what. There are no download counters tied to a
@@ -356,6 +363,11 @@ export default function PrivacyPage() {
             <li>
               <span className="font-semibold text-text">Resend</span>: sending account emails, such
               as confirming an address or resetting a password.
+            </li>
+            <li>
+              <span className="font-semibold text-text">GitHub</span>: hosting the site&apos;s source
+              and catalog, and hosting published macro files as public downloads. Only accepted
+              macros reach GitHub, and nothing about your account goes with them.
             </li>
           </ul>
           <p>
