@@ -285,7 +285,16 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           slug={level.slug}
           name={level.name}
         />
-        <ReportBroken name={level.name} levelId={level.levelId} slug={level.slug} />
+        <ReportBroken
+          name={level.name}
+          levelId={level.levelId}
+          slug={level.slug}
+          macros={level.macros.map((m) => ({
+            author: m.author,
+            recorder: m.recorder,
+            downloadUrl: m.downloadLink,
+          }))}
+        />
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-2 text-[12px] text-muted">

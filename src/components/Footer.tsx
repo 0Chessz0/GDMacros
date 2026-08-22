@@ -42,6 +42,9 @@ export default function Footer() {
             <Link href="/privacy" className="text-text-dim transition-colors hover:text-accent-soft">
               Privacy
             </Link>
+            <Link href="/terms" className="text-text-dim transition-colors hover:text-accent-soft">
+              Terms
+            </Link>
             <Link
               href="/submit"
               className="text-text-dim transition-colors hover:text-accent-soft"
