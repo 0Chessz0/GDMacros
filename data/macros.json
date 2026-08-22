@@ -2366,5 +2366,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-123912413/ChesszDC-squeak-xdBot.gdr2"
       }
     ]
+  },
+  {
+    "name": "rauchkammer",
+    "creator": "Devilmine",
+    "levelId": "146399247",
+    "video": "https://www.youtube.com/watch?v=-ge89eZ9_5M",
+    "addedAt": "2026-08-22",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-146399247/ChesszDC-rauchkammer-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
