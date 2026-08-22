@@ -246,8 +246,11 @@ eq("a mixed catalog counts only the MediaFire ones", tool.mediafireCount([
 // The real production catalog must report zero.
 const realCatalog = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "macros.json"), "utf8"));
 eq("the REAL current catalog has 0 MediaFire entries", tool.mediafireCount(realCatalog), 0);
-eq("the REAL current catalog has 212 macros",
-  realCatalog.reduce((n, l) => n + (l.macros ?? []).length, 0), 212);
+// Not a literal: the publisher grows this file in production, and the property
+// that matters after the cutover is that NOTHING is MediaFire-hosted, whatever
+// the total has since become.
+check("the REAL current catalog still has macros to check",
+  realCatalog.reduce((n, l) => n + (l.macros ?? []).length, 0) >= 212);
 
 // A rebuilt inventory over migrated entries must not look like pending work.
 const migratedPlan = tool.planInventory(migrated);
