@@ -2471,5 +2471,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-118697760/ChesszDC-Wavetrip-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "Timor",
+    "creator": "ColorBolt",
+    "levelId": "65969451",
+    "video": "https://www.youtube.com/watch?v=tb9u8E9OXYw",
+    "addedAt": "2026-08-22",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-65969451/ChesszDC-Timor-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
