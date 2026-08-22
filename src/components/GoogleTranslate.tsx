@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { LANGUAGES } from "@/lib/site";
+import { clearCookieWrites, neutralCookieWrites, parseTranslateLang } from "@/lib/translate";
 
 /**
  * Google's free website-translate widget. It needs no API key and no billing
@@ -28,19 +29,24 @@ const SCRIPT_ID = "google-translate-script";
 /** Reads the language Google has currently applied, from its own cookie. */
 export function currentTranslateLang(): string {
   if (typeof document === "undefined") return "en";
-  const match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]*)/);
-  if (!match) return "en";
-  // Cookie looks like "/en/es", where the third segment is the target language.
-  const target = decodeURIComponent(match[1]).split("/")[2];
-  return target || "en";
+  return parseTranslateLang(document.cookie);
 }
 
+/** Whether a googtrans cookie is still readable after an attempt to clear it. */
+function translateCookieRemains(): boolean {
+  return /(?:^|;\s*)googtrans=[^;]/.test(document.cookie);
+}
+
+/**
+ * Removes the cookie from every scope it could have been written to.
+ *
+ * See `lib/translate` for why this has to try more than the current host: the
+ * scope that actually matters is the registrable domain, and missing it is what
+ * made switching back to English do nothing.
+ */
 function clearTranslateCookie() {
-  const host = window.location.hostname;
-  const expiry = "expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  // Google may have set the cookie with or without a domain, so clear every variant.
-  for (const domain of ["", `;domain=${host}`, `;domain=.${host}`]) {
-    document.cookie = `googtrans=;${expiry};path=/${domain}`;
+  for (const write of clearCookieWrites(window.location.hostname)) {
+    document.cookie = write;
   }
 }
 
@@ -50,6 +56,18 @@ export function setTranslateLang(code: string) {
     // Clearing the cookie and reloading is the only reliable way back to the
     // untranslated DOM, because the widget has no "reset" entry point.
     clearTranslateCookie();
+
+    // If something we cannot delete is still holding a value, neutralise it
+    // instead. `/en/en` means "translate English into English", which the
+    // widget treats as untranslated. Without this fallback an undeletable
+    // cookie would make the English option reload the page forever and never
+    // change anything, which is the exact failure this is here to prevent.
+    if (translateCookieRemains()) {
+      for (const write of neutralCookieWrites(window.location.hostname)) {
+        document.cookie = write;
+      }
+    }
+
     window.location.reload();
     return;
   }
