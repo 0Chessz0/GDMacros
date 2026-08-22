@@ -2414,5 +2414,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-142896409/ChesszDC-Green-Bullet-xdBot.gdr2"
       }
     ]
+  },
+  {
+    "name": "Subsuming Vortex",
+    "creator": "Cursed",
+    "levelId": "127997391",
+    "video": "https://www.youtube.com/watch?v=CLzkb9YMMEg",
+    "addedAt": "2026-08-22",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-127997391/ChesszDC-Subsuming-Vortex-xdBot.gdr2"
+      }
+    ]
   }
 ]
