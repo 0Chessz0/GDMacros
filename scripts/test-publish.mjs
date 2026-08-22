@@ -504,8 +504,15 @@ async function main() {
     .split("\r\n")
     .join("\n");
   const counts = catalog.catalogCounts(real);
-  eq("baseline levels", counts.levels, 106);
-  eq("baseline macros", counts.macros, 212);
+  //
+  // Derived, not hardcoded. The publisher adds to this file in production, so
+  // any literal here is only true until the next macro is accepted -- these
+  // assertions were written when the catalog held 106/212 and started failing
+  // the moment Phase 3A published for real. What is actually being tested is
+  // relative: one publication adds one macro, and a new level adds one level.
+  //
+  check("the catalog is non-empty", counts.levels > 0 && counts.macros >= counts.levels,
+    `${counts.levels} levels / ${counts.macros} macros`);
 
   eq("serialiser reproduces the real file byte for byte", catalog.serialiseCatalog(JSON.parse(real)), real);
 
@@ -523,8 +530,8 @@ async function main() {
   const r1 = catalog.applyPublication(real, pubExisting);
   check("existing level: applies", r1.ok && r1.changed && r1.mode === "existing-level");
   const after1 = catalog.catalogCounts(r1.json);
-  eq("existing level: level count unchanged", after1.levels, 106);
-  eq("existing level: one macro added", after1.macros, 213);
+  eq("existing level: level count unchanged", after1.levels, counts.levels);
+  eq("existing level: one macro added", after1.macros, counts.macros + 1);
   const acheron = JSON.parse(r1.json).find((l) => l.levelId === "73667628");
   eq("existing level: appended at the end", acheron.macros[acheron.macros.length - 1].downloadLink, pubExisting.downloadLink);
   eq("existing level: downloadType is GitHub", acheron.macros[acheron.macros.length - 1].downloadType, "GitHub");
@@ -542,7 +549,7 @@ async function main() {
   eq("new level: key order matches the catalog convention", JSON.stringify(Object.keys(created)), JSON.stringify(["name", "creator", "levelId", "video", "addedAt", "macros"]));
   eq("new level: creator from trusted data", created.creator, "Someone");
   eq("new level: exactly one macro", created.macros.length, 1);
-  eq("new level count", catalog.catalogCounts(r3.json).levels, 107);
+  eq("new level count", catalog.catalogCounts(r3.json).levels, counts.levels + 1);
 
   const r4 = catalog.applyPublication(real, { ...pubNew, videoUrl: null });
   const noVideo = JSON.parse(r4.json).find((l) => l.levelId === "999888777");
