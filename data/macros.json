@@ -2330,5 +2330,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-44773500/ChesszDC-Ziroikabi-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "Antarctic Lights",
+    "creator": "declanlc",
+    "levelId": "144988390",
+    "video": "https://www.youtube.com/watch?v=Ii25Ypw_Cjs",
+    "addedAt": "2026-08-22",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-144988390/ChesszDC-Antarctic-Lights-xdBot.gdr2"
+      }
+    ]
   }
 ]
