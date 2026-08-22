@@ -2351,5 +2351,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-144988390/ChesszDC-Antarctic-Lights-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "squeak",
+    "creator": "Chloe",
+    "levelId": "123912413",
+    "video": "https://www.youtube.com/watch?v=TwjW7OYqBb8",
+    "addedAt": "2026-08-22",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "xdBot",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-123912413/ChesszDC-squeak-xdBot.gdr2"
+      }
+    ]
   }
 ]
