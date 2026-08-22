@@ -3,6 +3,8 @@ import AnimatedHeading from "@/components/AnimatedHeading";
 import Link from "next/link";
 import { getAllLevels, getMacroCount } from "@/lib/macros";
 import { site } from "@/lib/site";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support";
+import DiscordOwnerCards from "@/components/DiscordOwnerCard";
 
 export const metadata: Metadata = {
   // Leads with the search phrase rather than the word "About", which nobody
@@ -89,6 +91,24 @@ export default function AboutPage() {
             Guidelines
           </Link>
         </div>
+      </section>
+
+      {/* Owners last, at the very bottom of the page. */}
+      <section className="mt-14">
+        <h2 className="text-[19px] font-bold text-text">Meet the owners</h2>
+        <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
+          Two people run {site.name} and record most of what you see here.
+        </p>
+
+        <DiscordOwnerCards />
+
+        <p className="mt-5 text-[14px] leading-relaxed text-text-dim">
+          Need to contact us about {site.name}? Email{" "}
+          <a href={SUPPORT_MAILTO} className="text-accent-soft hover:underline">
+            {SUPPORT_EMAIL}
+          </a>
+          .
+        </p>
       </section>
 
       <p className="mt-10 text-[12.5px] text-muted">

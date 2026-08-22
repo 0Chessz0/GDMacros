@@ -42,8 +42,8 @@ export default async function SubmitPage() {
 
       <p className="mt-5 text-[12.5px] leading-relaxed text-muted">
         Your file is private. Only the GDMacros team can open it, and only while it is being
-        reviewed. Approval means it passed review, not that it is on the site yet: uploading and
-        listing a macro is still done by hand.
+        reviewed. Once a macro is accepted it is published to the site automatically, so it appears
+        on its own shortly afterwards.
       </p>
     </div>
   );

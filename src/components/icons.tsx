@@ -235,3 +235,24 @@ export const GaugeIcon = (p: IconProps) => (
     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12 9V5M3.5 18a9.5 9.5 0 1 1 17 0" />
   </Base>
 );
+
+export const MailIcon = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="m3.5 7.5 7.4 5.2a2 2 0 0 0 2.2 0l7.4-5.2" />
+  </Base>
+);
+
+export const ShieldIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 3l7 3v5.5c0 4.2-2.9 7.9-7 9.5-4.1-1.6-7-5.3-7-9.5V6z" />
+    <path d="m9 12 2 2 4-4" />
+  </Base>
+);
+
+/** Discord's mark. Solid rather than stroked, like the GitHub and YouTube icons. */
+export const DiscordIcon = (p: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}>
+    <path d="M19.27 5.33A16.4 16.4 0 0 0 15.23 4l-.25.46a12.2 12.2 0 0 1 3.6 1.84 15.6 15.6 0 0 0-13.16 0A12.2 12.2 0 0 1 9.02 4.46L8.77 4a16.4 16.4 0 0 0-4.04 1.33C2.17 9.17 1.47 12.9 1.82 16.58A16.5 16.5 0 0 0 6.85 19.1l.98-1.37a10.7 10.7 0 0 1-1.68-.81l.41-.32a11.8 11.8 0 0 0 10.88 0l.41.32c-.53.32-1.1.59-1.69.81l.98 1.37a16.4 16.4 0 0 0 5.04-2.52c.42-4.27-.7-7.97-2.91-11.25ZM8.68 14.33c-.98 0-1.79-.9-1.79-2s.79-2.01 1.79-2.01 1.8.9 1.79 2.01c0 1.1-.79 2-1.79 2Zm6.64 0c-.98 0-1.79-.9-1.79-2s.79-2.01 1.79-2.01 1.8.9 1.79 2.01c0 1.1-.79 2-1.79 2Z" />
+  </svg>
+);

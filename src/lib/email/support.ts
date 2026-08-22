@@ -14,6 +14,8 @@
  * here may read the clock or a random source.
  */
 
+import { escapeHtml } from "../escapeHtml";
+
 /** The one address this feature forwards. Anything else is ignored. */
 export const SUPPORT_ADDRESS = "support@gdmacros.com";
 
@@ -362,15 +364,13 @@ export function planAttachments(list: AttachmentMeta[]): AttachmentPlan {
  * into the mail we send ourselves. The ORIGINAL html body is a different case
  * and is passed through untouched: it is the message being read, mail clients
  * already sanitise it, and mangling it would defeat the point of forwarding.
+ *
+ * The implementation lives in `lib/escapeHtml` and is re-exported here. It is
+ * deliberately NOT defined in this file: this module holds the private
+ * forwarding address, and anything importing the escaper would otherwise pull
+ * that address along with it.
  */
-export function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+export { escapeHtml };
 
 /**
  * The subject to send.

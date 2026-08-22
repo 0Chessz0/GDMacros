@@ -133,8 +133,7 @@ export default function MySubmissions({
                 )}
                 {n.outcome === "accepted" && (
                   <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
-                    It gets uploaded and listed by hand, so give it a little time to appear on the
-                    site.
+                    Your macro is now live on GDMacros.
                   </p>
                 )}
                 <p className="mt-2 text-[11.5px] text-muted">{formatDate(n.created_at)}</p>

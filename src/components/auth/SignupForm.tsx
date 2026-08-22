@@ -133,6 +133,25 @@ export default function SignupForm() {
       />
 
       <SubmitButton busy={busy}>Create account</SubmitButton>
+
+      {/*
+        Small, but never hidden. `text-muted` on the surrounding card keeps this
+        readable rather than faint-on-faint, and both documents are real links
+        so nobody has to agree to something they cannot open. The version in
+        force is recorded server side when the account is created; the browser
+        never says which version it accepted.
+      */}
+      <p className="text-[12px] leading-relaxed text-muted">
+        By creating an account, you agree to the{" "}
+        <Link href="/terms" className="font-medium text-accent-soft hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and acknowledge the{" "}
+        <Link href="/privacy" className="font-medium text-accent-soft hover:underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

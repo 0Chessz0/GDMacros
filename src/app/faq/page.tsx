@@ -1,250 +1,307 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getMacroCount, getAllLevels } from "@/lib/macros";
+import AnimatedHeading from "@/components/AnimatedHeading";
+import { getAllLevels, getMacroCount } from "@/lib/macros";
 import { site } from "@/lib/site";
-
-export const metadata: Metadata = {
-  title: "Geometry Dash macros FAQ: are they bannable, how to use a GDR2 file",
-  description:
-    "Answers about Geometry Dash macros: what a macro is, how to open a .gdr2 file, whether macros get you banned, why an xdBot macro will not play in Mega Hack, and what these downloads contain.",
-  alternates: { canonical: "/faq" },
-  openGraph: {
-    title: `Geometry Dash macros FAQ | ${site.name}`,
-    description:
-      "What a macro is, how to open a .gdr2 file, and whether using one gets you banned.",
-    url: "/faq",
-    type: "article",
-  },
-};
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support";
 
 /**
- * Every question here is one people actually type into a search box. Each answer
- * is written to stand on its own, because a search result often drops someone
- * straight onto the question rather than the top of the page.
+ * The FAQ.
+ *
+ * Counts are READ FROM THE CATALOG at build time, never written into the copy.
+ * The publisher adds macros automatically now, so any number typed into a
+ * sentence here is only true until the next submission is accepted. This page
+ * previously claimed a fixed total and was wrong within days.
  */
-const FAQ: { q: string; a: React.ReactNode; plain: string }[] = [
-  {
-    q: "What is a Geometry Dash macro?",
-    plain:
-      "A macro is a recording of the inputs used to beat a level. It is a list of frame numbers and button presses, not a program. Playing one back makes the game repeat those inputs exactly.",
-    a: (
-      <>
-        A macro is a recording of the inputs used to beat a level: a list of frame numbers and button
-        presses, and nothing else. Playing one back makes the game repeat those inputs exactly, so
-        the level completes the same way every time.
-        <br />
-        <br />
-        It is a data file, not a program. It cannot run on its own and does nothing until a mod like
-        Mega Hack or xdBot loads it.
-      </>
-    ),
-  },
-  {
-    q: "Are Geometry Dash macros bannable?",
-    plain:
-      "There is a real risk. That decision is not ours to make: it is up to RobTop and the community lists. Completions done with a macro can get you removed from the in-game leaderboards, and submitting one as a legitimate record to a demon list is cheating and gets banned. Use macros for practice and for watching a level, not for claiming a record.",
-    a: (
-      <>
-        <span className="font-semibold text-text">There is a real risk, and it is not our call.</span>{" "}
-        Nobody here can promise you are safe. What happens to an account is decided by RobTop and by
-        the community lists, not by this site.
-        <br />
-        <br />
-        A completion done with a macro can get you{" "}
-        <span className="font-semibold text-text-dim">removed from the in-game leaderboards</span>,
-        and submitting one to a demon list as though you played it yourself is cheating: those
-        communities remove records and ban people for it.
-        <br />
-        <br />
-        Macros are for practice, for learning a route, and for watching a level get beaten. If you
-        use one, do not put the result forward as your own achievement.
-      </>
-    ),
-  },
-  {
-    q: "How do I open a .gdr2 file?",
-    plain:
-      "A .gdr2 file is a replay. You do not open it directly. Put it in the macro folder of Mega Hack or xdBot, then load it from that mod's menu inside the game.",
-    a: (
-      <>
-        You do not open it directly, and double-clicking it will do nothing useful. A <code>.gdr2</code>{" "}
-        is a replay file that a mod reads.
-        <br />
-        <br />
-        Put it in the macro folder for whichever tool you use, then load it from that mod's menu
-        inside the game. The full steps for both tools are on the{" "}
-        <Link href="/install" className="text-accent-soft hover:underline">
-          install page
-        </Link>
-        .
-      </>
-    ),
-  },
-  {
-    q: "Why does my xdBot macro not work in Mega Hack?",
-    plain:
-      "The two tools write the same file extension but not the same contents. An xdBot recording carries extra data Mega Hack does not read, so it can load and then do nothing. Download the Mega Hack version of the macro instead.",
-    a: (
-      <>
-        Both tools write <code>.gdr2</code>, but they do not write the same thing inside it. An xdBot
-        recording carries extra data that Mega Hack does not read, which is why it can appear to load
-        and then do nothing at all.
-        <br />
-        <br />
-        You do not need to fix anything. Most levels here have both versions, so download the Mega
-        Hack one and use that.
-      </>
-    ),
-  },
-  {
-    q: "Is Mega Hack free?",
-    plain:
-      "No. Mega Hack is a paid mod menu. xdBot is free but was removed from the Geode mod list, so it has to be installed manually.",
-    a: (
-      <>
-        No. Mega Hack is paid, and the price is set by its developer, not by this site.
-        <br />
-        <br />
-        xdBot is free. It was removed from the Geode mod list, so it has to be installed by hand,
-        which the{" "}
-        <Link href="/install" className="text-accent-soft hover:underline">
-          install page
-        </Link>{" "}
-        walks through.
-      </>
-    ),
-  },
-  {
-    q: "What is actually in these downloads?",
-    plain:
-      "A single replay file, hosted on MediaFire. No installer and no executable. The filename and the host are shown on every download button before you click it.",
-    a: (
-      <>
-        A single replay file and nothing else. No installer, no executable, no archive that unpacks
-        into something surprising.
-        <br />
-        <br />
-        Every download button shows the real filename and says which host it opens before you click
-        it, so you can see exactly what you are getting.
-      </>
-    ),
-  },
-  {
-    q: "Do macros work on mobile?",
-    plain:
-      "Yes, if you can install the mod. Geode and xdBot both run on Android, and the replay files are identical to the PC ones.",
-    a: (
-      <>
-        Yes, provided you can install the mod. Geode runs on Android, and the replay files are
-        identical to the PC ones, so a macro downloaded here works either way.
-        <br />
-        <br />
-        iOS is far more restricted and is not something this site can help with.
-      </>
-    ),
-  },
-  {
-    q: "Can I send in my own macro?",
-    plain:
-      "Yes. Sign in and use the submit page. Recordings must come from Mega Hack or xdBot, and reuploads of someone else's macro are rejected.",
-    a: (
-      <>
-        Yes. Sign in and use{" "}
-        <Link href="/submit" className="text-accent-soft hover:underline">
-          the submit page
-        </Link>
-        .
-        <br />
-        <br />
-        Recordings have to come from Mega Hack or xdBot, and reuploads of someone else's macro are
-        rejected. The{" "}
-        <Link href="/guidelines" className="text-accent-soft hover:underline">
-          guidelines
-        </Link>{" "}
-        cover the rest.
-      </>
-    ),
-  },
-  {
-    q: "A download is dead, or a macro does not play properly. What do I do?",
-    plain:
-      "Use the Report broken button on that macro's page. It opens a prefilled issue on the GitHub repository with the level already filled in.",
-    a: (
-      <>
-        Every macro page has a{" "}
-        <span className="font-semibold text-text">Report broken</span> button. It opens an issue on
-        our GitHub with the level already filled in, so all you have to add is what went wrong.
-        <br />
-        <br />
-        Before reporting a macro that loads but plays badly: check you downloaded the version for
-        the tool you actually use. An xdBot recording will not play correctly in Mega Hack, which is
-        the single most common cause.
-      </>
-    ),
-  },
-  {
-    q: "Does it cost anything to download from here?",
-    plain:
-      "No. Every macro on the site is free, and there is no account to make.",
-    a: (
-      <>
-        No. Every macro here is free, there is no account to make, and nothing is locked behind a
-        link shortener or a survey.
-      </>
-    ),
-  },
-];
+
+const levelCount = () => getAllLevels().length;
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description: `Common questions about Geometry Dash macros, .gdr2 files, and how ${site.name} works.`,
+};
+
+interface Item {
+  q: string;
+  /** Plain text for the structured data, which cannot carry markup. */
+  plain: string;
+  a: React.ReactNode;
+}
+
+const Mail = () => (
+  <a href={SUPPORT_MAILTO} className="text-accent-soft hover:underline">
+    {SUPPORT_EMAIL}
+  </a>
+);
+
+function items(levels: number, macros: number): Item[] {
+  return [
+    {
+      q: "What is a Geometry Dash macro?",
+      plain:
+        "A macro is a recording of the inputs that complete a level. It stores frame numbers and button states and replays them, so it is a list of inputs rather than a program.",
+      a: (
+        <>
+          A recording of the inputs that complete a level. It stores which buttons were pressed and
+          on which frames, then plays them back. It is a list of inputs, not a program, and it does
+          not modify the game itself.
+        </>
+      ),
+    },
+    {
+      q: "Will using a macro get me banned?",
+      plain:
+        "We cannot promise that. Geometry Dash, its leaderboards, community demon lists and competitions each set their own rules and can change them. A macro completion is not a legitimate manual completion and should never be submitted as one.",
+      a: (
+        <>
+          We cannot promise anything either way. Geometry Dash, its leaderboards, the community demon
+          lists and any competition all set their own rules, and they can change them without warning.
+          Decide for yourself what you are comfortable with.
+          <br />
+          <br />
+          One thing is not a grey area:{" "}
+          <span className="font-semibold text-text">
+            a macro completion is not a legitimate completion
+          </span>
+          . Do not submit one to a records list or pass it off as your own run.
+        </>
+      ),
+    },
+    {
+      q: "What is a .gdr2 file?",
+      plain:
+        "The replay format both supported recorders write. It holds the recorded inputs for one level. It is a data file, not an installer or an executable.",
+      a: (
+        <>
+          The replay format both supported recorders write. It holds the recorded inputs for one
+          level and nothing else. It is a data file, not an installer and not an executable.
+        </>
+      ),
+    },
+    {
+      q: "Mega Hack or xdBot: which download do I take?",
+      plain:
+        "Take the file that matches the recorder you play with. A macro recorded for one tool is not guaranteed to replay correctly in the other. Every download on the site is labelled with its recorder.",
+      a: (
+        <>
+          Take the one that matches the tool you actually use. Every download is labelled with its
+          recorder, so pick the label that matches your setup. A file made for one recorder is not
+          guaranteed to replay correctly in the other.
+          <br />
+          <br />
+          Most levels here carry a version for each recorder, but not every level has to, so check
+          the labels on the page before downloading.
+        </>
+      ),
+    },
+    {
+      q: "How do I install and play one?",
+      plain:
+        "Install a supported recorder, put the .gdr2 file in its macro folder, then load and play it from inside the game. The install page has the full walkthrough.",
+      a: (
+        <>
+          Install one of the supported recorders, drop the .gdr2 into its macro folder, then load and
+          play it in game. The{" "}
+          <Link href="/install" className="text-accent-soft hover:underline">
+            install guide
+          </Link>{" "}
+          walks through it properly, including what to do about desync.
+        </>
+      ),
+    },
+    {
+      q: "Where are the downloads hosted?",
+      plain:
+        "On GitHub Releases, in the GDMacros-com/GDMacros-downloads repository. Every macro is hosted by the site rather than linked from somewhere else.",
+      a: (
+        <>
+          On GitHub Releases, in the{" "}
+          <span className="font-semibold text-text">GDMacros-com/GDMacros-downloads</span>{" "}
+          repository, with one release per level. We host every macro ourselves rather than linking
+          to a file somewhere else, which is what keeps the downloads working.
+        </>
+      ),
+    },
+    {
+      q: "What exactly am I downloading?",
+      plain:
+        "A single .gdr2 replay file. There is no installer and no executable. The filename and the host are shown on the button before you click it.",
+      a: (
+        <>
+          A single .gdr2 replay file. No installer, no executable, nothing that runs on its own. The
+          filename and the host are both shown on the download button before you click it.
+        </>
+      ),
+    },
+    {
+      q: "Does this work on mobile?",
+      plain:
+        "It depends on your recorder and platform. The install page covers what is currently known to work.",
+      a: (
+        <>
+          It depends on which recorder you use and what you play on. The{" "}
+          <Link href="/install" className="text-accent-soft hover:underline">
+            install guide
+          </Link>{" "}
+          covers what is currently known to work, including the mobile build of xdBot.
+        </>
+      ),
+    },
+    {
+      q: "Do I need an account to download?",
+      plain:
+        "No. Browsing and downloading need no account. An account is only needed to submit a macro or to sync favorites across devices.",
+      a: (
+        <>
+          No. Browsing and downloading are open to everyone, with nothing to sign up for. An account
+          is only needed if you want to submit a macro or keep favorites synced across devices.
+        </>
+      ),
+    },
+    {
+      q: "Can I submit my own macro?",
+      plain:
+        "Yes. Read the guidelines, then submit from the submit page. You need an account and a username, and the macro has to be yours or submitted with permission.",
+      a: (
+        <>
+          Yes. Read the{" "}
+          <Link href="/guidelines" className="text-accent-soft hover:underline">
+            guidelines
+          </Link>{" "}
+          first, then head to{" "}
+          <Link href="/submit" className="text-accent-soft hover:underline">
+            submit
+          </Link>
+          . You need an account and a username.
+          <br />
+          <br />
+          The <span className="font-semibold text-text">macro author</span> is whoever recorded the
+          run, and that credit is shown publicly on the macro. The{" "}
+          <span className="font-semibold text-text">submitter</span> is the account that sent it in.
+          They are usually the same person, and if they are not, you need the author's permission.
+        </>
+      ),
+    },
+    {
+      q: "What happens after I submit?",
+      plain:
+        "It joins the review queue. An admin accepts or rejects it, and an accepted macro is published to the site automatically. You get a notice either way.",
+      a: (
+        <>
+          It joins the review queue and waits for an admin. They either accept it or reject it with a
+          reason, and you get a short notice either way.
+          <br />
+          <br />
+          Once a macro is accepted it is{" "}
+          <span className="font-semibold text-text">published to the site automatically</span>, so it
+          appears on its own without anyone doing anything else.
+        </>
+      ),
+    },
+    {
+      q: "A macro is broken. How do I report it?",
+      plain:
+        "Use the Report broken button on the macro's page. It opens an email to support with the level details already filled in, so you only have to describe what went wrong.",
+      a: (
+        <>
+          Use the <span className="font-semibold text-text">Report broken</span> button on that
+          macro's page. It opens an email to <Mail /> with the level, the level ID and the download
+          links already filled in, so all you have to type is what went wrong.
+        </>
+      ),
+    },
+    {
+      q: `How do I contact ${site.name}?`,
+      plain: `Email ${SUPPORT_EMAIL}. That covers broken macros, takedowns, account questions and anything about privacy or the terms.`,
+      a: (
+        <>
+          Email <Mail />. That is the address for broken macros, takedown requests, account questions
+          and anything about the{" "}
+          <Link href="/privacy" className="text-accent-soft hover:underline">
+            Privacy Policy
+          </Link>{" "}
+          or{" "}
+          <Link href="/terms" className="text-accent-soft hover:underline">
+            Terms
+          </Link>
+          .
+        </>
+      ),
+    },
+    {
+      q: `Is ${site.name} free?`,
+      plain: `Yes. The site, the catalog and every download are free. The recording tools are made by other people and have their own pricing: xdBot is free and Mega Hack is paid.`,
+      a: (
+        <>
+          Yes. The site, the catalog and all {macros} downloads across {levels} levels are free, with
+          no account required and nothing to pay.
+          <br />
+          <br />
+          The recording tools are separate products made by other people. xdBot is free. Mega Hack is
+          paid. Neither of them is ours.
+        </>
+      ),
+    },
+  ];
+}
 
 export default function FaqPage() {
-  const macroCount = getMacroCount();
-  const levelCount = getAllLevels().length;
+  const levels = levelCount();
+  const macros = getMacroCount();
+  const faqs = items(levels, macros);
 
-  /** Rich result eligibility, and it keeps the answers honest and self-contained. */
-  const faqJsonLd = {
+  // Google's FAQ rich result needs plain text, so the structured data uses the
+  // `plain` field rather than trying to serialise the JSX above.
+  const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQ.map((item) => ({
+    mainEntity: faqs.map((f) => ({
       "@type": "Question",
-      name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.plain },
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.plain },
     })),
   };
 
   return (
-    <div className="mx-auto w-full max-w-[760px] px-4 py-7 sm:px-6 sm:py-9">
+    <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">
-        Geometry Dash macros: common questions
-      </h1>
-      <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-        What a macro is, how to use one, and what these {macroCount} downloads across {levelCount}{" "}
-        levels actually contain.
+      <AnimatedHeading
+        text="FAQ"
+        className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]"
+      />
+      <p className="mt-3 text-[15px] leading-relaxed text-muted">
+        Common questions about macros and about {site.name}. Right now the catalog holds{" "}
+        <span className="font-semibold text-text">
+          {macros} downloads across {levels} levels
+        </span>
+        , and it grows as new macros are accepted.
       </p>
 
-      <div className="mt-7 flex flex-col gap-3">
-        {FAQ.map((item) => (
-          <section key={item.q} className="card p-5">
-            <h2 className="text-[15px] font-bold text-text">{item.q}</h2>
-            <div className="mt-2 text-[13.5px] leading-relaxed text-text-dim">{item.a}</div>
-          </section>
+      <div className="mt-9 space-y-3">
+        {faqs.map((f) => (
+          <details key={f.q} className="card group px-5 py-4 open:pb-5">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-bold text-text marker:hidden">
+              {f.q}
+              <span className="shrink-0 text-[18px] leading-none text-muted transition-transform duration-200 group-open:rotate-45">
+                +
+              </span>
+            </summary>
+            <div className="mt-3 text-[14.5px] leading-relaxed text-text-dim">{f.a}</div>
+          </details>
         ))}
       </div>
 
-      <div className="mt-7 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-5 py-4">
-        <p className="min-w-0 flex-1 text-[13px] text-text-dim">
-          Still stuck on getting a macro to load?
-        </p>
-        <Link
-          href="/install"
-          className="shrink-0 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 active:duration-75"
-        >
-          Read the install guide
-        </Link>
-      </div>
+      <p className="mt-10 text-[14px] leading-relaxed text-muted">
+        Still stuck? Email <Mail />, or read the{" "}
+        <Link href="/guidelines" className="text-accent-soft hover:underline">
+          guidelines
+        </Link>{" "}
+        before submitting.
+      </p>
     </div>
   );
 }

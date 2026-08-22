@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import ReviewQueue, { type AdminRow } from "@/components/admin/ReviewQueue";
 import SubmissionBans from "@/components/admin/SubmissionBans";
+import LegalNotices from "@/components/admin/LegalNotices";
 import { isCurrentUserAdmin } from "@/lib/admin";
 import { listSubmissionBans } from "@/lib/actions/submissions";
+import { runStatus } from "@/lib/actions/legalNotice";
+import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal";
 import { getUser, createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -64,7 +67,12 @@ export default async function AdminPage({
 
   if (filter !== "all") query = query.eq("status", filter);
 
-  const [{ data, error }, bans] = await Promise.all([query, listSubmissionBans()]);
+  const [{ data, error }, bans, latestRun] = await Promise.all([
+    query,
+    listSubmissionBans(),
+    // Counts only. This never returns a recipient or an address.
+    runStatus(),
+  ]);
 
   type Raw = Omit<AdminRow, "submitter" | "processor" | "mine"> & {
     submitted_by: string;
@@ -81,9 +89,15 @@ export default async function AdminPage({
    * enable an embed would couple two tables for a display concern, so the join
    * happens here.
    *
-   * auth.users is never queried anywhere in this application, which is why an
-   * email address cannot reach this page even by accident. Both id columns are
+   * Nothing in the review path touches auth.users, which is why an email
+   * address cannot reach this page even by accident. Both id columns are
    * dropped below rather than handed to the client.
+   *
+   * There is now exactly ONE place that reads auth.users, and it is not this
+   * one: `lib/supabase/auth-admin.ts` enumerates accounts so a legal notice can
+   * be emailed to them. It is server-only, it is reachable solely through the
+   * Legal Notices tool below, and no address it reads is ever returned to the
+   * browser or written to the database.
    */
   const ids = [
     ...new Set(raw.flatMap((r) => [r.submitted_by, r.processing_by].filter(Boolean) as string[])),
@@ -111,9 +125,8 @@ export default async function AdminPage({
         Review queue
       </h1>
       <p className="mt-1.5 mb-6 text-[13.5px] leading-relaxed text-muted">
-        Accepting opens a publishing screen and claims the submission. Nothing is announced to the
-        submitter until you press Done and Close, and nothing is ever uploaded or added to the
-        catalog automatically.
+        Accepting opens a publishing screen and claims the submission. Publishing then runs
+        automatically, and nothing is announced to the submitter until it has been confirmed live.
       </p>
 
       {error ? (
@@ -125,6 +138,12 @@ export default async function AdminPage({
       )}
 
       <SubmissionBans initial={"bans" in bans ? bans.bans : []} />
+
+      <LegalNotices
+        termsVersion={TERMS_VERSION}
+        privacyVersion={PRIVACY_VERSION}
+        initialRun={latestRun.ok && latestRun.runId ? latestRun : null}
+      />
     </div>
   );
 }
