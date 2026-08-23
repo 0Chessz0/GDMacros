@@ -19,12 +19,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const author = getAuthorBySlug(slug);
-  if (!author) return { title: "Author not found" };
+  if (!author) return { title: "Profile not found" };
 
   const macroWord = author.macroCount === 1 ? "macro" : "macros";
   const levelWord = author.levelCount === 1 ? "level" : "levels";
   const title = `${author.name} Geometry Dash Macros`;
-  const description = `${author.macroCount} Geometry Dash ${macroWord} across ${author.levelCount} ${levelWord}, publicly credited to ${author.name} in the GDMacros catalog.`;
+  const description = `${author.macroCount} Geometry Dash ${macroWord} across ${author.levelCount} ${levelWord}, recorded by ${author.name} on GDMacros.`;
 
   return {
     title,
@@ -81,7 +81,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
 
           <div className="min-w-0 flex-1">
             <p className="text-[11.5px] font-semibold tracking-[0.1em] text-muted uppercase">
-              Catalog author
+              Profile
             </p>
             <h1
               translate="no"
@@ -90,8 +90,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
               {author.name}
             </h1>
             <p className="mt-2 max-w-[590px] text-[13px] leading-relaxed text-muted">
-              This page groups public macro credits that use this name. It is not a verified
-              account profile and does not identify who controls the name.
+              Every macro on GDMacros credited to {author.name}.
             </p>
           </div>
         </div>

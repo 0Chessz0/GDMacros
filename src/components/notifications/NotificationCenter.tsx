@@ -99,10 +99,23 @@ export default function NotificationCenter({
                   <div>
                     <p className="text-[13.5px] leading-relaxed text-text">
                       <span className="font-bold" translate="no">{notification.level_name}</span>{" "}
-                      <span className={notification.outcome === "accepted" ? "text-green" : "text-rose"}>
-                        was {notification.outcome}.
-                      </span>
+                      {notification.outcome === "accepted" ? (
+                        <span className="text-green">was accepted.</span>
+                      ) : (
+                        <span className="text-rose">was rejected.</span>
+                      )}
                     </p>
+                    {/*
+                      Spelled out rather than interpolated from `outcome`. The
+                      two words are the whole message a submitter came here to
+                      read, and an interpolated one is a database value away
+                      from rendering something nobody wrote.
+                    */}
+                    {notification.outcome === "accepted" && (
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
+                        Your macro is now live on GDMacros.
+                      </p>
+                    )}
                     {(notification.level_id || notification.recorder) && (
                       <p className="mt-1 text-[12px] text-muted">
                         {notification.level_id && <>Level {notification.level_id}</>}

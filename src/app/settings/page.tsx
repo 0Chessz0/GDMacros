@@ -106,8 +106,8 @@ export default async function SettingsPage() {
           {catalogAuthor && (
             <SettingsLink
               href={`/author/${catalogAuthor.slug}`}
-              title="Catalog author page"
-              detail={`View public macros credited to ${catalogAuthor.name}. Catalog credits are not verified account ownership.`}
+              title="Your public profile"
+              detail={`The page everyone sees, with every macro credited to ${catalogAuthor.name}.`}
             />
           )}
         </div>
@@ -119,7 +119,7 @@ export default async function SettingsPage() {
           <div>
             <h2 className="text-[15px] font-bold text-text">Account and privacy</h2>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">
-              Your email is private. Catalog author credits are separate from account ownership.
+              Your email is private. Your username and your macros are public.
             </p>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[12.5px]">
               <Link href="/reset-password" className="text-accent-soft hover:underline">

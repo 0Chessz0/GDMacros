@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { migrateStoredFavorites, useFavorites } from "@/lib/favorites";
 import type { Level } from "@/lib/types";
 import MacroRow from "./MacroRow";
@@ -13,6 +13,7 @@ import { StarIcon } from "./icons";
  */
 export default function FavoritesList({ levels }: { levels: Level[] }) {
   const { favorites, ready, toggle } = useFavorites();
+  const [confirming, setConfirming] = useState(false);
 
   // This page has the whole catalog, so it can finish the slug to level id
   // migration outright, including dropping entries for levels that are gone.
@@ -59,15 +60,47 @@ export default function FavoritesList({ levels }: { levels: Level[] }) {
         <p className="text-[12.5px] text-muted">
           <span className="font-semibold text-text-dim tabular-nums">{saved.length}</span> saved
         </p>
-        <button
-          type="button"
-          // Each toggle re-reads the stored list, so these do not fight over one
-          // stale snapshot the way a state-derived list would.
-          onClick={() => saved.forEach((l) => toggle(String(l.levelId)))}
-          className="text-[12.5px] text-muted transition-colors hover:text-rose"
-        >
-          Remove all
-        </button>
+        {/*
+          Two steps, because this is the one irreversible action on the page.
+          Signed out there is no server copy to restore from, and signed in it
+          clears the synced list on every device. An inline confirm is used
+          rather than window.confirm so the warning can say which of those two
+          situations the visitor is actually in.
+        */}
+        {confirming ? (
+          <span className="flex flex-wrap items-center gap-2.5">
+            <span className="text-[12.5px] text-text-dim">
+              Remove all {saved.length}? This cannot be undone.
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                // Each toggle re-reads the stored list, so these do not fight
+                // over one stale snapshot the way a state-derived list would.
+                saved.forEach((l) => toggle(String(l.levelId)));
+                setConfirming(false);
+              }}
+              className="rounded-lg border border-rose/40 bg-rose/10 px-2.5 py-1 text-[12.5px] font-semibold text-rose transition-colors hover:bg-rose/15"
+            >
+              Remove all
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              className="text-[12.5px] text-muted transition-colors hover:text-text-dim"
+            >
+              Cancel
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="text-[12.5px] text-muted transition-colors hover:text-rose"
+          >
+            Remove all
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col gap-3.5">

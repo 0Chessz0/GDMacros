@@ -87,16 +87,14 @@ export default async function AccountPage() {
       <div className="card mt-3 p-5">
         <h2 className="text-[15px] font-bold text-text">Your username</h2>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
-          This is your public account name. Macro-author credits are entered separately during
-          submission, so a matching catalog name is not proof of account ownership. Your email is
-          never shown publicly.
+          This is your public account name. It is the name shown on macros you record. Your email
+          is never shown publicly.
         </p>
         <ChangeUsernameForm current={profile.username} />
         {catalogAuthor && (
           <p className="mt-3 text-[12.5px] leading-relaxed text-muted">
-            The catalog has credits using this name. {" "}
             <Link href={`/author/${catalogAuthor.slug}`} className="text-accent-soft hover:underline">
-              View that public author page
+              View your public profile
             </Link>
             .
           </p>

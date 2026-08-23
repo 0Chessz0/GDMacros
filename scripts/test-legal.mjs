@@ -58,6 +58,7 @@ const src = {
   footer: read("src/components/Footer.tsx"),
   sitemap: read("src/app/sitemap.ts"),
   mySubs: read("src/components/submissions/MySubmissions.tsx"),
+  notifUi: read("src/components/notifications/NotificationCenter.tsx"),
   submit: read("src/app/submit/page.tsx"),
   report: read("src/components/ReportBroken.tsx"),
   adminPage: read("src/app/admin/page.tsx"),
@@ -70,7 +71,8 @@ const src = {
   // history so the final matching row is the database's current value.
   migration:
     read("supabase/migrations/0007_legal_acceptance_and_notices.sql") +
-    read("supabase/migrations/0011_account_experience.sql"),
+    read("supabase/migrations/0011_account_experience.sql") +
+    read("supabase/migrations/0012_privacy_version_2026_08_24.sql"),
   ownerCard: read("src/components/DiscordOwnerCard.tsx"),
 };
 
@@ -99,8 +101,15 @@ check(
 );
 check(
   "accepted copy says the macro is live",
-  /Your macro is now live on GDMacros\./.test(src.mySubs),
+  // Results moved out of /submissions and into the notification centre, which
+  // is the single place an outcome is now read and dismissed.
+  /Your macro is now live on GDMacros\./.test(src.notifUi),
   "expected wording missing",
+);
+check(
+  "results no longer appear on the submissions page as well",
+  !/was accepted\.|was rejected\./.test(src.mySubs),
+  "an outcome is shown in two places, so dismiss is ambiguous",
 );
 check(
   "accepted copy does not explain the pipeline",
@@ -113,7 +122,7 @@ check(
 );
 check(
   "rejection wording is untouched",
-  /was rejected\./.test(src.mySubs) && /rejection_reason/.test(src.mySubs),
+  /was rejected\./.test(src.notifUi) && /rejection_reason/.test(src.notifUi),
 );
 check(
   "admin queue no longer claims nothing is published automatically",
@@ -293,8 +302,23 @@ check(
   !/gdmacros\.com@gmail\.com/.test(src.privacy),
 );
 check("privacy covers legal notice emails", /Terms|Privacy/.test(src.privacy) && /not a newsletter and not advertising/i.test(src.privacy));
-check("privacy covers the notice delivery record", /one row per recipient/i.test(src.privacy));
-check("privacy states no second copy of the email is stored", /not store another copy of your email address/i.test(src.privacy));
+check(
+  "privacy covers records of messages sent",
+  /records hold the message and its delivery state/i.test(prose.privacy),
+);
+check(
+  "privacy is honest that a retry may hold the address briefly",
+  // This replaces an older, narrower claim that no second copy was ever kept.
+  // That was true of the legal-notice broadcast and NOT of the submission
+  // result queue, which freezes the address so a retry cannot go somewhere
+  // else. The policy now states the actual behaviour and its limit.
+  /copy of the destination address is held only for as long as the retry is safe/i.test(prose.privacy) &&
+    /erased once the message is settled/i.test(prose.privacy),
+);
+check(
+  "privacy still refuses to become a mailing list",
+  /never used to build a mailing list/i.test(prose.privacy),
+);
 check("privacy covers the signup acceptance record", /which version of the/i.test(src.privacy));
 check("privacy covers automatic publishing", /publishing happens automatically/i.test(src.privacy));
 check("privacy says the private upload is deleted after publication", /private copy of your upload is deleted/i.test(src.privacy));
@@ -338,9 +362,26 @@ eq("a malformed date renders as itself", legal.formatLegalDate("nonsense"), "non
 
 // The database stamps acceptance from its own copy, so the two must agree or
 // accounts would be recorded against a version nobody ever published.
+//
+// A document's version is SET by an insert tuple when the table is first
+// seeded, and later MOVED by an update. Both forms are read, in migration
+// order, so the last one wins. Reading only the insert form silently kept
+// asserting a version that a later migration had already replaced.
+//
 const seeded = {};
-for (const m of src.migration.matchAll(/\('(terms|privacy)',\s*'(\d{4}-\d{2}-\d{2})',\s*'(\d{4}-\d{2}-\d{2})'\s*[,)]/g)) {
+
+// ('privacy', '2026-08-23', '2026-08-23')
+for (const m of src.migration.matchAll(
+  /\('(terms|privacy)',\s*'(\d{4}-\d{2}-\d{2})',\s*'(\d{4}-\d{2}-\d{2})'\s*[,)]/g,
+)) {
   seeded[m[1]] = { version: m[2], effective: m[3] };
+}
+
+// set version = '...', effective_date = '...' ... where doc = '...'
+for (const m of src.migration.matchAll(
+  /set\s+version\s*=\s*'(\d{4}-\d{2}-\d{2})'\s*,\s*effective_date\s*=\s*'(\d{4}-\d{2}-\d{2})'[\s\S]{0,200}?where\s+doc\s*=\s*'(terms|privacy)'/gi,
+)) {
+  seeded[m[3]] = { version: m[1], effective: m[2] };
 }
 eq("migration seeds the same terms version", seeded.terms?.version, legal.TERMS_VERSION);
 eq("migration seeds the same privacy version", seeded.privacy?.version, legal.PRIVACY_VERSION);

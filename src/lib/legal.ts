@@ -25,8 +25,8 @@
 export const TERMS_VERSION = "2026-08-22";
 export const TERMS_EFFECTIVE_DATE = "2026-08-22";
 
-export const PRIVACY_VERSION = "2026-08-23";
-export const PRIVACY_EFFECTIVE_DATE = "2026-08-23";
+export const PRIVACY_VERSION = "2026-08-24";
+export const PRIVACY_EFFECTIVE_DATE = "2026-08-24";
 
 /** Canonical paths, so links are written once. */
 export const TERMS_PATH = "/terms";

@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ChevronDownIcon } from "@/components/icons";
-import { dismissNotification, withdrawSubmission } from "@/lib/actions/submissions";
+import { withdrawSubmission } from "@/lib/actions/submissions";
 import {
   STATUS_LABEL,
   formatDate,
-  type NotificationRow,
   type PublishedSubmissionView,
   type SubmissionRow,
 } from "@/lib/submissions";
@@ -25,24 +24,25 @@ function StatusPill({ status }: { status: string }) {
 }
 
 /**
- * What a submitter sees: submissions still in play, dismissible result notices,
- * and the durable account-linked record of accepted items that are live.
+ * What a submitter sees: submissions still in play, and a collapsed record of
+ * the ones already published.
  *
- * An outcome is a separate, tiny row. The submission itself is deleted once it
- * is accepted or rejected, so nothing here can show a file, a video, notes or
- * anything else about a rejected submission, because none of it still exists.
+ * Accepted and rejected RESULTS deliberately do not appear here. They live in
+ * the notification centre, which is the one place a result is read and
+ * dismissed. Showing the same outcome in two places made "dismiss" ambiguous:
+ * it was never clear whether it cleared the notice or the history.
  */
 export default function MySubmissions({
   rows,
-  notifications,
   published,
+  profileHref,
 }: {
   rows: SubmissionRow[];
-  notifications: NotificationRow[];
   published: PublishedSubmissionView[];
+  /** The visitor's own public profile, or null if nothing is credited to them yet. */
+  profileHref: string | null;
 }) {
   const [items, setItems] = useState(rows);
-  const [notes, setNotes] = useState(notifications);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -58,20 +58,7 @@ export default function MySubmissions({
     });
   }
 
-  function onDismiss(id: string) {
-    setError(null);
-    setBusyId(id);
-    startTransition(async () => {
-      const res = await dismissNotification(id);
-      if (res.ok) {
-        setNotes((list) => list.filter((n) => n.id !== id));
-        window.dispatchEvent(new CustomEvent("gdmacros:notifications-read"));
-      } else setError(res.error);
-      setBusyId(null);
-    });
-  }
-
-  const nothingAtAll = items.length === 0 && notes.length === 0 && published.length === 0;
+  const nothingAtAll = items.length === 0 && published.length === 0;
 
   if (nothingAtAll) {
     return (
@@ -99,54 +86,6 @@ export default function MySubmissions({
         >
           {error}
         </div>
-      )}
-
-      {notes.length > 0 && (
-        <section>
-          <h2 className="mb-2.5 text-[13px] font-bold text-text-dim">Results</h2>
-          <div className="flex flex-col gap-2.5">
-            {notes.map((n) => (
-              <div
-                key={n.id}
-                className={`card p-4 ${
-                  n.outcome === "accepted" ? "border-green/30" : "border-rose/30"
-                }`}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="text-[13.5px] leading-relaxed text-text">
-                    Your submission for{" "}
-                    <span className="font-bold">{n.level_name}</span>{" "}
-                    {n.outcome === "accepted" ? (
-                      <span className="font-semibold text-green">was accepted.</span>
-                    ) : (
-                      <span className="font-semibold text-rose">was rejected.</span>
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => onDismiss(n.id)}
-                    disabled={busyId === n.id}
-                    className="shrink-0 text-[12px] text-muted transition-colors hover:text-text-dim disabled:opacity-60"
-                  >
-                    {busyId === n.id ? "Dismissing..." : "Dismiss"}
-                  </button>
-                </div>
-
-                {n.outcome === "rejected" && n.rejection_reason && (
-                  <p className="mt-2 text-[12.5px] leading-relaxed text-text-dim">
-                    <span className="text-muted">Reason:</span> {n.rejection_reason}
-                  </p>
-                )}
-                {n.outcome === "accepted" && (
-                  <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
-                    Your macro is now live on GDMacros.
-                  </p>
-                )}
-                <p className="mt-2 text-[11.5px] text-muted">{formatDate(n.created_at)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       )}
 
       {published.length > 0 && (
@@ -198,9 +137,19 @@ export default function MySubmissions({
             ))}
 
             <p className="border-t border-border-soft py-3 text-[11.5px] leading-relaxed text-muted">
-              Account-linked accepted history starts with this feature. Older catalog credits may
-              not appear here, because author credits and account ownership were not previously
-              linked.
+              This list starts from when submission history was added, so macros published before
+              then are not in it.{" "}
+              {profileHref ? (
+                <>
+                  They are all on{" "}
+                  <Link href={profileHref} className="text-accent-soft hover:underline">
+                    your public profile
+                  </Link>
+                  .
+                </>
+              ) : (
+                <>Every macro credited to you is on your public profile.</>
+              )}
             </p>
           </div>
         </details>
@@ -234,7 +183,7 @@ export default function MySubmissions({
 
                 {s.status === "processing" && (
                   <p className="mt-3 text-[12.5px] leading-relaxed text-muted">
-                    Someone is publishing this now. You will see the result here when it is done.
+                    Someone is publishing this now. The result arrives in your notifications.
                   </p>
                 )}
 

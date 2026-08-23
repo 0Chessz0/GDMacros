@@ -39,6 +39,11 @@ const macros = await jiti.import(path.join(ROOT, "src/lib/macros.ts"));
 
 const src = {
   migration: read("supabase/migrations/0011_account_experience.sql"),
+  // Read in order so a later migration that moves a legal version wins, the
+  // same way the database sees it.
+  legalMigrations:
+    read("supabase/migrations/0011_account_experience.sql") +
+    read("supabase/migrations/0012_privacy_version_2026_08_24.sql"),
   authors: read("src/lib/authors.ts"),
   authorPage: read("src/app/author/[slug]/page.tsx"),
   macroPage: read("src/app/macro/[slug]/page.tsx"),
@@ -79,7 +84,16 @@ check("the index is explicitly a catalog credit", /catalog credit/i.test(src.aut
 check("the public page is statically generated", /generateStaticParams/.test(src.authorPage) && /force-static/.test(src.authorPage));
 check("the public page uses a placeholder avatar", /UserIcon/.test(src.authorPage));
 check("the public page offers no avatar upload", !/type=["']file|upload.*avatar|change.*photo/i.test(src.authorPage));
-check("the public page disclaims verified ownership", /not a verified account profile/i.test(flat(src.authorPage)));
+check(
+  "the profile page claims no disclaimer about ownership",
+  !/not a verified account profile|does not identify who controls/i.test(flat(src.authorPage)),
+  "the old credit-is-not-ownership disclaimer is back",
+);
+check(
+  "the profile page says whose macros it lists",
+  /Every macro on GDMacros credited to/i.test(flat(src.authorPage)),
+);
+check("the profile page is labelled a profile", /Profile/.test(src.authorPage));
 check("macro detail links author credits", /\/author\/\$\{author\.slug\}/.test(src.macroPage));
 check("author links are outside the download anchor", src.macroPage.indexOf("href={`/author/") < src.macroPage.indexOf("href={macro.downloadLink}"));
 check("the sitemap includes every author page", /getAllAuthors/.test(src.sitemap) && /\/author\//.test(src.sitemap));
@@ -91,7 +105,10 @@ check("accepted links target the exact macro card", /#macro-\$\{macro\.position\
 check("the resolver never matches a username", !/username|profile/i.test(src.published));
 check("accepted history is collapsible", /<details/.test(src.submissionsUi) && /<summary/.test(src.submissionsUi));
 check("accepted history links live macros", /View live macro/.test(src.submissionsUi));
-check("legacy limitations are stated", /Older catalog credits may not appear/.test(flat(src.submissionsUi)));
+check(
+  "the history explains why older macros are absent",
+  /macros published before then are not in it/i.test(flat(src.submissionsUi)),
+);
 check("published history is owned by a UUID", /create table if not exists public\.published_submissions/i.test(src.migration) && /user_id\s+uuid/i.test(src.migration));
 check("the ledger has owner-only RLS", /published_submissions[\s\S]*enable row level security/i.test(src.migration) && /auth\.uid\(\)[\s\S]*user_id/i.test(src.migration));
 check("acceptance records the verified asset URL", /asset_url/i.test(src.migration) && /insert into public\.published_submissions/i.test(src.migration));
@@ -154,13 +171,60 @@ check("review RPC return stays deploy-compatible text", /finish_processing\(p_id
 check("the action accepts both JSON envelopes and legacy paths", /JSON\.parse/.test(src.submissionAction) && /storagePath: data/.test(src.submissionAction));
 
 console.log("Privacy");
-check("privacy version is current", /PRIVACY_VERSION = "2026-08-23"/.test(src.legal));
-check("privacy distinguishes credit from ownership", /matching text does not prove/i.test(flat(src.privacy)));
-check("privacy discloses result email settings", /independently choose whether accepted and rejected results are also emailed/i.test(flat(src.privacy)));
-check("privacy discloses the temporary frozen payload", /temporarily freezes the destination address and exact message/i.test(flat(src.privacy)));
-check("privacy describes opportunistic expiry cleanup", /next time the delivery queue runs after that window/i.test(flat(src.privacy)));
-check("privacy discloses never-attempted job retention", /never reached Resend waits until delivery is configured/i.test(flat(src.privacy)));
-check("the migration mirrors the privacy version", /'privacy'\s*,\s*'2026-08-23'/i.test(src.migration));
+//
+// Derived, never hardcoded. These used to name the date, which meant every
+// version bump also meant editing this file, and a test that must be edited
+// on every release is one that eventually gets edited to whatever makes it
+// pass. The only property worth asserting is that the app and the database
+// agree.
+//
+const appPrivacyVersion = /PRIVACY_VERSION = "(\d{4}-\d{2}-\d{2})"/.exec(src.legal)?.[1] ?? null;
+check("the app declares a privacy version", Boolean(appPrivacyVersion), String(appPrivacyVersion));
+check(
+  "privacy no longer separates credit from account ownership",
+  !/matching credit is not verified|does not prove that an account owns/i.test(flat(src.privacy)),
+);
+check(
+  "privacy states the username is the public name on your macros",
+  /the name shown on macros you record/i.test(flat(src.privacy)),
+);
+check(
+  "privacy discloses result email settings",
+  /submission results, if you have those switched on in Settings/i.test(flat(src.privacy)),
+);
+check(
+  "privacy says results still appear on the site with email off",
+  /results still appear on the site/i.test(flat(src.privacy)),
+);
+check(
+  "privacy discloses that a retry may hold the address",
+  /copy of the destination address is held only for as long as the retry is safe/i.test(flat(src.privacy)),
+);
+check(
+  "privacy says the held address is erased",
+  /erased once the message is settled/i.test(flat(src.privacy)),
+);
+check(
+  "privacy bounds how long a delivery record holds an address",
+  /hold a destination address only while a retry could still need it/i.test(flat(src.privacy)),
+);
+check(
+  "privacy still refuses to build a mailing list from them",
+  /never used to build a mailing list/i.test(flat(src.privacy)),
+);
+{
+  // Last write wins, exactly as the database sees it: an insert seeds the row,
+  // a later update moves it.
+  let dbPrivacyVersion = null;
+  for (const m of src.legalMigrations.matchAll(
+    /\('privacy',\s*'(\d{4}-\d{2}-\d{2})'/g,
+  )) dbPrivacyVersion = m[1];
+  for (const m of src.legalMigrations.matchAll(
+    /set\s+version\s*=\s*'(\d{4}-\d{2}-\d{2})'[\s\S]{0,200}?where\s+doc\s*=\s*'privacy'/gi,
+  )) dbPrivacyVersion = m[1];
+
+  eq("the database mirrors the app's privacy version", dbPrivacyVersion, appPrivacyVersion);
+}
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failures.length) {

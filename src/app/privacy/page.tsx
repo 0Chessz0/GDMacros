@@ -13,10 +13,27 @@ export const metadata: Metadata = {
 /**
  * The Privacy Policy.
  *
- * Every statement here describes something the code actually does. Where the
- * code does not guarantee something, the wording says so rather than promising
- * it: there are no retention periods the application does not enforce, no claim
- * of regulatory compliance, and no promise that anything is perfectly secure.
+ * WRITTEN TO STOP GOING STALE
+ * ---------------------------
+ * The previous version described the implementation: individual tables,
+ * individual storage keys, one section per feature. Every feature shipped meant
+ * another section, and a policy that needs editing on every release is a policy
+ * that will eventually be wrong, because sooner or later somebody ships without
+ * editing it.
+ *
+ * This version is organised by CATEGORY OF DATA and PURPOSE instead. "Things
+ * you choose, stored against your account" covers the email preferences that
+ * exist today and the next preference that gets added, without a word changing.
+ * Companies are described by the ROLE they perform, so moving a feature between
+ * them is what would need an edit, not adding a feature.
+ *
+ * Specific facts are still named where they are the point rather than an
+ * example: the route support mail actually takes, what is public, what is
+ * deleted when. Those are commitments, not implementation trivia.
+ *
+ * The trade is deliberate and has a floor: generality must never become vague
+ * enough to stop being a promise. If a change means the words below are no
+ * longer true, the words change. That is the whole test.
  */
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -63,35 +80,33 @@ export default function PrivacyPage() {
       </p>
       <p className="mt-4 text-[15px] leading-relaxed text-muted">
         {site.name} is a macro catalog, not an advertising business. This page explains what is
-        actually stored, what stays private, and which other companies are involved. It describes
-        what the site really does today.
+        stored, what stays private, and which other companies are involved.
       </p>
+
+      <Section title="The short version">
+        <Bullets
+          items={[
+            "You can browse and download everything without an account.",
+            "There is no advertising, no tracking cookie, and nothing is sold or shared for marketing.",
+            "An account stores what it needs to be an account, plus what you choose to give it.",
+            "Your email address is private. Your username and your macros are public.",
+            "We only email you about your account, your submissions, and changes to these documents.",
+          ]}
+        />
+        <p>The rest of this page is the detail behind those five points.</p>
+      </Section>
 
       <Section title="Browsing without an account">
         <p>
-          You do not need an account to browse the catalog or to download a macro. Nothing about you
-          is stored on our side when you do either.
+          You do not need an account to browse the catalog or to download a macro, and nothing about
+          you is stored on our side when you do either.
         </p>
-        <p>Your browser keeps a few small things locally so the site behaves sensibly:</p>
-        <Bullets
-          items={[
-            <>
-              <Key>gdm-theme</Key> for light or dark mode.
-            </>,
-            <>
-              <Key>gdmacros:view</Key> and <Key>gdmacros:sort</Key> for how you like the list laid out.
-            </>,
-            <>
-              <Key>gdmacros:recent</Key> for the recently viewed strip.
-            </>,
-            <>
-              <Key>gdmacros:favorites</Key> and a couple of related keys for favorites.
-            </>,
-          ]}
-        />
         <p>
-          These live in your browser's local storage. They are not sent to us, they are not an
-          identifier, and clearing your site data removes them.
+          Your browser keeps a few small preferences locally so the site behaves sensibly between
+          visits: things like your theme (<Key>gdm-theme</Key>), how you like the list laid out,
+          what you viewed recently, and your favorites (<Key>gdmacros:favorites</Key>). These live in
+          your browser&apos;s local storage. They are not sent to us, they are not an identifier, and
+          clearing your site data removes them.
         </p>
       </Section>
 
@@ -106,46 +121,47 @@ export default function PrivacyPage() {
         />
       </Section>
 
-      <Section title="Accounts">
-        <p>Accounts are handled by Supabase. When you create one, Supabase stores:</p>
+      <Section title="Your account">
+        <p>Accounts are handled by Supabase. Having one means storing:</p>
         <Bullets
           items={[
-            "Your email address, used to sign in, confirm the account, reset a password, and send important account notices.",
+            "Your email address, used to sign in, confirm the account, reset a password, and send the messages described below.",
             "A hashed version of your password. We never see your actual password, and it is not something we can look up or recover.",
             "Session information that keeps you signed in.",
+            "Your username.",
           ]}
         />
         <p>
-          Your <span className="font-semibold text-text">username is public</span>. It identifies
-          your account and is shown to reviewers for submissions made by that account. The macro
-          author name entered on a submission is a separate catalog credit; matching text does not
-          prove that an account owns that credit. Your{" "}
+          Your <span className="font-semibold text-text">username is public</span>. It is the name
+          shown on macros you record and on your profile page. Your{" "}
           <span className="font-semibold text-text">email address is private</span>: it is not shown
           anywhere on the site, and the review screens do not have access to it. When an admin looks
           at a submission they see the username, never the address behind it.
         </p>
       </Section>
 
-      <Section title="Favorites">
+      <Section title="Things you choose, stored against your account">
         <p>
-          Signed out, favorites are stored only in your browser. We do not know what they are and
-          they do not leave your device.
+          Some data exists only because you asked for it. Today that means your favorites when you
+          are signed in, your notification read state, and your preferences for which submission
+          results are emailed to you. As the site gains options, new preferences of this kind are
+          stored the same way and for the same reason: to make the site behave the way you set it.
         </p>
         <p>
-          Signed in, they sync to your account so the same list follows you between devices. That
-          means a row linking your account to a level ID. Removing a favorite removes the row.
+          None of it is used for anything other than providing that feature to you. Changing a
+          setting changes the stored value; removing the feature or the account removes it.
+        </p>
+        <p>
+          Signed out, favorites stay in your browser only. We do not know what they are and they do
+          not leave your device.
         </p>
       </Section>
 
-      <Section title="Submitting a macro">
-        <p>A submission stores:</p>
+      <Section title="Macros you submit">
+        <p>Submitting a macro stores what is needed to review and publish it:</p>
         <Bullets
           items={[
-            "Which account submitted it, as an internal account ID. Your public username is shown to reviewers through that link.",
-            "The level name, level ID and level creator.",
-            "The showcase video link, if you gave one.",
-            "The recorder used, and the macro author's name.",
-            "Any notes you wrote for the reviewer.",
+            "Which account submitted it, and the level, video link, recorder, macro author and any notes you entered.",
             "The .gdr2 file itself.",
             "Timestamps and the current review status.",
           ]}
@@ -153,75 +169,62 @@ export default function PrivacyPage() {
         <p>
           The uploaded file goes into private storage. It is not public and not listed, and no
           browser can reach it directly. Only an admin reviewing your submission can open it, and
-          only through a short-lived link generated for that review.
+          only through a short-lived link generated for that review. A reviewer can correct details
+          such as a missing video link before publishing.
         </p>
       </Section>
 
-      <Section title="What happens when a macro is accepted">
+      <Section title="What becomes public">
         <p>
           After an admin approves a submission, publishing happens automatically. The file is
           uploaded as a public download, the catalog entry is added, and the site is checked to
-          confirm the macro is really live before the submission is closed out. Once that is
-          confirmed, the private copy of your upload is deleted.
+          confirm the macro is really live. Once that is confirmed, the private copy of your upload
+          is deleted.
         </p>
-        <p>The public file is named after the macro author, the level and the recorder. It does not contain:</p>
+        <p>Public means the macro itself, and the credits shown beside it: the level, the recorder, and the macro author. Also public:</p>
         <Bullets
           items={[
-            "your email address,",
-            "your account ID,",
-            "your submission notes,",
-            "or anything from the review process.",
+            "Your username, once you choose one.",
+            <>
+              Your profile page, which lists the macros credited to your name. Anyone can view it,
+              and it is included in the site&apos;s sitemap.
+            </>,
+            "The catalog itself.",
           ]}
         />
         <p>
-          What becomes public is the macro itself and the credits shown beside it. Nothing private
-          travels with it.
-        </p>
-        <p>
-          We also keep a private account-linked publication record containing the submission ID,
-          level details, macro credit, recorder, verified public download URL and publication time.
-          It powers the accepted-and-live list in your submission history. It is not used to turn a
-          catalog credit into verified account ownership.
+          Nothing private travels with a published macro. The public file is named after the macro
+          author, the level and the recorder. It does not contain your email address, your account
+          ID, your submission notes, or anything from the review process.
         </p>
       </Section>
 
-      <Section title="Submission results and notifications">
+      <Section title="Email we send you">
+        <p>The address on your account is used for:</p>
+        <Bullets
+          items={[
+            "account mail such as confirmation and password resets,",
+            "submission results, if you have those switched on in Settings,",
+            "notice of a material change to the Terms or this policy,",
+            "and important account, security or service messages.",
+          ]}
+        />
         <p>
-          When a submission is accepted or rejected, your account receives an in-app result with
-          the level, outcome, time and, for a rejection, the review reason. New results are marked
-          unread until you open the notification centre. You can dismiss a result, which deletes
-          that notification.
+          All of it comes from <Mail />. This is{" "}
+          <span className="font-semibold text-text">not a newsletter and not advertising</span>.
+          There is no marketing mailing list on this site, and we do not send promotional email. You
+          can switch off submission-result email in Settings; the results still appear on the site.
         </p>
         <p>
-          In Settings you can independently choose whether accepted and rejected results are also
-          emailed to the address on your account. In-app results still appear when either email
-          option is off. These emails are transactional submission updates, not marketing.
-        </p>
-      </Section>
-
-      <Section title="GitHub">
-        <p>
-          GitHub hosts the site's source code and the catalog file, and it hosts every public macro
-          download as a release asset. When you download a macro, or open one of the repository
-          links, your browser is talking to GitHub and GitHub's own privacy terms apply to that
-          request.
-        </p>
-      </Section>
-
-      <Section title="Older MediaFire copies">
-        <p>
-          Macros used to be hosted on MediaFire. They were all moved to our own hosting, and{" "}
-          <span className="font-semibold text-text">nothing in the catalog links to MediaFire any
-          more</span>. The old copies still exist as a fallback in case something ever needs to be
-          restored from them. We are not putting a date on removing them.
-        </p>
-        <p>
-          The MediaFire links on the install page are a separate thing. They are how you download
-          xdBot itself, and they are not macro downloads.
+          Sending mail reliably means keeping a short record of what was sent, so that an
+          interrupted run can resume and nobody is sent the same message twice. Those records hold
+          the message and its delivery state. Where a retry needs it, a copy of the destination
+          address is held only for as long as the retry is safe, and is erased once the message is
+          settled. They are never used to build a mailing list.
         </p>
       </Section>
 
-      <Section title="Support email">
+      <Section title="Email you send us">
         <p>
           Mail sent to <Mail /> travels through more than one company before it reaches a person, so
           it is worth being clear about the path:
@@ -236,73 +239,18 @@ export default function PrivacyPage() {
         <p>
           That means Resend, Vercel and Google can each process support correspondence. The message
           normally includes your email address, the name your mail client sends, the subject, the
-          body, any attachments and ordinary email headers.
+          body, any attachments and ordinary email headers. We use it to answer you and to deal with
+          abuse reports and takedown requests.
         </p>
         <p>
-          We use it to answer you and to deal with abuse reports and takedown requests. The private
-          mailbox address is not published anywhere. <Mail /> is the only address you need.
-        </p>
-      </Section>
-
-      <Section title="Replies from us">
-        <p>
-          Replies are sent from <Mail /> using the same Resend and Google infrastructure. If you
-          write to us, expect the answer to come from that address.
-        </p>
-      </Section>
-
-      <Section title="Important account and service emails">
-        <p>The email on your account can be used to send you:</p>
-        <Bullets
-          items={[
-            "account mail such as confirmation and password resets,",
-            "submission-result emails you enabled in Settings,",
-            "notice of a material change to these terms or to this policy,",
-            "and important account, security or service messages.",
-          ]}
-        />
-        <p>
-          These are sent from <Mail />. This is{" "}
-          <span className="font-semibold text-text">not a newsletter and not advertising</span>.
-          There is no marketing mailing list on this site, and we do not send promotional email.
-        </p>
-      </Section>
-
-      <Section title="Records of notices we send">
-        <p>
-          When an important notice is sent to account holders, we keep a private record of the run so
-          that it can be resumed if it is interrupted and so nobody is sent the same notice twice.
-          That record holds the notice text, the version it referred to, and one row per recipient
-          containing the internal account ID, whether it was sent, and the provider's message ID.
-        </p>
-        <p>
-          It deliberately does{" "}
-          <span className="font-semibold text-text">not store another copy of your email address</span>
-          . Addresses are looked up at the moment of sending and not written down.
-        </p>
-      </Section>
-
-      <Section title="Temporary submission-email delivery records">
-        <p>
-          If a submission-result email is enabled, the outcome transaction creates one private
-          delivery job. To make retries safe, it temporarily freezes the destination address and
-          exact message under a unique notification ID. Resend receives that address and message
-          when delivery is attempted.
-        </p>
-        <p>
-          A successful or permanent result scrubs the frozen address and message from the job. An
-          uncertain provider result can reuse the same frozen message and idempotency key only
-          inside Resend&apos;s duplicate-protection window. The next time the delivery queue runs after
-          that window, the job is parked without sending again and the frozen address and body are
-          scrubbed. A job that has never reached Resend waits until delivery is configured and
-          attempted, or until the account is deleted. Dismissing the in-app notification does not
-          change an email already queued from the same outcome.
+          Replies come from <Mail /> using the same infrastructure. The private mailbox address is
+          not published anywhere. <Mail /> is the only address you need.
         </p>
       </Section>
 
       <Section title="Agreeing to the terms">
         <p>
-          When an account is created, we record that account's internal ID, which version of the
+          When an account is created, we record that account&apos;s internal ID, which version of the
           Terms and Privacy Policy were current at that moment, and the time. That is the whole
           record. It does not include your address, your IP address, or anything about your browser.
         </p>
@@ -310,95 +258,103 @@ export default function PrivacyPage() {
 
       <Section title="The companies involved">
         <p>
-          <span className="font-semibold text-text">Supabase</span> handles accounts and sign-in,
-          profiles and usernames, favorites, submissions, the private files you upload, review and
-          moderation state, private account settings, result notifications, account-linked accepted
-          history, email-delivery jobs, and the legal records described above.
+          Each of these performs one role. That is how to read this list: if a feature changes, it is
+          almost always still one of these companies doing the same job.
+        </p>
+        <Bullets
+          items={[
+            <>
+              <span className="font-semibold text-text">Supabase</span> stores accounts and
+              everything attached to one: sign-in, profiles, favorites, submissions, the private
+              files you upload, review state, preferences and the records described above.
+            </>,
+            <>
+              <span className="font-semibold text-text">Vercel</span> hosts the site and runs its
+              server code. Vercel Web Analytics and Speed Insights are enabled. They report aggregate
+              traffic and page performance, and are not used to build a profile of you or to
+              advertise to you.
+            </>,
+            <>
+              <span className="font-semibold text-text">Resend</span> handles email, both the
+              messages we send you and the support mail you send us.
+            </>,
+            <>
+              <span className="font-semibold text-text">Google</span> is involved through Gmail,
+              where support mail is read, and through Google Translate if you use the language menu.
+            </>,
+            <>
+              <span className="font-semibold text-text">GitHub</span> hosts the source code, the
+              catalog and every public macro download. Downloading a macro means your browser talks
+              to GitHub, under GitHub&apos;s own terms.
+            </>,
+            <>
+              <span className="font-semibold text-text">GDBrowser</span> is used to look up Geometry
+              Dash level details. Those lookups are made by our server, not by your browser, so
+              GDBrowser does not see you.
+            </>,
+            <>
+              <span className="font-semibold text-text">YouTube</span> provides showcase videos.
+              Searching for one during submission happens on our server and uses no API key. An
+              embedded player on a macro page is loaded by your browser and is subject to
+              Google&apos;s terms.
+            </>,
+            <>
+              <span className="font-semibold text-text">Lanyard</span> supplies the live Discord
+              status shown on the{" "}
+              <Link href="/about" className="text-accent-soft hover:underline">
+                About
+              </Link>{" "}
+              page. That request is made by your browser. It asks only for the public Discord
+              profiles of the two site owners, and there is no way to make it look up anyone else.
+            </>,
+          ]}
+        />
+      </Section>
+
+      <Section title="Older MediaFire copies">
+        <p>
+          Macros used to be hosted on MediaFire. They were all moved to our own hosting, and{" "}
+          <span className="font-semibold text-text">
+            nothing in the catalog links to MediaFire any more
+          </span>
+          . The old copies still exist as a fallback in case something ever needs to be restored from
+          them. We are not putting a date on removing them.
         </p>
         <p>
-          <span className="font-semibold text-text">Vercel</span> hosts the site and runs its server
-          code. Vercel Web Analytics and Speed Insights are integrated into the site. When enabled
-          in the existing Vercel project, they report aggregate traffic and page performance, and
-          are not used to build a profile of you or to advertise to you.
-        </p>
-        <p>
-          <span className="font-semibold text-text">Resend</span> handles email. That now covers
-          account mail such as confirmations and password resets, receiving mail sent to support,
-          forwarding it to the private mailbox, replies sent back out, submission-result emails you
-          enable, and the account notices described above.
-        </p>
-        <p>
-          <span className="font-semibold text-text">Google</span> is involved through Gmail, which is
-          where support mail is read, and through Google Translate if you use the language menu.
-        </p>
-        <p>
-          <span className="font-semibold text-text">GitHub</span> hosts the source, the catalog and
-          every public macro download.
-        </p>
-        <p>
-          <span className="font-semibold text-text">GDBrowser</span> is used to look up Geometry Dash
-          level details. Those lookups are made by our server, not by your browser, so GDBrowser does
-          not see you.
-        </p>
-        <p>
-          <span className="font-semibold text-text">YouTube</span> provides showcase videos. Searching
-          for a video during submission happens on our server and uses no API key. An embedded player
-          on a macro page is loaded by your browser and is subject to Google's terms.
-        </p>
-        <p>
-          <span className="font-semibold text-text">Lanyard</span> supplies the live Discord status
-          shown on the{" "}
-          <Link href="/about" className="text-accent-soft hover:underline">
-            About
-          </Link>{" "}
-          page. That request is made by your browser, so Lanyard sees it in the way any site you
-          visit does. It asks only for the public Discord profiles of the two site owners, and there
-          is no way to make it look up anyone else.
+          The MediaFire links on the install page are a separate thing. They are how you download
+          xdBot itself, and they are not macro downloads.
         </p>
       </Section>
 
-      <Section title="Public and private, side by side">
-        <p className="font-semibold text-text">Public</p>
-        <Bullets
-          items={[
-            "Your username, once you choose one.",
-            "Published macros and their catalog credits. A matching credit is not verified account ownership.",
-            "The catalog itself.",
-          ]}
-        />
-        <p className="pt-1 font-semibold text-text">Private</p>
+      <Section title="What stays private">
+        <p>Everything not listed as public above. In particular:</p>
         <Bullets
           items={[
             "Your email address.",
             "Your password, which is only ever stored hashed.",
             "Files you upload, until and unless a macro is accepted and published.",
             "Your submission notes and anything from the review process.",
-            "Your favorites.",
-            "Your notification read state and submission-email preferences.",
-            "Your account-linked accepted-submission history.",
-            "Temporary submission-result email delivery data.",
+            "Your settings, your notification state and your favorites.",
             "Support email you send us.",
-            "Records of notices sent to your account.",
+            "Records of messages sent to your account.",
           ]}
         />
       </Section>
 
       <Section title="How long things are kept">
         <p>
-          The application does not run automatic deletion on a timer, so rather than invent retention
-          periods, here is what actually happens:
+          The rule is that something is kept while it is still doing its job, and removed when it is
+          not. The application does not run deletion on a timer, so rather than invent retention
+          periods, here is what that means in practice:
         </p>
         <Bullets
           items={[
-            "A pending or in-review submission stays until it is decided or you withdraw it.",
-            "Once a macro is accepted and confirmed live, the private copy of your upload is deleted. The published macro stays in the catalog.",
-            "A rejected or withdrawn submission is removed along with its uploaded file.",
-            "The short result notice telling you the outcome stays until you dismiss it.",
-            "The private accepted-submission record stays while your account exists, even if you dismiss its result notification.",
-            "A result-email job scrubs its frozen destination and message after success or permanent failure. After an uncertain attempt, the next delivery-queue run beyond the safe retry window parks and scrubs it. A never-attempted job waits for delivery to be configured or for account deletion.",
+            "A submission stays until it is decided or you withdraw it. Once it is accepted and confirmed live, the private copy of your upload is deleted; a rejected or withdrawn one is removed along with its file.",
+            "A published macro stays in the catalog, because it is catalog content rather than account data.",
+            "Your account data, including settings, favorites, notifications and your submission history, stays while the account exists.",
+            "Delivery records hold a destination address only while a retry could still need it, and are erased once the message is settled.",
             "Support email stays in the mailbox unless it is deleted by hand.",
-            "Notice delivery records and the signup acceptance record are kept while the account exists.",
-            "Deleting your account removes the account and the data tied to it, including favorites, settings, notifications, accepted-history records and any open submissions. Macros already published stay in the catalog, because they are part of the catalog rather than account data.",
+            "Deleting your account removes the account and the data tied to it. Macros already published stay in the catalog.",
           ]}
         />
       </Section>
@@ -416,10 +372,10 @@ export default function PrivacyPage() {
 
       <Section title="Security">
         <p>
-          Private data sits behind database access rules rather than being hidden by the interface, so
-          a request for someone else's data is refused by the database itself. Uploaded files are in
-          private storage that no browser can read. Nobody can promise perfect security and we are not
-          going to, but the design assumes the front end can be bypassed.
+          Private data sits behind database access rules rather than being hidden by the interface,
+          so a request for someone else&apos;s data is refused by the database itself. Uploaded files
+          are in private storage that no browser can read. Nobody can promise perfect security and we
+          are not going to, but the design assumes the front end can be bypassed.
         </p>
       </Section>
 
@@ -427,20 +383,29 @@ export default function PrivacyPage() {
         <p>
           Geometry Dash has a young audience. We do not knowingly collect more from a younger visitor
           than from anyone else, and you can use the whole catalog without an account and therefore
-          without giving us anything. If you believe a child's information is stored here and it
+          without giving us anything. If you believe a child&apos;s information is stored here and it
           should not be, write to <Mail /> and we will remove it.
         </p>
       </Section>
 
-      <Section title="Changes to this policy">
+      <Section title="How this page changes">
         <p>
-          This policy can change. The version and date at the top change with it, so you can tell
-          whether you are looking at something new.
+          {site.name} is actively developed, and features get added. This page is written by category
+          rather than by feature so that it keeps describing the site accurately as that happens: a
+          new preference, a new kind of message, or a new page is already covered by the categories
+          above.
         </p>
         <p>
-          For a material change we may email the address on your account. Where the law that applies
-          to you requires more than notice, an email on its own is not us claiming you agreed to
-          anything.
+          What that is <span className="font-semibold text-text">not</span> is a blank cheque. It
+          does not permit collecting a new kind of information, using what is here for a new purpose,
+          or handing data to a company not named above. Any of those is a change to this page, and
+          this page changes before it happens.
+        </p>
+        <p>
+          When it does change, the version and date at the top change with it, so you can tell
+          whether you are reading something new. For a material change we may email the address on
+          your account. Where the law that applies to you requires more than notice, an email on its
+          own is not us claiming you agreed to anything.
         </p>
       </Section>
 
