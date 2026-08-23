@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { ChevronDownIcon } from "@/components/icons";
 import { dismissNotification, withdrawSubmission } from "@/lib/actions/submissions";
 import {
   STATUS_LABEL,
   formatDate,
   type NotificationRow,
+  type PublishedSubmissionView,
   type SubmissionRow,
 } from "@/lib/submissions";
 
@@ -23,19 +25,21 @@ function StatusPill({ status }: { status: string }) {
 }
 
 /**
- * What a submitter sees: the submissions still in play, and the outcomes of the
- * ones that are finished.
+ * What a submitter sees: submissions still in play, dismissible result notices,
+ * and the durable account-linked record of accepted items that are live.
  *
  * An outcome is a separate, tiny row. The submission itself is deleted once it
  * is accepted or rejected, so nothing here can show a file, a video, notes or
- * anything else about a finished submission, because none of it still exists.
+ * anything else about a rejected submission, because none of it still exists.
  */
 export default function MySubmissions({
   rows,
   notifications,
+  published,
 }: {
   rows: SubmissionRow[];
   notifications: NotificationRow[];
+  published: PublishedSubmissionView[];
 }) {
   const [items, setItems] = useState(rows);
   const [notes, setNotes] = useState(notifications);
@@ -59,13 +63,15 @@ export default function MySubmissions({
     setBusyId(id);
     startTransition(async () => {
       const res = await dismissNotification(id);
-      if (res.ok) setNotes((list) => list.filter((n) => n.id !== id));
-      else setError(res.error);
+      if (res.ok) {
+        setNotes((list) => list.filter((n) => n.id !== id));
+        window.dispatchEvent(new CustomEvent("gdmacros:notifications-read"));
+      } else setError(res.error);
       setBusyId(null);
     });
   }
 
-  const nothingAtAll = items.length === 0 && notes.length === 0;
+  const nothingAtAll = items.length === 0 && notes.length === 0 && published.length === 0;
 
   if (nothingAtAll) {
     return (
@@ -141,6 +147,63 @@ export default function MySubmissions({
             ))}
           </div>
         </section>
+      )}
+
+      {published.length > 0 && (
+        <details className="group card overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 marker:content-none sm:px-5">
+            <span>
+              <span className="text-[13.5px] font-bold text-text">Accepted &amp; live</span>
+              <span className="ml-2 rounded-md border border-green/30 bg-green/10 px-2 py-0.5 text-[11px] font-semibold text-green tabular-nums">
+                {published.length}
+              </span>
+              <span className="mt-1 block text-[12px] font-normal text-muted">
+                Published submissions tied to your account
+              </span>
+            </span>
+            <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+          </summary>
+
+          <div className="border-t border-border-soft px-4 py-2 sm:px-5">
+            {published.map((item) => (
+              <div
+                key={item.submission_id}
+                className="flex flex-col gap-2 border-b border-border-soft py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[13.5px] font-bold text-text" translate="no">
+                    {item.level_name}
+                  </p>
+                  <p className="mt-1 text-[12px] text-muted">
+                    ID <span className="tabular-nums">{item.level_id}</span> · {item.recorder} · by{" "}
+                    <span translate="no" className="notranslate text-text-dim">
+                      {item.macro_author}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-[11.5px] text-muted">
+                    Published {formatDate(item.published_at)}
+                  </p>
+                </div>
+                {item.macro_href ? (
+                  <Link
+                    href={item.macro_href}
+                    className="shrink-0 text-[12.5px] font-medium text-accent-soft hover:underline"
+                  >
+                    View live macro
+                  </Link>
+                ) : (
+                  <span className="shrink-0 text-[11.5px] text-muted">Live catalog entry</span>
+                )}
+              </div>
+            ))}
+
+            <p className="border-t border-border-soft py-3 text-[11.5px] leading-relaxed text-muted">
+              Account-linked accepted history starts with this feature. Older catalog credits may
+              not appear here, because author credits and account ownership were not previously
+              linked.
+            </p>
+          </div>
+        </details>
       )}
 
       {items.length > 0 && (

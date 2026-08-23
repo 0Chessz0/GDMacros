@@ -5,11 +5,11 @@
  * public and is protected by row level security on the database side, which is
  * why it carries the NEXT_PUBLIC_ prefix.
  *
- * There is exactly one privileged key in the project, SUPABASE_SECRET_KEY, and
- * it lives in `storage-admin.ts` behind `import "server-only"`, never in this
- * file. It has no NEXT_PUBLIC_ prefix, so Next cannot inline it into a browser
- * bundle. Nothing privileged may ever be added here: a secret key or a database
- * password in a NEXT_PUBLIC_ variable would be shipped to every visitor.
+ * There is exactly one privileged Supabase value in the environment,
+ * SUPABASE_SECRET_KEY. Narrow server-only modules use it for Storage, Auth
+ * administration and the private result-email queue; it never lives in this
+ * browser-reachable file. It has no NEXT_PUBLIC_ prefix, so Next cannot inline
+ * it into a browser bundle. Nothing privileged may ever be added here.
  */
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";

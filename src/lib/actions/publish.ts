@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/admin";
+import { sendSubmissionResultBestEffort } from "@/lib/actions/submissionResultEmail";
 import { runPublish, type PublishProgress } from "@/lib/publish/publisher";
 
 /**
@@ -47,12 +48,16 @@ export async function publishMacro(id: string): Promise<PublishProgress> {
     };
   }
 
-  const result = await runPublish(supabase, id);
+  const result = await runPublish(supabase, id, sendSubmissionResultBestEffort);
 
   // Only once the submission is actually gone does the queue need refreshing.
   // Revalidating mid-publish would unmount the modal that is driving it, which
   // is the 2D bug this project already paid for once.
-  if (result.finished) revalidatePath("/admin");
+  if (result.finished) {
+    revalidatePath("/admin");
+    revalidatePath("/submissions");
+    revalidatePath("/notifications");
+  }
 
   return result;
 }

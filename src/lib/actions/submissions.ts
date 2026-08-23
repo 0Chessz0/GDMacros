@@ -9,6 +9,7 @@ import {
   isStorageAdminConfigured,
 } from "@/lib/supabase/storage-admin";
 import { isCurrentUserAdmin } from "@/lib/admin";
+import { sendSubmissionResultBestEffort } from "@/lib/actions/submissionResultEmail";
 import { MIN_REJECTION_REASON, LIMITS, submissionErrorMessage } from "@/lib/submissions";
 
 /**
@@ -44,6 +45,24 @@ type Result = { ok: true } | { ok: false; error: string };
 /** Never let a raw Storage or Postgres string reach a browser. */
 function logCleanupFailure(kind: string, id: string) {
   console.error(`[submissions] orphaned object after ${kind}`, { id });
+}
+
+/**
+ * Migration 0011 returns a JSON text envelope while keeping the RPC's historic
+ * SQL `text` return type. Accept the older plain path as well so application and
+ * database deploys do not have to land in the same instant.
+ */
+function reviewOutcome(data: unknown): { storagePath: string | null; notificationId: string | null } {
+  if (typeof data !== "string") return { storagePath: null, notificationId: null };
+  try {
+    const parsed = JSON.parse(data) as { storage_path?: unknown; notification_id?: unknown };
+    return {
+      storagePath: typeof parsed.storage_path === "string" ? parsed.storage_path : null,
+      notificationId: typeof parsed.notification_id === "string" ? parsed.notification_id : null,
+    };
+  } catch {
+    return { storagePath: data, notificationId: null };
+  }
 }
 
 export async function withdrawSubmission(id: string): Promise<Result> {
@@ -128,14 +147,22 @@ export async function finishProcessing(id: string): Promise<Result> {
   const { data, error } = await supabase.rpc("finish_processing", { p_id: id });
   if (error) return { ok: false, error: submissionErrorMessage(error) };
 
+  const outcome = reviewOutcome(data);
+
   // The row and its notification are already committed. A failure below leaves
   // an invisible orphan, which is the accepted trade, and must not undo that.
-  if (typeof data === "string" && isStorageAdminConfigured) {
-    const cleaned = await deleteSubmissionObjectByPath(data);
+  if (outcome.storagePath && isStorageAdminConfigured) {
+    const cleaned = await deleteSubmissionObjectByPath(outcome.storagePath);
     if (!cleaned.ok) logCleanupFailure("publishing", id);
   }
 
+  if (outcome.notificationId) {
+    await sendSubmissionResultBestEffort(outcome.notificationId);
+  }
+
   revalidatePath("/admin");
+  revalidatePath("/submissions");
+  revalidatePath("/notifications");
   return { ok: true };
 }
 
@@ -163,12 +190,21 @@ export async function rejectSubmission(id: string, reason: string): Promise<Resu
   });
   if (error) return { ok: false, error: submissionErrorMessage(error) };
 
-  if (typeof data === "string" && isStorageAdminConfigured) {
-    const cleaned = await deleteSubmissionObjectByPath(data);
+  const outcome = reviewOutcome(data);
+
+  if (outcome.storagePath && isStorageAdminConfigured) {
+    const cleaned = await deleteSubmissionObjectByPath(outcome.storagePath);
     if (!cleaned.ok) logCleanupFailure("rejection", id);
   }
 
+
+  if (outcome.notificationId) {
+    await sendSubmissionResultBestEffort(outcome.notificationId);
+  }
+
   revalidatePath("/admin");
+  revalidatePath("/submissions");
+  revalidatePath("/notifications");
   return { ok: true };
 }
 
@@ -244,6 +280,24 @@ export async function dismissNotification(id: string): Promise<Result> {
   if (error) return { ok: false, error: "That could not be dismissed. Try again." };
 
   revalidatePath("/submissions");
+  revalidatePath("/notifications");
+  return { ok: true };
+}
+
+/** Marks one result, or every result when id is omitted, as read. */
+export async function markNotificationsRead(id?: string): Promise<Result> {
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "That is unavailable right now." };
+
+  const user = await getUser();
+  if (!user) return { ok: false, error: "Sign in again and retry." };
+
+  const { error } = await supabase.rpc("mark_submission_notifications_read", {
+    p_id: id ?? null,
+  });
+  if (error) return { ok: false, error: "Those notifications could not be marked as read." };
+
+  revalidatePath("/notifications");
   return { ok: true };
 }
 

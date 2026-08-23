@@ -183,14 +183,39 @@ export const STATUS_LABEL: Record<string, string> = {
 /** One outcome the submitter is told about, after the submission itself is gone. */
 export interface NotificationRow {
   id: string;
+  submission_id: string | null;
   level_name: string;
+  level_id: string | null;
+  macro_author: string | null;
+  recorder: string | null;
   outcome: "accepted" | "rejected";
   rejection_reason: string | null;
+  read_at: string | null;
   created_at: string;
 }
 
-/** Everything a submitter may see about their own outcomes. Nothing else exists. */
-export const NOTIFICATION_COLUMNS = "id,level_name,outcome,rejection_reason,created_at";
+/** The bounded columns shown for a submitter's dismissible result notices. */
+export const NOTIFICATION_COLUMNS =
+  "id,submission_id,level_name,level_id,macro_author,recorder,outcome,rejection_reason,read_at,created_at";
+
+/** One accepted submission retained as private, account-linked publication history. */
+export interface PublishedSubmissionRow {
+  submission_id: string;
+  level_name: string;
+  level_id: string;
+  macro_author: string;
+  recorder: string;
+  download_url: string;
+  published_at: string;
+}
+
+export const PUBLISHED_SUBMISSION_COLUMNS =
+  "submission_id,level_name,level_id,macro_author,recorder,download_url,published_at";
+
+export interface PublishedSubmissionView extends PublishedSubmissionRow {
+  /** The live catalog page, once the verified download URL is found there. */
+  macro_href: string | null;
+}
 
 export interface SubmissionRow {
   id: string;

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { MetadataRoute } from "next";
+import { getAllAuthors } from "@/lib/authors";
 import { getAllLevels } from "@/lib/macros";
 import { site } from "@/lib/site";
 
@@ -39,5 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...macroPages];
+  const authorPages = getAllAuthors().map((author) => ({
+    url: `${base}/author/${author.slug}`,
+    lastModified,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...macroPages, ...authorPages];
 }

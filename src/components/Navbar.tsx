@@ -254,7 +254,7 @@ export default function Navbar() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/25 transition-transform duration-300 ease-out group-hover:rotate-[18deg]">
             <GlobeIcon className="h-[18px] w-[18px]" />
           </span>
-          <span className="text-[15px] font-extrabold tracking-[0.06em] text-text uppercase">{site.name}</span>
+          <span className="hidden text-[15px] font-extrabold tracking-[0.06em] text-text uppercase sm:inline">{site.name}</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex">
@@ -294,7 +294,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             aria-label="GitHub repository"
             title="GitHub"
-            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-[color,background-color,transform] duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75"
+            className="hidden h-9 w-9 place-items-center rounded-lg text-muted transition-[color,background-color,transform] duration-200 hover:bg-surface-2 hover:text-text active:scale-90 active:duration-75 sm:grid"
           >
             <GithubIcon className="h-[17px] w-[17px]" />
           </a>
@@ -333,6 +333,10 @@ export default function Navbar() {
           {MORE_ITEMS.map((item) => (
             <MenuLink key={item.label} item={item} onNavigate={() => setMobileOpen(false)} />
           ))}
+          <MenuLink
+            item={{ label: "GitHub repository", href: site.repo, external: true }}
+            onNavigate={() => setMobileOpen(false)}
+          />
         </div>
       )}
     </header>

@@ -11,9 +11,9 @@
  *   GET https://api.vercel.com/v1/query/web-analytics/visits/aggregate
  *   GET https://api.vercel.com/v1/query/web-analytics/visits/count
  *
- * Authorization: Bearer <token>. `projectId` is required. A project- or
- * team-scoped token lets Vercel infer its scope, so `teamId` is only needed
- * when a broader full-account token is used for a team-owned project.
+ * Authorization: Bearer <token>. `projectId` is required. Vercel access tokens
+ * are scoped to a personal account or team. Requests for a team-owned project
+ * must also carry that team's `teamId`; personal-account projects omit it.
  */
 
 export const ANALYTICS_BASE = "https://api.vercel.com/v1/query/web-analytics";
@@ -31,7 +31,7 @@ export const MAX_WINDOW_DAYS = 28;
 
 export interface AnalyticsTarget {
   projectId: string;
-  /** Normally absent; only needed with a full-account token for a team project. */
+  /** Required for a team-owned project; omitted for a personal-account project. */
   teamId?: string | null;
 }
 

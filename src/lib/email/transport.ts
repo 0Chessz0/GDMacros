@@ -12,7 +12,7 @@ import type {
 } from "./inbound";
 
 /**
- * The only place in this project that holds a Resend credential.
+ * The server-only Resend transport for inbound support mail.
  *
  * Two separate secrets, doing two different jobs:
  *

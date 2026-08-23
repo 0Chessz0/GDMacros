@@ -267,9 +267,9 @@ export async function runHealthChecks(): Promise<{ ok: boolean; results?: CheckR
  * exactly like every other "not configured here" path: a missing analytics
  * token must never be able to break the status page.
  *
- * The token is read server side and never leaves this function. Use a
- * project-scoped token, but remember that it can still read and write inside
- * that project: never logged, never returned, never in an error message.
+ * The token is read server side and never leaves this function. Scope it to
+ * the personal account or team that owns the project, and keep it out of logs,
+ * return values and error messages.
  */
 export async function getTrafficStats(): Promise<{
   ok: boolean;
@@ -285,8 +285,8 @@ export async function getTrafficStats(): Promise<{
     // The explicit variable works everywhere. VERCEL_PROJECT_ID is the
     // automatic Vercel fallback when system variables are exposed.
     projectId: explicitProjectId || automaticProjectId || "",
-    // Leave this unset for project- and team-scoped tokens. A full-account
-    // token may need it so Vercel can identify the owning team.
+    // Vercel requires this for a team-owned project, even when the token itself
+    // is scoped to that team. Personal-account projects leave it unset.
     teamId: process.env.VERCEL_ANALYTICS_TEAM_ID?.trim() || null,
   };
 

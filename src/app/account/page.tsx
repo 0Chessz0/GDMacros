@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ChangeUsernameForm from "@/components/auth/ChangeUsernameForm";
+import { BellIcon, SettingsIcon, UserIcon } from "@/components/icons";
+import { findAuthorByName } from "@/lib/authors";
 import { getUserAndProfile } from "@/lib/profile";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -45,15 +47,23 @@ export default async function AccountPage() {
         year: "numeric",
       })
     : null;
+  const catalogAuthor = findAuthorByName(profile.username);
 
   return (
     <div className="mx-auto w-full max-w-[560px] px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">
-        Your account
-      </h1>
-      <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-        Your account holds your public username, your favorites and the macros you have sent in.
-      </p>
+      <div className="flex items-center gap-4">
+        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-border bg-surface-2 text-muted">
+          <UserIcon className="h-8 w-8" />
+        </span>
+        <div>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">
+            Your account
+          </h1>
+          <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+            Your profile, activity and private account preferences.
+          </p>
+        </div>
+      </div>
 
       <div className="card mt-6 px-5 py-1.5">
         <Row label="Username">
@@ -77,9 +87,20 @@ export default async function AccountPage() {
       <div className="card mt-3 p-5">
         <h2 className="text-[15px] font-bold text-text">Your username</h2>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
-          This is your public identity on GDMacros. Your email is never shown to anyone.
+          This is your public account name. Macro-author credits are entered separately during
+          submission, so a matching catalog name is not proof of account ownership. Your email is
+          never shown publicly.
         </p>
         <ChangeUsernameForm current={profile.username} />
+        {catalogAuthor && (
+          <p className="mt-3 text-[12.5px] leading-relaxed text-muted">
+            The catalog has credits using this name. {" "}
+            <Link href={`/author/${catalogAuthor.slug}`} className="text-accent-soft hover:underline">
+              View that public author page
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
       {!verified && (
@@ -110,6 +131,18 @@ export default async function AccountPage() {
           className="rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"
         >
           Your favorites
+        </Link>
+        <Link
+          href="/notifications"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"
+        >
+          <BellIcon className="h-4 w-4" /> Notifications
+        </Link>
+        <Link
+          href="/settings"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:text-text active:translate-y-0 active:scale-95 active:duration-75"
+        >
+          <SettingsIcon className="h-4 w-4" /> Settings
         </Link>
       </div>
 

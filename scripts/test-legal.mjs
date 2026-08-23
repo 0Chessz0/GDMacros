@@ -65,7 +65,12 @@ const src = {
   actions: read("src/lib/actions/legalNotice.ts"),
   authAdmin: read("src/lib/supabase/auth-admin.ts"),
   noticeSender: read("src/lib/email/notice.ts"),
-  migration: read("supabase/migrations/0007_legal_acceptance_and_notices.sql"),
+  // Later migrations may advance one legal document without rewriting the
+  // immutable migration that originally created the table. Read the ordered
+  // history so the final matching row is the database's current value.
+  migration:
+    read("supabase/migrations/0007_legal_acceptance_and_notices.sql") +
+    read("supabase/migrations/0011_account_experience.sql"),
   ownerCard: read("src/components/DiscordOwnerCard.tsx"),
 };
 
@@ -334,7 +339,7 @@ eq("a malformed date renders as itself", legal.formatLegalDate("nonsense"), "non
 // The database stamps acceptance from its own copy, so the two must agree or
 // accounts would be recorded against a version nobody ever published.
 const seeded = {};
-for (const m of src.migration.matchAll(/\('(terms|privacy)',\s*'(\d{4}-\d{2}-\d{2})',\s*'(\d{4}-\d{2}-\d{2})'\)/g)) {
+for (const m of src.migration.matchAll(/\('(terms|privacy)',\s*'(\d{4}-\d{2}-\d{2})',\s*'(\d{4}-\d{2}-\d{2})'\s*[,)]/g)) {
   seeded[m[1]] = { version: m[2], effective: m[3] };
 }
 eq("migration seeds the same terms version", seeded.terms?.version, legal.TERMS_VERSION);

@@ -116,8 +116,10 @@ export default function PrivacyPage() {
           ]}
         />
         <p>
-          Your <span className="font-semibold text-text">username is public</span>. It appears next
-          to macros you submit. Your{" "}
+          Your <span className="font-semibold text-text">username is public</span>. It identifies
+          your account and is shown to reviewers for submissions made by that account. The macro
+          author name entered on a submission is a separate catalog credit; matching text does not
+          prove that an account owns that credit. Your{" "}
           <span className="font-semibold text-text">email address is private</span>: it is not shown
           anywhere on the site, and the review screens do not have access to it. When an admin looks
           at a submission they see the username, never the address behind it.
@@ -174,6 +176,26 @@ export default function PrivacyPage() {
         <p>
           What becomes public is the macro itself and the credits shown beside it. Nothing private
           travels with it.
+        </p>
+        <p>
+          We also keep a private account-linked publication record containing the submission ID,
+          level details, macro credit, recorder, verified public download URL and publication time.
+          It powers the accepted-and-live list in your submission history. It is not used to turn a
+          catalog credit into verified account ownership.
+        </p>
+      </Section>
+
+      <Section title="Submission results and notifications">
+        <p>
+          When a submission is accepted or rejected, your account receives an in-app result with
+          the level, outcome, time and, for a rejection, the review reason. New results are marked
+          unread until you open the notification centre. You can dismiss a result, which deletes
+          that notification.
+        </p>
+        <p>
+          In Settings you can independently choose whether accepted and rejected results are also
+          emailed to the address on your account. In-app results still appear when either email
+          option is off. These emails are transactional submission updates, not marketing.
         </p>
       </Section>
 
@@ -234,6 +256,7 @@ export default function PrivacyPage() {
         <Bullets
           items={[
             "account mail such as confirmation and password resets,",
+            "submission-result emails you enabled in Settings,",
             "notice of a material change to these terms or to this policy,",
             "and important account, security or service messages.",
           ]}
@@ -259,6 +282,24 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="Temporary submission-email delivery records">
+        <p>
+          If a submission-result email is enabled, the outcome transaction creates one private
+          delivery job. To make retries safe, it temporarily freezes the destination address and
+          exact message under a unique notification ID. Resend receives that address and message
+          when delivery is attempted.
+        </p>
+        <p>
+          A successful or permanent result scrubs the frozen address and message from the job. An
+          uncertain provider result can reuse the same frozen message and idempotency key only
+          inside Resend&apos;s duplicate-protection window. The next time the delivery queue runs after
+          that window, the job is parked without sending again and the frozen address and body are
+          scrubbed. A job that has never reached Resend waits until delivery is configured and
+          attempted, or until the account is deleted. Dismissing the in-app notification does not
+          change an email already queued from the same outcome.
+        </p>
+      </Section>
+
       <Section title="Agreeing to the terms">
         <p>
           When an account is created, we record that account's internal ID, which version of the
@@ -271,18 +312,20 @@ export default function PrivacyPage() {
         <p>
           <span className="font-semibold text-text">Supabase</span> handles accounts and sign-in,
           profiles and usernames, favorites, submissions, the private files you upload, review and
-          moderation state, and the legal records described above.
+          moderation state, private account settings, result notifications, account-linked accepted
+          history, email-delivery jobs, and the legal records described above.
         </p>
         <p>
           <span className="font-semibold text-text">Vercel</span> hosts the site and runs its server
-          code. Vercel Web Analytics and Speed Insights are enabled. They report aggregate traffic and
-          page performance, and are not used to build a profile of you or to advertise to you.
+          code. Vercel Web Analytics and Speed Insights are integrated into the site. When enabled
+          in the existing Vercel project, they report aggregate traffic and page performance, and
+          are not used to build a profile of you or to advertise to you.
         </p>
         <p>
           <span className="font-semibold text-text">Resend</span> handles email. That now covers
           account mail such as confirmations and password resets, receiving mail sent to support,
-          forwarding it to the private mailbox, replies sent back out, and the account notices
-          described above.
+          forwarding it to the private mailbox, replies sent back out, submission-result emails you
+          enable, and the account notices described above.
         </p>
         <p>
           <span className="font-semibold text-text">Google</span> is involved through Gmail, which is
@@ -319,7 +362,7 @@ export default function PrivacyPage() {
         <Bullets
           items={[
             "Your username, once you choose one.",
-            "Macros of yours that have been accepted, and the credits shown with them.",
+            "Published macros and their catalog credits. A matching credit is not verified account ownership.",
             "The catalog itself.",
           ]}
         />
@@ -331,6 +374,9 @@ export default function PrivacyPage() {
             "Files you upload, until and unless a macro is accepted and published.",
             "Your submission notes and anything from the review process.",
             "Your favorites.",
+            "Your notification read state and submission-email preferences.",
+            "Your account-linked accepted-submission history.",
+            "Temporary submission-result email delivery data.",
             "Support email you send us.",
             "Records of notices sent to your account.",
           ]}
@@ -348,9 +394,11 @@ export default function PrivacyPage() {
             "Once a macro is accepted and confirmed live, the private copy of your upload is deleted. The published macro stays in the catalog.",
             "A rejected or withdrawn submission is removed along with its uploaded file.",
             "The short result notice telling you the outcome stays until you dismiss it.",
+            "The private accepted-submission record stays while your account exists, even if you dismiss its result notification.",
+            "A result-email job scrubs its frozen destination and message after success or permanent failure. After an uncertain attempt, the next delivery-queue run beyond the safe retry window parks and scrubs it. A never-attempted job waits for delivery to be configured or for account deletion.",
             "Support email stays in the mailbox unless it is deleted by hand.",
             "Notice delivery records and the signup acceptance record are kept while the account exists.",
-            "Deleting your account removes the account and the data tied to it, including favorites and any open submissions. Macros already published stay in the catalog, because they are part of the catalog rather than account data.",
+            "Deleting your account removes the account and the data tied to it, including favorites, settings, notifications, accepted-history records and any open submissions. Macros already published stay in the catalog, because they are part of the catalog rather than account data.",
           ]}
         />
       </Section>
