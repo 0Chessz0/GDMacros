@@ -152,6 +152,9 @@ export async function updateSubmission(id: string, fields: EditFields): Promise<
     if (/publishing has already started/i.test(raw)) {
       return { ok: false, error: "Publishing has already started, so the details are fixed." };
     }
+    if (/can no longer be edited/i.test(raw)) {
+      return { ok: false, error: "This submission is no longer pending, so it cannot be edited." };
+    }
     if (/not authorised/i.test(raw)) return { ok: false, error: "Not authorised." };
     if (/submission content is immutable/i.test(raw)) {
       return {

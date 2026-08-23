@@ -16,7 +16,7 @@ export const config = {
     "/account/:path*",
     "/submit",
     "/submissions",
-    "/admin",
+    "/admin/:path*",
     "/welcome",
     "/login",
     "/signup",

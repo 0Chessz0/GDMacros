@@ -10,12 +10,14 @@ import { NextResponse } from "next/server";
  * visitor can actually download the file. The publisher needs to observe that
  * last step before it tells a submitter their macro was accepted.
  *
- * The alternative was a Vercel API token, which would be a powerful new secret
- * whose whole job is answering one question. This endpoint answers the same
- * question with no secret at all: the publisher knows the commit sha it just
- * created, and polls https://www.gdmacros.com/api/version until production
- * reports that sha. When it matches, the deployment serving the real domain is
- * definitively built from that commit.
+ * The deployment check could query Vercel's API, but that would unnecessarily
+ * couple publishing to the availability and permissions of an access token.
+ * This endpoint answers the question with no secret at all: the publisher
+ * knows the commit sha it just created, and polls
+ * https://www.gdmacros.com/api/version until production reports that sha. When
+ * it matches, the deployment serving the real domain is definitively built
+ * from that commit. The separate analytics panel may use a Vercel token, but
+ * publishing deliberately does not depend on it.
  *
  * A git commit sha is public information. It is in the repository, which is
  * public, and it leaks nothing about the build, the environment or any secret.

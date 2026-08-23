@@ -38,6 +38,7 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-admin.mjs"), {
 });
 
 const health = await jiti.import(path.join(ROOT, "src/lib/health.ts"));
+const va = await jiti.import(path.join(ROOT, "src/lib/vercelAnalytics.ts"));
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const src = {
@@ -50,8 +51,11 @@ const src = {
   board: read("src/components/admin/StatusBoard.tsx"),
   editAction: read("src/lib/actions/submissionEdit.ts"),
   healthAction: read("src/lib/actions/health.ts"),
+  middleware: read("src/middleware.ts"),
   migration: read("supabase/migrations/0008_admin_submission_edit.sql"),
   fix: read("supabase/migrations/0009_fix_admin_submission_edit.sql"),
+  raceFix: read("supabase/migrations/0010_lock_submission_edits_before_publish.sql"),
+  analytics: read("src/lib/vercelAnalytics.ts"),
 };
 const flat = (t) => t.replace(/\s+/g, " ");
 
@@ -99,6 +103,11 @@ check("the mail tool is unchanged, only relocated", /<LegalNotices/.test(src.not
 check(
   "queue navigation points at the new route",
   /\/admin\/submissions\?status=/.test(src.queue) && !/"\/admin\?status/.test(src.queue),
+);
+check(
+  "session refresh covers every admin subroute",
+  /"\/admin\/:path\*"/.test(src.middleware),
+  "new admin pages would otherwise miss the auth middleware",
 );
 
 /* ------------------------------------------------------------------ *
@@ -197,6 +206,32 @@ check("nothing to change is refused", /Nothing to change/.test(src.editAction));
   );
 }
 
+/* ---- serialize the editor with the publisher's pending -> processing claim ---- */
+{
+  const raceFix = src.raceFix;
+  const body = raceFix.split("create or replace function public.admin_update_submission")[1] ?? "";
+  const lockAt = body.indexOf("for update");
+  const pendingAt = body.indexOf("v_status <> 'pending'");
+  const stateAt = body.indexOf("submission_publish_state");
+  const flagAt = body.indexOf("set_config('gdmacros.content_edit', 'on'");
+
+  check("0010 replaces the editor RPC", /create or replace function public\.admin_update_submission/.test(raceFix));
+  check("0010 locks the submission row", /select s\.status into v_status[\s\S]{0,160}for update;/.test(body));
+  check("the final editor only accepts pending rows", /if v_status <> 'pending'/.test(body));
+  check(
+    "any existing publish state blocks an edit",
+    /if exists \([\s\S]{0,220}private\.submission_publish_state/.test(body),
+  );
+  check("the row is locked before status is trusted", lockAt > 0 && lockAt < pendingAt);
+  check("every race guard runs before the trigger bypass", pendingAt < flagAt && stateAt < flagAt);
+  check("the final editor still checks the admin role", /private\.is_admin\(\)/.test(body));
+  check("the final editor still pins search_path", /set search_path = ''/.test(raceFix));
+  check(
+    "the trigger bypass remains transaction-local",
+    !/set_config\('gdmacros\.content_edit', '[a-z]+', false\)/.test(raceFix),
+  );
+}
+
 /* ---- the failure the user actually saw must now be legible ---- */
 check(
   "an immutable-content refusal names the missing migration",
@@ -215,6 +250,8 @@ check(
 check("surfaced errors still go through safeDetail", /safeDetail\(raw/.test(src.editAction));
 
 check("the editor is reachable from the queue", /EditSubmission/.test(src.queue));
+check("a successful publish claim closes the editor", /setClaimed\(true\);\s*setEditing\(false\);\s*setOpen\(true\)/.test(src.queue));
+check("the editor only renders while still pending", /editing && status === "pending"/.test(src.queue));
 check("the editor sends only what changed", /!== row\.macro_author \? macroAuthor\.trim\(\) : undefined/.test(src.editor));
 check("the notes are shown but not editable", !/notes/i.test(src.editor.replace(/NOTES are shown but not editable[\s\S]{0,80}/i, "")));
 check("clearing the video is possible", /Leave the video empty to remove it/.test(flat(src.editor)));
@@ -288,7 +325,11 @@ eq("the real catalog counts its own levels", realStats.levels, real.length);
 check("the real catalog has macros", realStats.macros > 0, String(realStats.macros));
 check(
   "no catalog total is hardcoded in the board",
-  !/\b(1[01][0-9]|2[0-9][0-9])\b/.test(src.board.replace(/[0-9]+ ?(ms|px|%)/g, "")),
+  // Layout numbers are not data. Percentages, pixel sizes and the sparkline's
+  // own scaling maths are stripped before looking for a stray catalog total.
+  !/\b(1[01][0-9]|2[0-9][0-9])\b/.test(
+    src.board.replace(/[0-9]+ ?(ms|px|%)/g, "").replace(/\* 100|Math\.max\([^)]*\)|slice\([^)]*\)/g, ""),
+  ),
   "a literal count appears in the status board",
 );
 
@@ -302,17 +343,171 @@ check(
   !/\.(insert|update|upsert|delete)\(|\.send\(|\.batch\./.test(src.healthAction),
   "a status probe mutates state",
 );
-check("the GitHub probe only reads a repo", /\/repos\/\$\{config\.GITHUB_ORG\}/.test(src.healthAction));
+check(
+  "the GitHub probe reads both publishing repositories",
+  /config\.SOURCE_REPO/.test(src.healthAction) &&
+    /config\.DOWNLOADS_REPO/.test(src.healthAction) &&
+    /const \[source, downloads\] = await Promise\.all/.test(src.healthAction),
+);
 check("the Resend probe only lists domains", /domains\.list\(\)/.test(src.healthAction));
 check("the Lanyard probe uses a configured owner", /OWNERS\[0\]\.discordId/.test(src.healthAction));
 check("no probe accepts a caller-supplied target", !/function .*\(.*url.*\).*fetch/.test(src.healthAction));
 check("upstream errors are passed through safeDetail", (src.healthAction.match(/safeDetail\(/g) ?? []).length >= 4);
 check("no secret name is rendered by the board", !/RESEND_|SUPABASE_SECRET|GITHUB_PUBLISHER/.test(src.board));
 check(
-  "the board says why Vercel traffic stats are absent",
-  /Vercel API token/.test(flat(src.board)),
+  "the board explains how to turn traffic on when it is off",
+  /Vercel access token/.test(flat(src.board)) &&
+    /Traffic is not configured here/.test(flat(src.board)) &&
+    !/project-scoped/i.test(flat(src.board)),
 );
+check("the board renders traffic when it is available", /Vercel Web Analytics/.test(src.board));
+check("the traffic chart has an accessible label", /aria-label=/.test(src.board));
+check("an unexpected action failure clears the loading state", /finally \{[\s\S]{0,80}setBusy\(false\)/.test(src.board));
 check("checks are on demand, not on a timer", !/setInterval/.test(src.board));
+
+/* ------------------------------------------------------------------ *
+ * 4. Vercel Web Analytics
+ * ------------------------------------------------------------------ */
+console.log("Vercel traffic");
+
+/* Endpoint shape, taken from Vercel's documented API rather than invented. */
+const target = { projectId: "prj_abc", teamId: "team_xyz" };
+const aggUrl = new URL(
+  va.analyticsUrl("visits/aggregate", target, { since: "2026-08-01", until: "2026-08-07", by: "day" }),
+);
+eq("the documented host", aggUrl.host, "api.vercel.com");
+eq("the documented path", aggUrl.pathname, "/v1/query/web-analytics/visits/aggregate");
+eq("project id is sent", aggUrl.searchParams.get("projectId"), "prj_abc");
+eq("team id is sent", aggUrl.searchParams.get("teamId"), "team_xyz");
+eq("the grouping is sent", aggUrl.searchParams.get("by"), "day");
+eq("the range is sent", aggUrl.searchParams.get("since"), "2026-08-01");
+
+const countUrl = new URL(
+  va.analyticsUrl("visits/count", target, { since: "2026-08-01", until: "2026-08-07" }),
+);
+eq("the documented count path", countUrl.pathname, "/v1/query/web-analytics/visits/count");
+eq("the count uses the same start date", countUrl.searchParams.get("since"), "2026-08-01");
+eq("the count uses the same end date", countUrl.searchParams.get("until"), "2026-08-07");
+
+// An empty teamId is NOT the same as omitting it, and the API rejects it.
+check(
+  "a personal account omits teamId entirely",
+  !new URL(va.analyticsUrl("visits/count", { projectId: "prj_abc" })).searchParams.has("teamId"),
+);
+check(
+  "a blank teamId is omitted too",
+  !new URL(va.analyticsUrl("visits/count", { projectId: "p", teamId: "" })).searchParams.has("teamId"),
+);
+check(
+  "an undefined param is dropped",
+  !new URL(va.analyticsUrl("visits/count", target, { limit: undefined })).searchParams.has("limit"),
+);
+
+/* The window must stay inside the smallest plan's reporting window. */
+const NOW = new Date("2026-08-22T10:00:00Z");
+eq("the window ends today", va.analyticsWindow(NOW).until, "2026-08-22");
+eq("seven days back, inclusive", va.analyticsWindow(NOW).since, "2026-08-16");
+eq("a huge request is clamped", va.analyticsWindow(NOW, 9999).since, "2026-07-26");
+eq("a zero request still asks for one day", va.analyticsWindow(NOW, 0).since, "2026-08-22");
+check("the clamp stays inside the Hobby reporting window", va.MAX_WINDOW_DAYS <= 28);
+
+/* Parsing an unpredictable third-party response must never throw. */
+const days = va.parseDays({
+  version: 1,
+  data: [
+    { timestamp: "2026-08-17T00:00:00.000Z", pageviews: 245, visitors: 201 },
+    { timestamp: "2026-08-16T00:00:00.000Z", pageviews: 220, visitors: 180 },
+  ],
+});
+eq("both days parse", days.length, 2);
+eq("days are sorted oldest first", days[0].day, "2026-08-16");
+eq("the time component is dropped", days[1].day, "2026-08-17");
+eq("pageviews survive", days[1].pageviews, 245);
+
+const pages = va.parsePages({
+  data: [
+    { requestPath: "/macro/acheron", pageviews: 100, visitors: 80 },
+    { requestPath: "/", pageviews: 400, visitors: 300 },
+    { requestPath: "Others", pageviews: 900, visitors: 700 },
+  ],
+});
+eq("pages are sorted busiest first", pages[0].path, "/");
+eq("page views survive", pages[0].pageviews, 400);
+check("the Others bucket is not presented as a page", !pages.some((page) => page.path === "Others"));
+eq("a row with no path rejects the page breakdown", va.parsePages({ data: [{ pageviews: 5 }] }), null);
+
+const totals = va.parseTotals({ data: { pageviews: 500, visitors: 300 } });
+check("the count response parses", Boolean(totals));
+eq("counted pageviews survive", totals?.pageviews, 500);
+eq("counted visitors survive", totals?.visitors, 300);
+eq("an invalid count response is rejected", va.parseTotals({ data: [] }), null);
+eq("a partial count response is rejected", va.parseTotals({ data: { pageviews: 5 } }), null);
+
+for (const [label, bad] of [
+  ["null", null],
+  ["a string", "no"],
+  ["no data key", { version: 1 }],
+  ["data is not an array", { data: {} }],
+  ["a null row", { data: [null] }],
+  ["non-numeric counts", { data: [{ timestamp: "2026-08-16T00:00:00.000Z", pageviews: "many" }] }],
+]) {
+  let threw = false;
+  try {
+    va.parseDays(bad);
+    va.parsePages(bad);
+    va.parseTotals(bad);
+  } catch {
+    threw = true;
+  }
+  check(`a malformed analytics response does not throw: ${label}`, !threw);
+}
+eq(
+  "a malformed daily row rejects the breakdown",
+  va.parseDays({
+    data: [{ timestamp: "2026-08-16T00:00:00.000Z", pageviews: "many", visitors: 2 }],
+  }),
+  null,
+);
+
+const summary = va.summarise({ since: "a", until: "b" }, totals, days, pages);
+eq("the exact count supplies pageview totals", summary.pageviews, 500);
+eq("daily unique visitors are not incorrectly added together", summary.visitors, 300);
+eq("the daily chart is preserved", summary.days.length, 2);
+eq("the page breakdown is preserved", summary.pages.length, 2);
+const partial = va.summarise({ since: "a", until: "b" }, totals, null, null);
+eq("missing daily data stays unavailable", partial.days, null);
+eq("missing page data stays unavailable", partial.pages, null);
+
+check("analytics is optional", !va.isAnalyticsConfigured({ projectId: "" }, "tok"));
+check("whitespace-only analytics config is absent", !va.isAnalyticsConfigured({ projectId: "  " }, "  "));
+check("a token alone is not enough", !va.isAnalyticsConfigured({}, "tok"));
+check("a project alone is not enough", !va.isAnalyticsConfigured({ projectId: "prj" }, undefined));
+check("both together are enough", va.isAnalyticsConfigured({ projectId: "prj" }, "tok"));
+
+/* The token must never escape the server. */
+check("the pure module holds no token", !/process\.env/.test(src.analytics));
+check("the action reads the token server side", /process\.env\.VERCEL_ANALYTICS_TOKEN/.test(src.healthAction));
+check("the token is sent as a bearer header", /Bearer \$\{token\}/.test(src.healthAction));
+check("exact period totals use the count endpoint", /analyticsUrl\("visits\/count", target, win\)/.test(src.healthAction));
+check("top pages use exact request paths", /by: "requestPath"/.test(src.healthAction));
+eq("all three analytics queries use the same window", (src.healthAction.match(/\.\.\.win|target, win/g) ?? []).length, 3);
+check("optional analytics requests settle independently", /Promise\.allSettled\(\[/.test(src.healthAction));
+check("failed aggregates remain unavailable, not fake zeroes", /days === null[\s\S]{0,100}pages === null/.test(src.healthAction));
+check("partial analytics is identified in the panel", /Some analytics breakdowns are unavailable/.test(src.healthAction));
+check("a blank explicit project id falls back to Vercel's system id", /explicitProjectId \|\| automaticProjectId/.test(src.healthAction));
+check("a missing token degrades rather than errors", /traffic: null/.test(src.healthAction));
+check(
+  "traffic can never break the status page",
+  /catch \{[\s\S]{0,200}traffic: null/.test(src.healthAction),
+  "an analytics failure could take the page down",
+);
+check("the traffic action is admin gated", /getTrafficStats[\s\S]{0,400}guard\(\)/.test(src.healthAction));
+check(
+  "no analytics error carries the request url",
+  !/analyticsUrl[\s\S]{0,120}error:/.test(src.healthAction),
+  "a url carrying the token could reach the browser",
+);
+check("the token name never reaches the client component", !/VERCEL_ANALYTICS_TOKEN/.test(src.board));
 
 /* ------------------------------------------------------------------ */
 
