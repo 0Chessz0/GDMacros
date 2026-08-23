@@ -2590,5 +2590,19 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-12437428/ChesszDC-Bass-Cave-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "2 0",
+    "creator": "AranyaDeCueva",
+    "levelId": "7676557",
+    "addedAt": "2026-08-23",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-7676557/ChesszDC-2-0-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
