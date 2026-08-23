@@ -2534,5 +2534,19 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-66092652/Cerealmilkbowl-Final-Destination-xdBot.gdr2"
       }
     ]
+  },
+  {
+    "name": "Uprise",
+    "creator": "Astroboyzzz",
+    "levelId": "14977845",
+    "addedAt": "2026-08-23",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-14977845/ChesszDC-Uprise-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
