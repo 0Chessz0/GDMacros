@@ -51,6 +51,7 @@ const src = {
   editAction: read("src/lib/actions/submissionEdit.ts"),
   healthAction: read("src/lib/actions/health.ts"),
   migration: read("supabase/migrations/0008_admin_submission_edit.sql"),
+  fix: read("supabase/migrations/0009_fix_admin_submission_edit.sql"),
 };
 const flat = (t) => t.replace(/\s+/g, " ");
 
@@ -146,6 +147,72 @@ check(
   /publishing has already started/i.test(src.editAction),
 );
 check("nothing to change is refused", /Nothing to change/.test(src.editAction));
+
+/* ---- the freeze trigger, which 0008 alone could never get past ---- */
+{
+  const freeze = read("supabase/migrations/0004_phase2c_fix_freeze_trigger.sql");
+  const fix = src.fix;
+
+  // The columns the editor writes are exactly the ones 0004 froze. Without
+  // 0009 every edit raises, which is what actually happened on the preview.
+  const editorColumns = ["level_name", "level_id", "level_creator", "video_url", "recorder", "macro_author"];
+  check(
+    "0004 really does freeze the columns the editor writes",
+    editorColumns.every((c) => freeze.includes(`new.${c}`)),
+    "the premise of this fix no longer holds",
+  );
+
+  check("0009 replaces the freeze trigger", /create or replace function private\.freeze_submission_fields/.test(fix));
+  check("0009 replaces the editor too", /create or replace function public\.admin_update_submission/.test(fix));
+
+  // The exception is one transaction-local flag, set by one function.
+  check("the trigger looks for a transaction-local flag", /current_setting\('gdmacros\.content_edit', true\)/.test(fix));
+  check("the editor raises that flag", /set_config\('gdmacros\.content_edit', 'on', true\)/.test(fix));
+  check("the editor lowers it again", /set_config\('gdmacros\.content_edit', 'off', true\)/.test(fix));
+  check(
+    "the flag is transaction-local, so it cannot leak between requests",
+    !/set_config\('gdmacros\.content_edit', '[a-z]+', false\)/.test(fix),
+  );
+  check(
+    "exactly one function sets the flag",
+    (fix.match(/set_config\('gdmacros\.content_edit'/g) ?? []).length === 2,
+    "more than one place raises the edit flag",
+  );
+
+  // The flag must be raised only AFTER every check, never before.
+  const body = fix.split("create or replace function public.admin_update_submission")[1] ?? "";
+  const flagAt = body.indexOf("set_config('gdmacros.content_edit', 'on'");
+  check("the flag is raised after the admin check", body.indexOf("private.is_admin()") < flagAt && flagAt > 0);
+  check("the flag is raised after the publish-state check", body.indexOf("v_state is not null") < flagAt);
+  check("the flag is raised after the status check", body.indexOf("not in ('pending', 'processing')") < flagAt);
+
+  // Fields that are nobody's to correct stay frozen whatever the flag says.
+  const always = fix.split("if not v_editing then")[0] ?? "";
+  for (const col of ["id", "submitted_by", "notes", "file_size", "created_at"]) {
+    check(`${col} stays frozen even during an edit`, always.includes(`new.${col}`), col);
+  }
+  check(
+    "the submitter's notes are never editable",
+    /new\.notes\s+is distinct from old\.notes/.test(always),
+  );
+}
+
+/* ---- the failure the user actually saw must now be legible ---- */
+check(
+  "an immutable-content refusal names the missing migration",
+  /Migration 0009 has not been applied/.test(src.editAction),
+  "the reviewer would see a generic failure again",
+);
+check(
+  "a missing function names the missing migration",
+  /Migration 0008 has not been applied/.test(src.editAction),
+);
+check(
+  "any other database error is surfaced rather than swallowed",
+  /Could not update: \$\{safeDetail\(/.test(src.editAction),
+  "the generic message is back",
+);
+check("surfaced errors still go through safeDetail", /safeDetail\(raw/.test(src.editAction));
 
 check("the editor is reachable from the queue", /EditSubmission/.test(src.queue));
 check("the editor sends only what changed", /!== row\.macro_author \? macroAuthor\.trim\(\) : undefined/.test(src.editor));

@@ -6,6 +6,7 @@ import { isCurrentUserAdmin } from "@/lib/admin";
 import { canonicalUrl, verifyVideo, videoIdFromUrl } from "@/lib/youtube";
 import { lookupLevel } from "@/lib/gdbrowser";
 import { RECORDERS } from "@/lib/types";
+import { safeDetail } from "@/lib/health";
 
 /**
  * Correcting a submission before it is published.
@@ -133,14 +134,36 @@ export async function updateSubmission(id: string, fields: EditFields): Promise<
 
   const { data, error } = await supabase.rpc("admin_update_submission", payload);
   if (error) {
-    // The RPC raises when publishing has already started, which is the one
-    // refusal worth explaining rather than flattening into "failed".
-    const message = /publishing has already started/i.test(error.message)
-      ? "Publishing has already started, so the details are fixed."
-      : /not authorised/i.test(error.message)
-        ? "Not authorised."
-        : "The submission could not be updated.";
-    return { ok: false, error: message };
+    /*
+     * The real message, not a generic one.
+     *
+     * This started as "The submission could not be updated." for everything,
+     * and it cost an hour: the freeze trigger from 0003 was rejecting every
+     * edit with 'submission content is immutable', and the UI reported nothing
+     * that pointed at a trigger. A reviewer looking at a refusal they cannot
+     * act on is worse than no button at all.
+     *
+     * Safe to surface here. This page is admin only, and what Postgres puts in
+     * these messages is its own constraint and trigger text, never a
+     * credential. `safeDetail` caps the length and refuses anything that looks
+     * like a token regardless.
+     */
+    const raw = error.message ?? "";
+    if (/publishing has already started/i.test(raw)) {
+      return { ok: false, error: "Publishing has already started, so the details are fixed." };
+    }
+    if (/not authorised/i.test(raw)) return { ok: false, error: "Not authorised." };
+    if (/submission content is immutable/i.test(raw)) {
+      return {
+        ok: false,
+        error:
+          "The database is still refusing content edits. Migration 0009 has not been applied yet.",
+      };
+    }
+    if (/could not find the function|PGRST202/i.test(raw)) {
+      return { ok: false, error: "The edit function is missing. Migration 0008 has not been applied." };
+    }
+    return { ok: false, error: `Could not update: ${safeDetail(raw, "unknown database error")}` };
   }
 
   const row = (data as Record<string, string | null>[])?.[0];
