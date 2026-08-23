@@ -1,149 +1,115 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import ReviewQueue, { type AdminRow } from "@/components/admin/ReviewQueue";
-import SubmissionBans from "@/components/admin/SubmissionBans";
-import LegalNotices from "@/components/admin/LegalNotices";
 import { isCurrentUserAdmin } from "@/lib/admin";
-import { listSubmissionBans } from "@/lib/actions/submissions";
-import { runStatus } from "@/lib/actions/legalNotice";
-import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal";
 import { getUser, createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { ListIcon, MailIcon, GaugeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Review queue",
+  title: "Admin",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
-const STATUSES = new Set(["pending", "processing", "all"]);
-
 /**
- * The review queue.
+ * The admin portal.
  *
- * Three independent things have to agree before any data appears:
+ * Three tools, each on its own page. They are separated because they are
+ * different jobs with different blast radii: reviewing one macro, emailing
+ * every account holder, and reading a status board should not sit in one
+ * scrolling column where the wrong button is one mis-click away.
  *
- *   1. middleware redirects an anonymous visitor to /login;
- *   2. this page checks the role server side, from the database;
- *   3. the row level security policy on `submissions` only returns other
- *      people's rows when private.is_admin() is true.
+ * EVERY PAGE RE-CHECKS, AND SO DOES EVERY ACTION.
  *
- * The third is the one that matters. Even if the first two were removed, a
- * normal user reaching this page would render an empty queue, because the
- * database would hand them nothing. And every review RPC checks
- * private.is_admin() for itself, so seeing a button is not the same as being
- * able to use it.
+ * This page having rendered is not a permission. Each of the three pages runs
+ * the same server-side role check for itself, every server action behind them
+ * checks again on each call, and every RPC underneath checks
+ * `private.is_admin()` a third time. That is deliberate: a server action is a
+ * POST endpoint anyone on the internet can call, so the only check that counts
+ * is the one that runs on the request actually doing the work.
  *
- * A non-admin gets a 404 rather than a "forbidden" page: there is no reason to
+ * A non-admin gets a 404 rather than a "forbidden" page. There is no reason to
  * confirm that this route exists.
- *
- * Only ACTIVE submissions exist now. An accepted or rejected one is deleted and
- * replaced by a small notification to its submitter, so there is no history to
- * filter and no approved or rejected tab.
  */
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
+
+const TOOLS = [
+  {
+    href: "/admin/submissions",
+    title: "Check submissions",
+    description:
+      "Review what people have sent in, correct the details, then accept or reject.",
+    Icon: ListIcon,
+  },
+  {
+    href: "/admin/notices",
+    title: "Mail everyone",
+    description:
+      "Send an important Terms, Privacy or service notice to every account holder.",
+    Icon: MailIcon,
+  },
+  {
+    href: "/admin/status",
+    title: "Statistics",
+    description:
+      "Whether every service the site depends on is responding, and how big the catalog is.",
+    Icon: GaugeIcon,
+  },
+] as const;
+
+export default async function AdminPage() {
   if (!isSupabaseConfigured) redirect("/login");
 
   const user = await getUser();
   if (!user) redirect("/login?next=/admin");
   if (!(await isCurrentUserAdmin())) notFound();
 
-  const params = await searchParams;
-  const filter = params.status && STATUSES.has(params.status) ? params.status : "pending";
-
+  // A count, so the queue card can say whether anything is waiting. RLS decides
+  // what is countable; an admin sees every row because the 2C policy says so.
+  let waiting: number | null = null;
   const supabase = await createClient();
-
-  let query = supabase!
-    .from("submissions")
-    .select(
-      "id,submitted_by,level_name,level_id,level_creator,video_url,recorder,macro_author,notes,status,created_at,file_size,processing_by,processing_started_at",
-    )
-    .order("created_at", { ascending: false });
-
-  if (filter !== "all") query = query.eq("status", filter);
-
-  const [{ data, error }, bans, latestRun] = await Promise.all([
-    query,
-    listSubmissionBans(),
-    // Counts only. This never returns a recipient or an address.
-    runStatus(),
-  ]);
-
-  type Raw = Omit<AdminRow, "submitter" | "processor" | "mine"> & {
-    submitted_by: string;
-    processing_by: string | null;
-  };
-  const raw = (data ?? []) as unknown as Raw[];
-
-  /*
-   * Usernames are resolved in a SECOND query rather than a PostgREST embed.
-   *
-   * submissions.submitted_by references auth.users(id), not profiles(id), so
-   * there is no foreign key between submissions and profiles and the embed
-   * `profiles(username)` fails with PGRST200. Adding a foreign key purely to
-   * enable an embed would couple two tables for a display concern, so the join
-   * happens here.
-   *
-   * Nothing in the review path touches auth.users, which is why an email
-   * address cannot reach this page even by accident. Both id columns are
-   * dropped below rather than handed to the client.
-   *
-   * There is now exactly ONE place that reads auth.users, and it is not this
-   * one: `lib/supabase/auth-admin.ts` enumerates accounts so a legal notice can
-   * be emailed to them. It is server-only, it is reachable solely through the
-   * Legal Notices tool below, and no address it reads is ever returned to the
-   * browser or written to the database.
-   */
-  const ids = [
-    ...new Set(raw.flatMap((r) => [r.submitted_by, r.processing_by].filter(Boolean) as string[])),
-  ];
-  const names = new Map<string, string>();
-  if (ids.length > 0) {
-    const { data: profiles } = await supabase!
-      .from("profiles")
-      .select("id,username")
-      .in("id", ids);
-    for (const p of profiles ?? []) names.set(p.id, p.username);
+  if (supabase) {
+    const { count, error } = await supabase
+      .from("submissions")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["pending", "processing"]);
+    waiting = error ? null : (count ?? 0);
   }
-
-  const rows: AdminRow[] = raw.map(({ submitted_by, processing_by, ...rest }) => ({
-    ...rest,
-    submitter: names.get(submitted_by) ?? "(no username)",
-    processor: processing_by ? (names.get(processing_by) ?? "another admin") : null,
-    // Lets the UI say "you" rather than a name, without sending an id.
-    mine: processing_by === user.id,
-  }));
 
   return (
     <div className="mx-auto w-full max-w-[860px] px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">
-        Review queue
-      </h1>
-      <p className="mt-1.5 mb-6 text-[13.5px] leading-relaxed text-muted">
-        Accepting opens a publishing screen and claims the submission. Publishing then runs
-        automatically, and nothing is announced to the submitter until it has been confirmed live.
+      <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">Admin</h1>
+      <p className="mt-1.5 mb-8 text-[13.5px] leading-relaxed text-muted">
+        Pick a tool. Each one checks your permissions again on every action, so nothing here is
+        unlocked just because this page loaded.
       </p>
 
-      {error ? (
-        <div className="card px-6 py-10 text-center text-[13px] text-muted">
-          The queue could not be loaded. Reload the page.
-        </div>
-      ) : (
-        <ReviewQueue rows={rows} filter={filter} />
-      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {TOOLS.map(({ href, title, description, Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="card group flex flex-col gap-2.5 p-5 transition-[border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 active:translate-y-0 active:scale-[0.99]"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-2 text-text-dim transition-colors group-hover:text-accent-soft">
+              <Icon className="h-[19px] w-[19px]" />
+            </span>
+            <span className="text-[16px] font-bold text-text">{title}</span>
+            <span className="text-[13px] leading-relaxed text-muted">{description}</span>
 
-      <SubmissionBans initial={"bans" in bans ? bans.bans : []} />
-
-      <LegalNotices
-        termsVersion={TERMS_VERSION}
-        privacyVersion={PRIVACY_VERSION}
-        initialRun={latestRun.ok && latestRun.runId ? latestRun : null}
-      />
+            {href === "/admin/submissions" && waiting !== null && (
+              <span
+                className={`mt-1 w-fit rounded-md px-2 py-0.5 text-[11.5px] font-semibold tabular-nums ${
+                  waiting > 0 ? "bg-accent/15 text-accent-soft" : "bg-surface-2 text-muted"
+                }`}
+              >
+                {waiting === 0 ? "Nothing waiting" : `${waiting} waiting`}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
