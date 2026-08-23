@@ -2562,5 +2562,19 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-13314218/ChesszDC-lezicuv-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "Down Bass",
+    "creator": "Spectruh",
+    "levelId": "8147005",
+    "addedAt": "2026-08-23",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-8147005/ChesszDC-Down-Bass-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
