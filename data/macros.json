@@ -2576,5 +2576,19 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-8147005/ChesszDC-Down-Bass-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "Bass Cave",
+    "creator": "bloodshot",
+    "levelId": "12437428",
+    "addedAt": "2026-08-23",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-12437428/ChesszDC-Bass-Cave-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
