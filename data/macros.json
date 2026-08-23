@@ -2524,13 +2524,14 @@
     "name": "Final Destination",
     "creator": "IcEDCave",
     "levelId": "66092652",
+    "video": "https://www.youtube.com/watch?v=JfAJhs5m2CQ",
     "addedAt": "2026-08-23",
     "macros": [
       {
-        "author": "Cerealmilkbowl (me)",
+        "author": "Cerealmilkbowl",
         "recorder": "xdBot",
         "downloadType": "GitHub",
-        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-66092652/Cerealmilkbowl-me-Final-Destination-xdBot.gdr2"
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-66092652/Cerealmilkbowl-Final-Destination-xdBot.gdr2"
       }
     ]
   }
