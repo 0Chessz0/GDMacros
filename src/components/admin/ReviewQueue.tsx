@@ -9,6 +9,7 @@ import {
 } from "@/lib/actions/submissions";
 import { LIMITS, MIN_REJECTION_REASON, STATUS_LABEL, formatDate } from "@/lib/submissions";
 import ProcessingModal from "./ProcessingModal";
+import EditSubmission from "./EditSubmission";
 
 export interface AdminRow {
   id: string;
@@ -59,6 +60,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<"accept" | "reject" | "download" | null>(null);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   // Set the moment a claim succeeds, so this card shows the right buttons
   // without waiting for a refresh that would remove it from this filter.
   const [claimed, setClaimed] = useState(false);
@@ -134,7 +136,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
              * of where it went. Go to the Processing list instead: that is
              * where it now lives and where it is resumed from.
              */
-            if (claimed) router.push("/admin?status=processing");
+            if (claimed) router.push("/admin/submissions?status=processing");
             else onChanged();
           }}
           onFinished={() => {
@@ -204,6 +206,17 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
           </div>
         )}
 
+        {editing && (
+          <EditSubmission
+            row={row}
+            onSaved={() => {
+              setEditing(false);
+              onChanged();
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        )}
+
         {error && (
           <p role="alert" className="mt-3 text-[12.5px] text-rose">
             {error}
@@ -228,6 +241,14 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
                 className="rounded-lg bg-accent px-3.5 py-2 text-[12.5px] font-semibold text-white transition-[background-color,transform] duration-200 ease-out hover:bg-accent-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busy === "accept" ? "Opening..." : "Start Publishing"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing((v) => !v)}
+                disabled={busy !== null}
+                className="rounded-lg border border-border bg-surface px-3.5 py-2 text-[12.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:border-accent/40 hover:text-accent-soft active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editing ? "Close editor" : "Edit details"}
               </button>
               <button
                 type="button"
@@ -329,7 +350,11 @@ export default function ReviewQueue({ rows, filter }: { rows: AdminRow[]; filter
           <button
             key={f.id}
             type="button"
-            onClick={() => router.push(f.id === "pending" ? "/admin" : `/admin?status=${f.id}`)}
+            onClick={() =>
+              router.push(
+                f.id === "pending" ? "/admin/submissions" : `/admin/submissions?status=${f.id}`,
+              )
+            }
             aria-pressed={filter === f.id}
             className={`rounded-lg border px-3 py-1.5 text-[12.5px] font-semibold transition-colors ${
               filter === f.id
