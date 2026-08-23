@@ -80,6 +80,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
         // now would unmount this card and take the modal with it. The refresh
         // happens when the modal closes instead.
         setClaimed(true);
+        setEditing(false);
         setOpen(true);
       } else {
         setError(res.error);
@@ -206,7 +207,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
           </div>
         )}
 
-        {editing && (
+        {editing && status === "pending" && (
           <EditSubmission
             row={row}
             onSaved={() => {

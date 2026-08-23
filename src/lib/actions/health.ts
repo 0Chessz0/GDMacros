@@ -10,6 +10,16 @@ import { lanyardUrl } from "@/lib/lanyard";
 import { lookupLevel } from "@/lib/gdbrowser";
 import { verifyVideo } from "@/lib/youtube";
 import {
+  analyticsUrl,
+  analyticsWindow,
+  isAnalyticsConfigured,
+  parseDays,
+  parsePages,
+  parseTotals,
+  summarise,
+  type TrafficSummary,
+} from "@/lib/vercelAnalytics";
+import {
   CHECK_LABELS,
   CHECK_TIMEOUT_MS,
   catalogStats,
@@ -111,19 +121,26 @@ async function checkGithub() {
 
     const { ghFetch, tokenDiagnostics, githubErrorMessage } = await import("@/lib/github/client");
     try {
-      // Reading the downloads repo proves the App can mint an installation
-      // token AND that the token still reaches the repository it publishes to.
-      // A read, never a write.
-      const res = await ghFetch<{ full_name?: string }>({
-        url: `${config.GITHUB_API}/repos/${config.GITHUB_ORG}/${config.DOWNLOADS_REPO}`,
-        timeoutMs: CHECK_TIMEOUT_MS - 500,
-      });
+      // Publishing touches both repositories: the asset goes to downloads and
+      // the catalog commit goes to source. Read both so a partial GitHub App
+      // installation cannot report green and then fail halfway through a
+      // publish. These are reads, never writes.
+      const [source, downloads] = await Promise.all([
+        ghFetch<{ full_name?: string }>({
+          url: `${config.GITHUB_API}/repos/${config.GITHUB_ORG}/${config.SOURCE_REPO}`,
+          timeoutMs: CHECK_TIMEOUT_MS - 500,
+        }),
+        ghFetch<{ full_name?: string }>({
+          url: `${config.GITHUB_API}/repos/${config.GITHUB_ORG}/${config.DOWNLOADS_REPO}`,
+          timeoutMs: CHECK_TIMEOUT_MS - 500,
+        }),
+      ]);
       const perms = tokenDiagnostics().permissions;
       const canWrite = perms.contents === "write";
       return {
         state: canWrite ? ("ok" as const) : ("degraded" as const),
         detail: canWrite
-          ? `${res.data?.full_name ?? config.DOWNLOADS_REPO}, contents: write`
+          ? `${source.data?.full_name ?? config.SOURCE_REPO} + ${downloads.data?.full_name ?? config.DOWNLOADS_REPO}, contents: write`
           : "Token cannot write contents",
       };
     } catch (e) {
@@ -241,6 +258,96 @@ export async function runHealthChecks(): Promise<{ ok: boolean; results?: CheckR
   ]);
 
   return { ok: true, results };
+}
+
+/**
+ * Vercel Web Analytics for the last week.
+ *
+ * Optional by design. Without a token this returns null and the panel says so,
+ * exactly like every other "not configured here" path: a missing analytics
+ * token must never be able to break the status page.
+ *
+ * The token is read server side and never leaves this function. Use a
+ * project-scoped token, but remember that it can still read and write inside
+ * that project: never logged, never returned, never in an error message.
+ */
+export async function getTrafficStats(): Promise<{
+  ok: boolean;
+  traffic?: TrafficSummary | null;
+  error?: string;
+}> {
+  if (!(await guard())) return { ok: false, error: "Not authorised." };
+
+  const token = process.env.VERCEL_ANALYTICS_TOKEN?.trim();
+  const explicitProjectId = process.env.VERCEL_ANALYTICS_PROJECT_ID?.trim();
+  const automaticProjectId = process.env.VERCEL_PROJECT_ID?.trim();
+  const target = {
+    // The explicit variable works everywhere. VERCEL_PROJECT_ID is the
+    // automatic Vercel fallback when system variables are exposed.
+    projectId: explicitProjectId || automaticProjectId || "",
+    // Leave this unset for project- and team-scoped tokens. A full-account
+    // token may need it so Vercel can identify the owning team.
+    teamId: process.env.VERCEL_ANALYTICS_TEAM_ID?.trim() || null,
+  };
+
+  if (!isAnalyticsConfigured(target, token)) return { ok: true, traffic: null };
+
+  const win = analyticsWindow(new Date());
+  const headers = { Authorization: `Bearer ${token}` };
+
+  try {
+    const [countResult, byDayResult, byPageResult] = await Promise.allSettled([
+      timedFetch(analyticsUrl("visits/count", target, win), { headers }),
+      timedFetch(analyticsUrl("visits/aggregate", target, { ...win, by: "day" }), { headers }),
+      timedFetch(
+        analyticsUrl("visits/aggregate", target, { ...win, by: "requestPath", limit: 5 }),
+        { headers },
+      ),
+    ]);
+
+    if (countResult.status === "rejected") {
+      return { ok: true, traffic: null, error: "Analytics did not respond" };
+    }
+    const count = countResult.value;
+
+    // A 403 here means the token is wrong or lacks this project. Reported as
+    // "unavailable" rather than as an outage: it is a configuration problem,
+    // and the status of the SITE is unaffected either way.
+    if (!count.ok) return { ok: true, traffic: null, error: `Analytics returned ${count.status}` };
+
+    const totals = parseTotals(await count.json());
+    if (!totals) return { ok: true, traffic: null, error: "Analytics returned an unexpected response" };
+
+    // The exact totals are still useful when one optional aggregate is down.
+    // Keep "unavailable" distinct from a legitimate empty result so the UI
+    // never claims there were zero days/pages merely because a request failed.
+    let days: ReturnType<typeof parseDays> = null;
+    let pages: ReturnType<typeof parsePages> = null;
+    if (byDayResult.status === "fulfilled" && byDayResult.value.ok) {
+      try {
+        days = parseDays(await byDayResult.value.json());
+      } catch {
+        // Partial analytics is called out below; totals remain exact.
+      }
+    }
+    if (byPageResult.status === "fulfilled" && byPageResult.value.ok) {
+      try {
+        pages = parsePages(await byPageResult.value.json());
+      } catch {
+        // Partial analytics is called out below; totals remain exact.
+      }
+    }
+
+    const missing = [days === null ? "daily" : null, pages === null ? "page" : null].filter(Boolean);
+    return {
+      ok: true,
+      traffic: summarise(win, totals, days, pages),
+      error: missing.length ? "Some analytics breakdowns are unavailable" : undefined,
+    };
+  } catch {
+    // Never surfaces the URL or the header, either of which carries the token.
+    return { ok: true, traffic: null, error: "Analytics did not respond" };
+  }
 }
 
 /**

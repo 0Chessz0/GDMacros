@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getSiteStats, runHealthChecks } from "@/lib/actions/health";
+import { getSiteStats, getTrafficStats, runHealthChecks } from "@/lib/actions/health";
+import type { TrafficSummary } from "@/lib/vercelAnalytics";
 import {
   CHECK_DESCRIPTIONS,
   STATE_DOT,
@@ -27,6 +28,8 @@ import {
 export default function StatusBoard() {
   const [results, setResults] = useState<CheckResult[] | null>(null);
   const [stats, setStats] = useState<SiteStats | null>(null);
+  const [traffic, setTraffic] = useState<TrafficSummary | null>(null);
+  const [trafficNote, setTrafficNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ranAt, setRanAt] = useState<string | null>(null);
@@ -34,16 +37,27 @@ export default function StatusBoard() {
   const run = useCallback(async () => {
     setBusy(true);
     setError(null);
-    const [health, site] = await Promise.all([runHealthChecks(), getSiteStats()]);
-    setBusy(false);
+    try {
+      const [health, site, visits] = await Promise.all([
+        runHealthChecks(),
+        getSiteStats(),
+        getTrafficStats(),
+      ]);
 
-    if (!health.ok) {
-      setError(health.error ?? "Could not run the checks.");
-      return;
+      if (!health.ok) {
+        setError(health.error ?? "Could not run the checks.");
+        return;
+      }
+      setResults(health.results ?? []);
+      if (site.ok && site.stats) setStats(site.stats);
+      setTraffic(visits.ok ? (visits.traffic ?? null) : null);
+      setTrafficNote(visits.error ?? null);
+      setRanAt(new Date().toLocaleTimeString());
+    } catch {
+      setError("Could not run the checks.");
+    } finally {
+      setBusy(false);
     }
-    setResults(health.results ?? []);
-    if (site.ok && site.stats) setStats(site.stats);
-    setRanAt(new Date().toLocaleTimeString());
   }, []);
 
   useEffect(() => {
@@ -162,11 +176,94 @@ export default function StatusBoard() {
         </section>
       )}
 
-      <p className="text-[11.5px] leading-relaxed text-muted">
-        Traffic and performance numbers live in the Vercel dashboard. Reading them here would need a
-        Vercel API token, which would be a new secret whose only job is filling in one panel, so it
-        is deliberately not wired up.
-      </p>
+      {/* ---- traffic ---- */}
+      <section>
+        <h2 className="text-[17px] font-bold text-text">Traffic</h2>
+
+        {traffic ? (
+          <>
+            <p className="mt-1.5 text-[11.5px] text-muted">
+              Vercel Web Analytics production traffic, {traffic.since} to {traffic.until}.
+            </p>
+
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+              <Stat label="Page views" value={traffic.pageviews} />
+              <Stat label="Visitors" value={traffic.visitors} />
+              <Stat label="Days with traffic" value={traffic.days?.length ?? null} />
+            </div>
+
+            {trafficNote && (
+              <p className="mt-2 text-[11.5px] text-amber-400">{trafficNote}.</p>
+            )}
+
+            {traffic.days && traffic.days.length > 0 && <Sparkline days={traffic.days} />}
+
+            {traffic.pages && traffic.pages.length > 0 && (
+              <div className="card mt-2.5 px-4 py-3.5">
+                <p className="text-[11px] font-semibold tracking-wider text-muted uppercase">
+                  Busiest pages
+                </p>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {traffic.pages.map((page) => (
+                    <div key={page.path} className="flex items-baseline justify-between gap-4 text-[13px]">
+                      <span className="min-w-0 truncate text-text-dim">{page.path}</span>
+                      <span className="shrink-0 text-muted tabular-nums">
+                        <span className="font-bold text-text">{page.pageviews}</span> views
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
+            {/*
+              The environment variable is named in the docs, not here. Its name
+              is not a secret, but every other credential name is kept out of
+              the client bundle as a matter of course and this is no different.
+            */}
+            {trafficNote
+              ? `Traffic is unavailable right now. ${trafficNote}.`
+              : "Traffic is not configured here. Add a Vercel access token that can reach this project to show page views and visitors."}
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/**
+ * A bar per day.
+ *
+ * Deliberately not a charting library: seven bars do not justify a dependency,
+ * and every bar carries its day and count as a title so the shape is readable
+ * without hovering blindly. Heights are relative to the busiest day, with a
+ * floor so a quiet day is still visible rather than a zero-height sliver.
+ */
+function Sparkline({ days }: { days: { day: string; pageviews: number; visitors: number }[] }) {
+  const peak = Math.max(...days.map((d) => d.pageviews), 1);
+  const accessibleSummary = days.map((d) => `${d.day}: ${d.pageviews}`).join(", ");
+  return (
+    <div
+      className="card mt-2.5 px-4 py-3.5"
+      role="img"
+      aria-label={`Page views by day. ${accessibleSummary}`}
+    >
+      <p className="text-[11px] font-semibold tracking-wider text-muted uppercase">Page views by day</p>
+      <div className="mt-3 flex h-20 items-end gap-1.5">
+        {days.map((d) => (
+          <div key={d.day} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+            <div
+              className="w-full rounded-sm bg-accent/70"
+              style={{ height: `${Math.max(4, (d.pageviews / peak) * 100)}%` }}
+              title={`${d.day}: ${d.pageviews} views, ${d.visitors} visitors`}
+              aria-hidden="true"
+            />
+            <span className="truncate text-[10px] text-muted tabular-nums">{d.day.slice(5)}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

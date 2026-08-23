@@ -42,7 +42,7 @@ export const CHECK_DESCRIPTIONS: Record<CheckId, string> = {
   vercel: "Whether production is serving the commit it should be.",
   gdbrowser: "Level lookups used by the submit form.",
   youtube: "The keyless check that a showcase video is real.",
-  resend: "Support email in and out, and account notices.",
+  resend: "API access and gdmacros.com sending-domain verification.",
   lanyard: "Discord presence on the About page.",
 };
 
