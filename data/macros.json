@@ -2654,5 +2654,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-60978746/ChesszDC-The-Golden-Mega-Hack.gdr2"
       }
     ]
+  },
+  {
+    "name": "Red World Rebirth",
+    "creator": "Riot",
+    "levelId": "20077821",
+    "video": "https://www.youtube.com/watch?v=SwcFG6bAVsU",
+    "addedAt": "2026-08-24",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-20077821/ChesszDC-Red-World-Rebirth-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
