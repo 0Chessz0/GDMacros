@@ -1,6 +1,6 @@
 /**
  * Tests for the legal and support update: Terms, Privacy, FAQ, the report
- * broken mail flow, signup acceptance, the legal notice broadcast, and the
+ * broken-report flow, signup acceptance, the legal notice broadcast, and the
  * Discord owner cards.
  *
  * Run with `npm run test:legal`. No network, no Resend, no database, no key.
@@ -43,7 +43,6 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-legal.mjs"), {
 });
 
 const legal = await jiti.import(path.join(ROOT, "src/lib/legal.ts"));
-const support = await jiti.import(path.join(ROOT, "src/lib/support.ts"));
 const notice = await jiti.import(path.join(ROOT, "src/lib/legalNotice.ts"));
 const lanyard = await jiti.import(path.join(ROOT, "src/lib/lanyard.ts"));
 const owners = await jiti.import(path.join(ROOT, "src/lib/owners.ts"));
@@ -61,6 +60,7 @@ const src = {
   notifUi: read("src/components/notifications/NotificationCenter.tsx"),
   submit: read("src/app/submit/page.tsx"),
   report: read("src/components/ReportBroken.tsx"),
+  supportActions: read("src/lib/actions/supportTickets.ts"),
   adminPage: read("src/app/admin/page.tsx"),
   adminUi: read("src/components/admin/LegalNotices.tsx"),
   actions: read("src/lib/actions/legalNotice.ts"),
@@ -134,83 +134,16 @@ check(
  * ------------------------------------------------------------------ */
 console.log("Report broken");
 
-const oneMacro = {
-  levelName: "Acheron",
-  levelId: 73667628,
-  pageUrl: "https://www.gdmacros.com/macro/acheron",
-  macros: [
-    {
-      author: "Zoink",
-      recorder: "Mega Hack",
-      downloadUrl: "https://github.com/x/y/releases/download/level-1/Zoink-Acheron-Mega-Hack.gdr2",
-    },
-  ],
-};
-const link = support.buildBrokenMacroMailto(oneMacro);
-
-check("recipient is the support address", link.startsWith("mailto:support@gdmacros.com?"), link.slice(0, 60));
-check("no GitHub issue url anywhere in the flow", !/issues\/new/.test(link + src.report));
-check("component no longer imports the repo link for issues", !/issues/.test(src.report));
-
-const decoded = decodeURIComponent(link);
-check("subject is prefilled", /subject=/.test(link));
-check("subject carries the level", decoded.includes("Acheron"));
-check("subject carries the recorder", decoded.includes("Acheron - Mega Hack"));
-check("body carries the level id", decoded.includes("Level ID: 73667628"));
-check("body carries the macro author", decoded.includes("Macro author: Zoink"));
-check("body carries the recorder", decoded.includes("Recorder: Mega Hack"));
-check("body carries the page url", decoded.includes("Page: https://www.gdmacros.com/macro/acheron"));
-check("body carries the download url", decoded.includes("Zoink-Acheron-Mega-Hack.gdr2"));
-check("problem placeholder is present", decoded.includes(support.REPORT_PROBLEM_PLACEHOLDER));
-check("optional placeholder is present", decoded.includes(support.REPORT_EXTRA_PLACEHOLDER));
-
-// Encoding. mailto bodies are percent encoded, so a space must never become
-// "+": a mail client renders that literally and every level name breaks.
-check("spaces are percent encoded, not plus encoded", !/\+/.test(link), "found a + in the mailto");
-check("newlines are encoded", link.includes("%0A"));
-
-const nasty = support.buildBrokenMacroMailto({
-  levelName: 'Bloodbath & "Friends" <tag> 100%',
-  levelId: "1 2 3",
-  pageUrl: "https://x/y?a=1&b=2",
-  macros: [{ author: "Riot/Ω", recorder: "xdBot", downloadUrl: "https://x/y?q=a&r=b" }],
-});
-check("ampersand in a level name is encoded", nasty.includes("%26"));
-check("quotes in a level name are encoded", nasty.includes("%22"));
-check("percent in a level name is encoded", nasty.includes("%25"));
-check("angle brackets are encoded", nasty.includes("%3C") && nasty.includes("%3E"));
-check("non-ascii author survives encoding", decodeURIComponent(nasty).includes("Riot/Ω"));
-check(
-  "only one ? separates the header from the query",
-  nasty.split("?").length === 2,
-  "a raw ? from a url leaked into the mailto",
-);
-
-// Several macros: the report asks which one rather than guessing.
-const many = decodeURIComponent(
-  support.buildBrokenMacroMailto({
-    levelName: "squeak",
-    levelId: 123912413,
-    pageUrl: "https://www.gdmacros.com/macro/squeak",
-    macros: [
-      { author: "ChesszDC", recorder: "xdBot", downloadUrl: "https://x/a.gdr2" },
-      { author: "ChesszDC", recorder: "Mega Hack", downloadUrl: "https://x/b.gdr2" },
-    ],
-  }),
-);
-check("several macros are all listed", many.includes("https://x/a.gdr2") && many.includes("https://x/b.gdr2"));
-check("several macros ask which one broke", many.includes(support.REPORT_WHICH_PLACEHOLDER));
-check(
-  "several macros do not claim one recorder in the subject",
-  !/squeak - (xdBot|Mega Hack)/.test(many),
-);
-
-// Missing metadata degrades rather than printing blanks.
-const bare = decodeURIComponent(support.buildBrokenMacroMailto({ levelName: "X", levelId: 1 }));
-check("no macro details still produces a usable report", bare.includes("Level: X"));
-check("absent fields are omitted, not blank", !/Macro author:\s*$/m.test(bare));
-
-check("the macro page passes its macros to the button", /macros=\{level\.macros\.map/.test(read("src/app/macro/[slug]/page.tsx")));
+check("broken reports no longer open email", !/mailto:|buildBrokenMacroMailto|SUPPORT_MAILTO/.test(src.report));
+check("broken reports no longer open GitHub", !/issues\/new|github/i.test(src.report));
+check("the component asks for confirmation", /Report \{name\} as broken\?/.test(src.report));
+check("the confirmation says a private thread opens", /private support thread/i.test(src.report));
+check("the component calls the ticket action with only a slug", /createBrokenMacroTicket\(slug\)/.test(src.report));
+check("the action resolves the slug from the server catalog", /getLevelBySlug\(slug\.trim\(\)\)/.test(src.supportActions));
+check("the action includes every known download in the private first message", /level\.macros[\s\S]*macro\.downloadLink/.test(src.supportActions));
+check("the action never accepts macro metadata from the browser", /createBrokenMacroTicket\(slug: string\)/.test(src.supportActions));
+const macroPage = read("src/app/macro/[slug]/page.tsx");
+check("the macro page passes only the trusted lookup key", /<ReportBroken[\s\S]{0,120}slug=\{level\.slug\}/.test(macroPage) && !/macros=\{level\.macros\.map/.test(macroPage));
 
 /* ------------------------------------------------------------------ *
  * 3. FAQ
@@ -331,7 +264,8 @@ check("privacy says youtube search uses no api key", /uses no API key/i.test(src
 check("privacy does not claim a YouTube Data API key", !/YouTube Data API/i.test(src.privacy));
 check("privacy covers Lanyard on the about page", /Lanyard/.test(src.privacy));
 check("privacy says the Lanyard request comes from the browser", /request is made by your browser/i.test(src.privacy));
-check("privacy invents no retention durations", !/\b(30|60|90|180|365)\s*days\b/i.test(src.privacy));
+check("privacy states the support transcript retention", /permanently deleted[\s\S]{0,80}30 days after closure/i.test(prose.privacy));
+check("privacy explains support thread visibility", /Only you and the admins can read that thread/i.test(prose.privacy));
 check("privacy explains account deletion", /Deleting your account removes the account/i.test(src.privacy));
 
 check("terms covers submissions representations", /you have permission from the person/i.test(src.terms));

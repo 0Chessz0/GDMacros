@@ -1,5 +1,5 @@
 /**
- * Tests for the revamped admin portal: the three tools, the submission editor,
+ * Tests for the revamped admin portal: its six tools, the submission editor,
  * and the status board.
  *
  * Run with `npm run test:admin`. No network, no database, no keys.
@@ -48,6 +48,9 @@ const src = {
   subs: read("src/app/admin/submissions/page.tsx"),
   notices: read("src/app/admin/notices/page.tsx"),
   status: read("src/app/admin/status/page.tsx"),
+  inbox: read("src/app/admin/inbox/page.tsx"),
+  activity: read("src/app/admin/activity/page.tsx"),
+  quality: read("src/app/admin/quality/page.tsx"),
   queue: read("src/components/admin/ReviewQueue.tsx"),
   editor: read("src/components/admin/EditSubmission.tsx"),
   board: read("src/components/admin/StatusBoard.tsx"),
@@ -80,14 +83,20 @@ for (const [name, file] of [
   ["submissions", "src/app/admin/submissions/page.tsx"],
   ["notices", "src/app/admin/notices/page.tsx"],
   ["status", "src/app/admin/status/page.tsx"],
+  ["inbox", "src/app/admin/inbox/page.tsx"],
+  ["activity", "src/app/admin/activity/page.tsx"],
+  ["quality", "src/app/admin/quality/page.tsx"],
 ]) {
   check(`the ${name} route exists`, fs.existsSync(path.join(ROOT, file)));
 }
 
-check("the hub offers exactly three tools", (src.hub.match(/href: "\/admin\//g) ?? []).length === 3);
+check("the hub offers exactly six tools", (src.hub.match(/href: "\/admin\//g) ?? []).length === 6);
 check("the hub links check submissions", src.hub.includes('"/admin/submissions"'));
 check("the hub links mail everyone", src.hub.includes('"/admin/notices"'));
 check("the hub links statistics", src.hub.includes('"/admin/status"'));
+check("the hub links the support inbox", src.hub.includes('"/admin/inbox"'));
+check("the hub links review activity", src.hub.includes('"/admin/activity"'));
+check("the hub links random quality checks", src.hub.includes('"/admin/quality"'));
 check("the hub does not render the review queue itself", !/ReviewQueue/.test(src.hub));
 check("the hub does not render the mail tool itself", !/LegalNotices/.test(src.hub));
 
@@ -97,6 +106,9 @@ for (const [name, text] of [
   ["submissions", src.subs],
   ["notices", src.notices],
   ["status", src.status],
+  ["inbox", src.inbox],
+  ["activity", src.activity],
+  ["quality", src.quality],
 ]) {
   check(`${name} re-checks the role server side`, /isCurrentUserAdmin\(\)/.test(text));
   check(`${name} 404s a non-admin rather than explaining`, /notFound\(\)/.test(text));
@@ -109,7 +121,10 @@ check(
   "each tool page redirects to its own route after login",
   src.subs.includes("next=/admin/submissions") &&
     src.notices.includes("next=/admin/notices") &&
-    src.status.includes("next=/admin/status"),
+    src.status.includes("next=/admin/status") &&
+    src.inbox.includes("next=/admin/inbox") &&
+    src.activity.includes("next=/admin/activity") &&
+    src.quality.includes("next=/admin/quality"),
 );
 check("the mail tool is unchanged, only relocated", /<LegalNotices/.test(src.notices));
 check(

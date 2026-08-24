@@ -85,5 +85,8 @@ jobs:
       - name: Account experience
         run: npm run test:account
 
+      - name: Support inbox and admin tools
+        run: npm run test:support
+
       - name: Language switcher
         run: npm run test:translate

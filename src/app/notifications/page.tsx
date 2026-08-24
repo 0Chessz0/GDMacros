@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import SupportNotifications from "@/components/notifications/SupportNotifications";
 import { BellIcon } from "@/components/icons";
 import { getUserAndProfile } from "@/lib/profile";
 import { resolvePublishedSubmissions } from "@/lib/publishedSubmissions";
@@ -13,6 +14,10 @@ import {
   type NotificationRow,
   type PublishedSubmissionRow,
 } from "@/lib/submissions";
+import {
+  ACCOUNT_NOTIFICATION_COLUMNS,
+  type AccountNotificationRow,
+} from "@/lib/supportTickets";
 
 export const metadata: Metadata = {
   title: "Notifications",
@@ -29,7 +34,7 @@ export default async function NotificationsPage() {
   if (!profile) redirect("/welcome");
 
   const supabase = await createClient();
-  const [notificationResult, publishedResult] = await Promise.all([
+  const [notificationResult, publishedResult, accountNotificationResult] = await Promise.all([
     supabase!
       .from("submission_notifications")
       .select(NOTIFICATION_COLUMNS)
@@ -38,6 +43,10 @@ export default async function NotificationsPage() {
       .from("published_submissions")
       .select(PUBLISHED_SUBMISSION_COLUMNS)
       .order("published_at", { ascending: false }),
+    supabase!
+      .from("account_notifications")
+      .select(ACCOUNT_NOTIFICATION_COLUMNS)
+      .order("created_at", { ascending: false }),
   ]);
 
   const notifications = (notificationResult.data ?? []) as NotificationRow[];
@@ -49,6 +58,8 @@ export default async function NotificationsPage() {
       .filter((item) => item.macro_href)
       .map((item) => [item.submission_id, item.macro_href as string]),
   );
+  const accountNotifications = (accountNotificationResult.data ?? []) as AccountNotificationRow[];
+  const hasAny = notifications.length > 0 || accountNotifications.length > 0;
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-10 sm:px-6 sm:py-14">
@@ -61,7 +72,7 @@ export default async function NotificationsPage() {
             <h1 className="text-[22px] font-extrabold tracking-tight text-text sm:text-[26px]">
               Notifications
             </h1>
-            <p className="mt-1 text-[13px] text-muted">Results from your macro submissions.</p>
+            <p className="mt-1 text-[13px] text-muted">Submission results and support updates.</p>
           </div>
         </div>
         <Link href="/settings" className="text-[12.5px] font-medium text-accent-soft hover:underline">
@@ -69,7 +80,8 @@ export default async function NotificationsPage() {
         </Link>
       </div>
 
-      <NotificationCenter initial={notifications} hrefBySubmission={hrefBySubmission} />
+      <SupportNotifications initial={accountNotifications} />
+      <NotificationCenter initial={notifications} hrefBySubmission={hrefBySubmission} showEmpty={!hasAny} />
     </div>
   );
 }

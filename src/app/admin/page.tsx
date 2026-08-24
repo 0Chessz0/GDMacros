@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { isCurrentUserAdmin } from "@/lib/admin";
 import { getUser, createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { ListIcon, MailIcon, GaugeIcon } from "@/components/icons";
+import { BellIcon, CheckIcon, ListIcon, MailIcon, GaugeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -16,14 +16,14 @@ export const dynamic = "force-dynamic";
 /**
  * The admin portal.
  *
- * Three tools, each on its own page. They are separated because they are
+ * Six tools, each on its own page. They are separated because they are
  * different jobs with different blast radii: reviewing one macro, emailing
  * every account holder, and reading a status board should not sit in one
  * scrolling column where the wrong button is one mis-click away.
  *
  * EVERY PAGE RE-CHECKS, AND SO DOES EVERY ACTION.
  *
- * This page having rendered is not a permission. Each of the three pages runs
+ * This page having rendered is not a permission. Each tool page runs
  * the same server-side role check for itself, every server action behind them
  * checks again on each call, and every RPC underneath checks
  * `private.is_admin()` a third time. That is deliberate: a server action is a
@@ -56,6 +56,24 @@ const TOOLS = [
       "Whether every service the site depends on is responding, and how big the catalog is.",
     Icon: GaugeIcon,
   },
+  {
+    href: "/admin/inbox",
+    title: "Admin inbox",
+    description: "Reply to suggestions and broken-macro reports, resolve tickets or block abuse.",
+    Icon: BellIcon,
+  },
+  {
+    href: "/admin/activity",
+    title: "Review activity",
+    description: "Claims, edits, publishing checkpoints and final decisions in one timeline.",
+    Icon: ListIcon,
+  },
+  {
+    href: "/admin/quality",
+    title: "Random quality check",
+    description: "Pick a published macro, verify it, and record the result.",
+    Icon: CheckIcon,
+  },
 ] as const;
 
 export default async function AdminPage() {
@@ -68,13 +86,15 @@ export default async function AdminPage() {
   // A count, so the queue card can say whether anything is waiting. RLS decides
   // what is countable; an admin sees every row because the 2C policy says so.
   let waiting: number | null = null;
+  let inbox: number | null = null;
   const supabase = await createClient();
   if (supabase) {
-    const { count, error } = await supabase
-      .from("submissions")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["pending", "processing"]);
-    waiting = error ? null : (count ?? 0);
+    const [submissionCount, ticketCount] = await Promise.all([
+      supabase.from("submissions").select("id", { count: "exact", head: true }).in("status", ["pending", "processing"]),
+      supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+    ]);
+    waiting = submissionCount.error ? null : (submissionCount.count ?? 0);
+    inbox = ticketCount.error ? null : (ticketCount.count ?? 0);
   }
 
   return (
@@ -105,6 +125,11 @@ export default async function AdminPage() {
                 }`}
               >
                 {waiting === 0 ? "Nothing waiting" : `${waiting} waiting`}
+              </span>
+            )}
+            {href === "/admin/inbox" && inbox !== null && (
+              <span className={`mt-1 w-fit rounded-md px-2 py-0.5 text-[11.5px] font-semibold tabular-nums ${inbox > 0 ? "bg-amber/15 text-amber" : "bg-surface-2 text-muted"}`}>
+                {inbox === 0 ? "Inbox clear" : `${inbox} open`}
               </span>
             )}
           </Link>

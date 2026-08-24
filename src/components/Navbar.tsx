@@ -35,6 +35,8 @@ const MORE_ITEMS: MenuItem[] = [
   { label: "Guidelines", href: "/guidelines", desc: "What gets accepted, and how" },
   { label: "Submit a macro", href: "/submit", desc: "Send a .gdr2 in for review" },
   { label: "Your submissions", href: "/submissions", desc: "Status of what you sent in" },
+  { label: "Support tickets", href: "/support", desc: "Private conversations with the admins" },
+  { label: "Send a suggestion", href: "/support/new", desc: "Tell us what would improve GDMacros" },
   { label: "About", href: "/about", desc: "What this site is" },
   { label: "Privacy", href: "/privacy", desc: "Analytics, cookies and third parties" },
 ];

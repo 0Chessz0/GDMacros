@@ -51,6 +51,9 @@ export default function Footer() {
             >
               Submit a macro
             </Link>
+            <Link href="/support/new" className="text-text-dim transition-colors hover:text-accent-soft">
+              Send a suggestion
+            </Link>
           </nav>
 
           <a
