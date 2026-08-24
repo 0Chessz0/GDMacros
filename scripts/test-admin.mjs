@@ -592,7 +592,22 @@ check(
   !/"schedule":\s*"[^"]*\*\/\d/.test(src.vercelJson),
   "a sub-daily expression fails deployment on Hobby",
 );
-check("the job requires the shared secret", /Bearer \$\{secret\}/.test(src.cron));
+check("the job requires the shared secret", /Bearer \$\{secret/.test(src.cron));
+check(
+  "the secret comparison is constant time",
+  /timingSafeEqual/.test(src.cron),
+  "=== returns early on the first wrong byte, which is a timing oracle",
+);
+check(
+  "a length mismatch is refused before comparing",
+  /a\.length !== b\.length/.test(src.cron),
+  "timingSafeEqual throws on unequal buffers",
+);
+check(
+  "the header is trimmed before comparison",
+  /authorization"\)\?\.trim\(\)/.test(src.cron),
+  "HTTP strips edge whitespace from a field value",
+);
 check("a missing secret refuses rather than allows", /!secret \|\|/.test(src.cron));
 {
   // Comments stripped: the doc comment says the job logs no recipient, which is
