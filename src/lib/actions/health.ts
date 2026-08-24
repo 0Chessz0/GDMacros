@@ -27,6 +27,7 @@ import {
   type CheckId,
   type CheckResult,
   type CheckState,
+  type OperationsSummary,
   type SiteStats,
 } from "@/lib/health";
 
@@ -348,6 +349,53 @@ export async function getTrafficStats(): Promise<{
     // Never surfaces the URL or the header, either of which carries the token.
     return { ok: true, traffic: null, error: "Analytics did not respond" };
   }
+}
+
+/**
+ * Work that has stopped and is waiting for a person.
+ *
+ * All three subsystems live in the `private` schema, which PostgREST does not
+ * expose, so this goes through a read-only RPC that checks the admin role for
+ * itself. It returns counts and nothing that identifies a submission, an
+ * account or a recipient.
+ */
+export async function getOperationsSummary(): Promise<{
+  ok: boolean;
+  ops?: OperationsSummary;
+  error?: string;
+}> {
+  if (!(await guard())) return { ok: false, error: "Not authorised." };
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Database unavailable." };
+
+  const { data, error } = await supabase.rpc("admin_operations_summary");
+  if (error) {
+    // Almost always means migration 0013 has not been applied yet. Said plainly
+    // rather than as a generic failure, because that was the exact trap the
+    // submission editor fell into.
+    const missing = /could not find the function|PGRST202/i.test(error.message ?? "");
+    return {
+      ok: false,
+      error: missing
+        ? "Operations summary unavailable. Migration 0013 has not been applied."
+        : `Could not read operations: ${safeDetail(error.message, "unknown database error")}`,
+    };
+  }
+
+  const row = (data as Record<string, number>[])?.[0];
+  if (!row) return { ok: false, error: "Operations summary returned nothing." };
+
+  return {
+    ok: true,
+    ops: {
+      stuckPublishes: row.stuck_publishes ?? 0,
+      resultEmailsNeedingReview: row.result_emails_needing_review ?? 0,
+      resultEmailsFailed: row.result_emails_failed ?? 0,
+      resultEmailsPending: row.result_emails_pending ?? 0,
+      noticeBatchesNeedingReview: row.notice_batches_needing_review ?? 0,
+    },
+  };
 }
 
 /**

@@ -18,7 +18,7 @@ export default async function SubmitPage() {
   if (!isSupabaseConfigured) redirect("/login");
 
   // Middleware turns anonymous visitors away first, but this is the check that
-  // actually guards the page: middleware can be bypassed by a configuration
+  // actually guards the page: the proxy can be bypassed by a configuration
   // mistake, a server-side getUser() cannot.
   const { user, profile } = await getUserAndProfile();
   if (!user) redirect("/login?next=/submit");

@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getSiteStats, getTrafficStats, runHealthChecks } from "@/lib/actions/health";
+import {
+  getOperationsSummary,
+  getSiteStats,
+  getTrafficStats,
+  runHealthChecks,
+} from "@/lib/actions/health";
 import type { TrafficSummary } from "@/lib/vercelAnalytics";
 import {
   CHECK_DESCRIPTIONS,
@@ -9,8 +14,10 @@ import {
   STATE_LABEL,
   countByState,
   isSlow,
+  needsAttention,
   overallState,
   type CheckResult,
+  type OperationsSummary,
   type SiteStats,
 } from "@/lib/health";
 
@@ -30,6 +37,8 @@ export default function StatusBoard() {
   const [stats, setStats] = useState<SiteStats | null>(null);
   const [traffic, setTraffic] = useState<TrafficSummary | null>(null);
   const [trafficNote, setTrafficNote] = useState<string | null>(null);
+  const [ops, setOps] = useState<OperationsSummary | null>(null);
+  const [opsNote, setOpsNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ranAt, setRanAt] = useState<string | null>(null);
@@ -38,10 +47,11 @@ export default function StatusBoard() {
     setBusy(true);
     setError(null);
     try {
-      const [health, site, visits] = await Promise.all([
+      const [health, site, visits, operations] = await Promise.all([
         runHealthChecks(),
         getSiteStats(),
         getTrafficStats(),
+        getOperationsSummary(),
       ]);
 
       if (!health.ok) {
@@ -52,6 +62,8 @@ export default function StatusBoard() {
       if (site.ok && site.stats) setStats(site.stats);
       setTraffic(visits.ok ? (visits.traffic ?? null) : null);
       setTrafficNote(visits.error ?? null);
+      setOps(operations.ok ? (operations.ops ?? null) : null);
+      setOpsNote(operations.ok ? null : (operations.error ?? null));
       setRanAt(new Date().toLocaleTimeString());
     } catch {
       setError("Could not run the checks.");
@@ -135,6 +147,42 @@ export default function StatusBoard() {
             </div>
           )}
         </div>
+      </section>
+
+      {/* ---- work waiting on a person ---- */}
+      <section>
+        <h2 className="text-[17px] font-bold text-text">Needs attention</h2>
+
+        {ops ? (
+          needsAttention(ops) ? (
+            <>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">
+                Work that has stopped and is waiting for someone. Counts only; the detail is in the
+                review queue and the provider dashboards.
+              </p>
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                <Attention label="Publications holding an error" value={ops.stuckPublishes} />
+                <Attention label="Result emails needing review" value={ops.resultEmailsNeedingReview} />
+                <Attention label="Result emails failed" value={ops.resultEmailsFailed} />
+                <Attention label="Notice batches needing review" value={ops.noticeBatchesNeedingReview} />
+              </div>
+            </>
+          ) : (
+            <p className="mt-2 text-[13px] text-green">Nothing is stuck.</p>
+          )
+        ) : (
+          <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
+            {opsNote ?? "Not available."}
+          </p>
+        )}
+
+        {ops && ops.resultEmailsPending > 0 && (
+          <p className="mt-2.5 text-[11.5px] leading-relaxed text-muted">
+            {ops.resultEmailsPending} result email
+            {ops.resultEmailsPending === 1 ? "" : "s"} queued. Normal for a moment after a decision;
+            worth a look if it stays.
+          </p>
+        )}
       </section>
 
       {/* ---- numbers ---- */}
@@ -264,6 +312,19 @@ function Sparkline({ days }: { days: { day: string; pageviews: number; visitors:
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Zero is quiet, anything else is loud. */
+function Attention({ label, value }: { label: string; value: number }) {
+  const bad = value > 0;
+  return (
+    <div className={`card px-4 py-3 ${bad ? "border-rose/40" : ""}`}>
+      <p className="text-[11px] font-semibold tracking-wider text-muted uppercase">{label}</p>
+      <p className={`mt-1 text-[18px] font-bold tabular-nums ${bad ? "text-rose" : "text-text"}`}>
+        {value}
+      </p>
     </div>
   );
 }

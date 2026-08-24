@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rateLimit";
 import { gdErrorMessage, searchLevels, MAX_QUERY_LENGTH as GD_MAX } from "@/lib/gdbrowser";
 import {
   searchVideos,
@@ -29,9 +30,28 @@ export const runtime = "nodejs";
 
 const bad = (status: number, error: string) => NextResponse.json({ error }, { status });
 
+/**
+ * Twenty searches a minute per account.
+ *
+ * Comfortably above a person typing into a search box, and far below the loop
+ * that would get our datacentre IP throttled by YouTube. Keyed on the account
+ * id rather than an IP, because the route already requires a session and an IP
+ * is both shared and spoofable behind a proxy.
+ */
+const SEARCH_LIMIT = 20;
+const SEARCH_WINDOW_MS = 60_000;
+
 export async function GET(request: NextRequest) {
   const user = await getUser();
   if (!user) return bad(401, "Sign in to search.");
+
+  const limit = rateLimit(`search:${user.id}`, SEARCH_LIMIT, SEARCH_WINDOW_MS);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many searches. Wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+    );
+  }
 
   const { searchParams } = new URL(request.url);
   const kind = searchParams.get("kind");

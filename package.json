@@ -7,7 +7,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "validate": "node scripts/validate-macros.mjs",
     "test:publish": "node scripts/test-publish.mjs",
     "test:migrate": "node scripts/test-migrate.mjs",

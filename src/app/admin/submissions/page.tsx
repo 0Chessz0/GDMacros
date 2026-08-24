@@ -22,7 +22,7 @@ const STATUSES = new Set(["pending", "processing", "all"]);
  *
  * Three independent things have to agree before any data appears:
  *
- *   1. middleware redirects an anonymous visitor to /login;
+ *   1. the proxy redirects an anonymous visitor to /login;
  *   2. this page checks the role server side, from the database;
  *   3. the row level security policy on `submissions` only returns other
  *      people's rows when private.is_admin() is true.

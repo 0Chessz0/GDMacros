@@ -59,7 +59,7 @@ const src = {
   settingsAction: read("src/lib/actions/accountSettings.ts"),
   accountLink: read("src/components/AccountLink.tsx"),
   navbar: read("src/components/Navbar.tsx"),
-  middleware: read("src/middleware.ts"),
+  middleware: read("src/proxy.ts"),
   middlewareLib: read("src/lib/supabase/middleware.ts"),
   resultSender: read("src/lib/email/submissionResult.ts"),
   resultAction: read("src/lib/actions/submissionResultEmail.ts"),
