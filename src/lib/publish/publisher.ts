@@ -76,6 +76,29 @@ export interface PublishProgress {
   note?: string;
 }
 
+export interface FinishEnvelope {
+  storagePath: string | null;
+  notificationId: string | null;
+}
+
+/**
+ * Migration 0011 keeps the RPC's SQL return type as text but puts both cleanup
+ * and notification identities in JSON. A legacy database still returns the raw
+ * storage path, so deployments can roll forward without an all-at-once switch.
+ */
+export function parseFinishEnvelope(data: unknown): FinishEnvelope {
+  if (typeof data !== "string") return { storagePath: null, notificationId: null };
+  try {
+    const parsed = JSON.parse(data) as { storage_path?: unknown; notification_id?: unknown };
+    return {
+      storagePath: typeof parsed.storage_path === "string" ? parsed.storage_path : null,
+      notificationId: typeof parsed.notification_id === "string" ? parsed.notification_id : null,
+    };
+  } catch {
+    return { storagePath: data, notificationId: null };
+  }
+}
+
 interface TrustedSubmission {
   submission_id: string;
   level_name: string;
@@ -165,6 +188,7 @@ export async function productionIsServing(commitSha: string): Promise<boolean> {
 export async function runPublish(
   supabase: SupabaseClient,
   submissionId: string,
+  onResultNotification?: (notificationId: string) => Promise<void>,
 ): Promise<PublishProgress> {
   if (!isPublisherConfigured) {
     return {
@@ -563,7 +587,7 @@ export async function runPublish(
   /* ---------------- 4. finalise ---------------- */
 
   if (state === "live_verified") {
-    const { data: path, error: finErr } = await supabase.rpc("finish_processing", {
+    const { data: finishData, error: finErr } = await supabase.rpc("finish_processing", {
       p_id: submissionId,
     });
 
@@ -641,10 +665,20 @@ export async function runPublish(
     // is best effort: a failure leaves an invisible orphan in an unlistable
     // bucket, which is the trade this project has always preferred over a
     // visible row pointing at a missing file.
-    if (typeof path === "string") {
+    const finish = parseFinishEnvelope(finishData);
+    if (finish.storagePath) {
       const { deleteSubmissionObjectByPath } = await import("@/lib/supabase/storage-admin");
-      const cleaned = await deleteSubmissionObjectByPath(path);
+      const cleaned = await deleteSubmissionObjectByPath(finish.storagePath);
       if (!cleaned.ok) console.error("[publish] orphaned object after publishing", { id: submissionId });
+    }
+
+    if (finish.notificationId && onResultNotification) {
+      try {
+        await onResultNotification(finish.notificationId);
+      } catch {
+        // Publishing and its in-app result already committed. Email is a
+        // best-effort side effect and can be retried from the queued job.
+      }
     }
 
     return {

@@ -5,7 +5,13 @@ const nextConfig = {
   // Thumbnails are mostly remote YouTube stills, and the site is fully static,
   // so skip the optimizer entirely. This also keeps `output: 'export'` viable.
   images: { unoptimized: true },
-  eslint: { ignoreDuringBuilds: true },
+
+  // `eslint` was removed from next.config in Next 16: the key is now
+  // unrecognised and warns on every build. It was setting ignoreDuringBuilds,
+  // which suppressed a linter that no longer exists either, since `next lint`
+  // was removed in the same release. Both are gone rather than left looking
+  // like they still do something. There is currently NO linter configured; see
+  // .claude/reference/verification.md.
 
   // Hides the Next.js dev-tools badge in the corner during `next dev`.
   // It never shipped in production builds, so this is a local-comfort setting only.

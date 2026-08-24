@@ -1,8 +1,22 @@
 # Runs on every push and pull request.
 #
-# The point is macro submissions: a bad entry in data/macros.json (missing field,
-# wrong recorder, duplicate URL, broken JSON) fails here instead of breaking the
-# Vercel deploy after merge.
+# Two jobs, deliberately separate.
+#
+# `check` is the one that catches a bad macro submission: a missing field, a
+# wrong recorder, a duplicate URL or broken JSON in data/macros.json fails here
+# instead of breaking the Vercel deploy after merge. The publisher opens those
+# commits automatically, so this is the only thing standing between a malformed
+# entry and production.
+#
+# `test` runs the suites. They existed for a long time before anything ran them
+# automatically, which meant every one of them could rot silently, and some did:
+# assertions that counted the catalog broke the moment the publisher grew it,
+# and one privacy assertion was passing against a value it was supposed to be
+# guarding. A test nobody runs is documentation with a worse format.
+#
+# They are split so a failing suite and a broken catalog do not look like the
+# same problem, and so the fast catalog check still reports even while the
+# slower suites are running.
 name: CI
 
 on:
@@ -12,6 +26,7 @@ on:
 
 jobs:
   check:
+    name: Catalog, types and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,3 +46,44 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  test:
+    name: Test suites
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Every suite is offline: no network, no database, no credential. That is
+      # why they can run on a fork's pull request without any secret being
+      # available, and why a third party opening a PR cannot make CI reach out
+      # to Supabase, GitHub, Resend or anything else.
+      #
+      # Listed individually rather than behind one `npm run test:all` so the
+      # Actions summary names which suite failed without opening the log.
+      - name: Publisher
+        run: npm run test:publish
+
+      - name: MediaFire migration tooling
+        run: npm run test:migrate
+
+      - name: Support email forwarding
+        run: npm run test:email
+
+      - name: Legal documents and notices
+        run: npm run test:legal
+
+      - name: Admin portal
+        run: npm run test:admin
+
+      - name: Account experience
+        run: npm run test:account
+
+      - name: Language switcher
+        run: npm run test:translate

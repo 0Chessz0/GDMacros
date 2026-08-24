@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import MySubmissions from "@/components/submissions/MySubmissions";
+import { findAuthorByName } from "@/lib/authors";
 import { getUserAndProfile } from "@/lib/profile";
+import { resolveOwnedMacros } from "@/lib/publishedSubmissions";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
-  NOTIFICATION_COLUMNS,
   OWN_COLUMNS,
-  type NotificationRow,
+  PUBLISHED_SUBMISSION_COLUMNS,
+  type PublishedSubmissionRow,
   type SubmissionRow,
 } from "@/lib/submissions";
 
@@ -32,16 +34,26 @@ export default async function SubmissionsPage() {
   // scope both tables to the caller's own rows. Filtering here would be a
   // comment, not a control. Only the columns a submitter should see are
   // requested, so no storage path and no admin identity reaches the page.
-  const [live, outcomes] = await Promise.all([
+  //
+  // Result notifications are deliberately NOT fetched here. They belong to the
+  // notification centre, which is where a result is read and dismissed.
+  const [live, accepted] = await Promise.all([
     supabase!.from("submissions").select(OWN_COLUMNS).order("created_at", { ascending: false }),
     supabase!
-      .from("submission_notifications")
-      .select(NOTIFICATION_COLUMNS)
-      .order("created_at", { ascending: false }),
+      .from("published_submissions")
+      .select(PUBLISHED_SUBMISSION_COLUMNS)
+      .order("published_at", { ascending: false }),
   ]);
 
   const data = live.data as SubmissionRow[] | null;
-  const notifications = outcomes.data as NotificationRow[] | null;
+
+  // Every macro credited to this username, plus anything this account submitted
+  // under a different credit. The catalog half is what makes work published
+  // before the account ledger existed show up at all.
+  const owned = resolveOwnedMacros(
+    findAuthorByName(profile.username),
+    (accepted.data ?? []) as PublishedSubmissionRow[],
+  );
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-10 sm:px-6 sm:py-14">
@@ -51,7 +63,7 @@ export default async function SubmissionsPage() {
             Your submissions
           </h1>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-            What you have sent in, and how each one turned out.
+            What you have sent in. Results appear in your notifications.
           </p>
         </div>
         <Link
@@ -62,7 +74,15 @@ export default async function SubmissionsPage() {
         </Link>
       </div>
 
-      <MySubmissions rows={data ?? []} notifications={notifications ?? []} />
+      <MySubmissions
+        rows={data ?? []}
+        owned={owned}
+        profileHref={
+          findAuthorByName(profile.username)
+            ? `/author/${findAuthorByName(profile.username)!.slug}`
+            : null
+        }
+      />
     </div>
   );
 }

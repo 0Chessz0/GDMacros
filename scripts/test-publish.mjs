@@ -584,6 +584,20 @@ async function main() {
   globalThis.__FAKE_BYTES__ = bytes;
   const pub = await load("src/lib/publish/publisher.ts");
 
+  const legacyFinish = pub.parseFinishEnvelope("owner/submission.gdr2");
+  eq("finish envelope: legacy path stays compatible", legacyFinish.storagePath, "owner/submission.gdr2");
+  eq("finish envelope: legacy path has no notification", legacyFinish.notificationId, null);
+  const currentFinish = pub.parseFinishEnvelope(
+    '{"storage_path":"owner/submission.gdr2","notification_id":"99999999-9999-4999-8999-999999999999"}',
+  );
+  eq("finish envelope: JSON path is extracted", currentFinish.storagePath, "owner/submission.gdr2");
+  eq(
+    "finish envelope: notification id is extracted",
+    currentFinish.notificationId,
+    "99999999-9999-4999-8999-999999999999",
+  );
+  eq("finish envelope: a non-string is harmless", pub.parseFinishEnvelope(null).storagePath, null);
+
   const realFetch = globalThis.fetch;
 
   async function scenario(fn) {

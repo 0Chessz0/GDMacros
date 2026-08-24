@@ -7,7 +7,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "validate": "node scripts/validate-macros.mjs",
     "test:publish": "node scripts/test-publish.mjs",
     "test:migrate": "node scripts/test-migrate.mjs",
@@ -15,6 +14,7 @@
     "test:email": "node scripts/test-email.mjs",
     "test:legal": "node scripts/test-legal.mjs",
     "test:admin": "node scripts/test-admin.mjs",
+    "test:account": "node scripts/test-account.mjs",
     "migrate:mediafire": "node scripts/migrate-mediafire-to-github.mjs"
   },
   "dependencies": {

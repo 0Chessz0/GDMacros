@@ -39,6 +39,7 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-admin.mjs"), {
 
 const health = await jiti.import(path.join(ROOT, "src/lib/health.ts"));
 const va = await jiti.import(path.join(ROOT, "src/lib/vercelAnalytics.ts"));
+const rl = await jiti.import(path.join(ROOT, "src/lib/rateLimit.ts"));
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const src = {
@@ -51,11 +52,18 @@ const src = {
   board: read("src/components/admin/StatusBoard.tsx"),
   editAction: read("src/lib/actions/submissionEdit.ts"),
   healthAction: read("src/lib/actions/health.ts"),
-  middleware: read("src/middleware.ts"),
+  middleware: read("src/proxy.ts"),
   migration: read("supabase/migrations/0008_admin_submission_edit.sql"),
   fix: read("supabase/migrations/0009_fix_admin_submission_edit.sql"),
   raceFix: read("supabase/migrations/0010_lock_submission_edits_before_publish.sql"),
   analytics: read("src/lib/vercelAnalytics.ts"),
+  ops: read("supabase/migrations/0013_operations_visibility.sql"),
+  cron: read("src/app/api/cron/maintenance/route.ts"),
+  emailQueue: read("src/lib/email/resultQueue.ts"),
+  resultAction: read("src/lib/actions/submissionResultEmail.ts"),
+  searchRoute: read("src/app/api/search/route.ts"),
+  ciWorkflow: read(".github/workflows/ci.yml"),
+  vercelJson: read("vercel.json"),
 };
 const flat = (t) => t.replace(/\s+/g, " ");
 
@@ -508,6 +516,128 @@ check(
   "a url carrying the token could reach the browser",
 );
 check("the token name never reaches the client component", !/VERCEL_ANALYTICS_TOKEN/.test(src.board));
+
+/* ------------------------------------------------------------------ *
+ * 5. Operations: CI, stuck work, rate limiting, the nightly job
+ * ------------------------------------------------------------------ */
+console.log("Operations");
+
+/* ---- every suite actually runs in CI ---- */
+for (const suite of ["publish", "migrate", "email", "legal", "admin", "account", "translate"]) {
+  check(`CI runs test:${suite}`, src.ciWorkflow.includes(`npm run test:${suite}`),
+    "a suite that nothing runs is documentation with a worse format");
+}
+check("CI still validates the catalog", /npm run validate/.test(src.ciWorkflow));
+check("CI still typechecks and builds", /tsc --noEmit/.test(src.ciWorkflow) && /npm run build/.test(src.ciWorkflow));
+check("CI runs on pull requests", /pull_request/.test(src.ciWorkflow));
+
+/* ---- stuck work is visible, as counts only ---- */
+check("the summary RPC exists", /create or replace function public\.admin_operations_summary/.test(src.ops));
+check("it checks the admin role itself", /private\.is_admin\(\)/.test(src.ops));
+check("it pins search_path", /set search_path = ''/.test(src.ops));
+check("it is revoked from anon", /from anon;/.test(src.ops));
+check("it counts stuck publications", /submission_publish_state[\s\S]{0,120}last_error is not null/.test(src.ops));
+check("it counts result emails needing review", /submission_result_email_jobs[\s\S]{0,120}needs_review/.test(src.ops));
+check("it counts notice batches needing review", /legal_notice_deliveries[\s\S]{0,120}needs_review/.test(src.ops));
+check(
+  "it returns no identifying column",
+  !/select[\s\S]{0,400}(recipient_email|user_id|submission_id|level_name)/.test(
+    src.ops.split("return query")[1] ?? "",
+  ),
+  "the status board would leak who is affected",
+);
+check("the board renders the attention panel", /Needs attention/.test(src.board));
+check("a missing migration is named rather than generic", /Migration 0013 has not been applied/.test(src.healthAction));
+
+// Pending is shown but must not trigger the alarm: every accept passes through
+// it for a moment.
+{
+  const quiet = { stuckPublishes: 0, resultEmailsNeedingReview: 0, resultEmailsFailed: 0, resultEmailsPending: 5, noticeBatchesNeedingReview: 0 };
+  check("queued email alone is not an alarm", !health.needsAttention(quiet));
+  check("a stuck publish is an alarm", health.needsAttention({ ...quiet, stuckPublishes: 1 }));
+  check("a failed email is an alarm", health.needsAttention({ ...quiet, resultEmailsFailed: 1 }));
+  check("an ambiguous email is an alarm", health.needsAttention({ ...quiet, resultEmailsNeedingReview: 1 }));
+  check("an ambiguous notice batch is an alarm", health.needsAttention({ ...quiet, noticeBatchesNeedingReview: 1 }));
+  check("nothing stuck is quiet", !health.needsAttention({ ...quiet, resultEmailsPending: 0 }));
+}
+
+/* ---- the search rate limit ---- */
+{
+  rl.__resetRateLimits();
+  const NOW = 1_000_000;
+  let allowed = 0;
+  for (let i = 0; i < 25; i++) if (rl.rateLimit("u1", 20, 60_000, NOW).ok) allowed++;
+  eq("the limit is enforced", allowed, 20);
+
+  const blocked = rl.rateLimit("u1", 20, 60_000, NOW);
+  check("a blocked call says how long to wait", blocked.retryAfter > 0 && blocked.retryAfter <= 60);
+  check("another account is unaffected", rl.rateLimit("u2", 20, 60_000, NOW).ok);
+
+  // Sliding, not fixed: the window must not hand out a fresh allowance at a
+  // boundary, which would double the burst at exactly the wrong moment.
+  check("still blocked just before the window ends", !rl.rateLimit("u1", 20, 60_000, NOW + 59_000).ok);
+  check("allowed once the window has passed", rl.rateLimit("u1", 20, 60_000, NOW + 61_000).ok);
+
+  check("the route applies it per account", /rateLimit\(`search:\$\{user\.id\}`/.test(src.searchRoute));
+  check("the route answers 429 with Retry-After", /status: 429/.test(src.searchRoute) && /Retry-After/.test(src.searchRoute));
+  check("the limit runs after authentication", src.searchRoute.indexOf("getUser()") < src.searchRoute.indexOf("rateLimit("));
+}
+
+/* ---- the nightly job ---- */
+check("a cron entry exists", /"path": "\/api\/cron\/maintenance"/.test(src.vercelJson));
+check(
+  "the schedule is daily at most",
+  // Hobby refuses anything more frequent AT DEPLOY TIME, so a stray */15 would
+  // not be a slow job, it would be a failed deployment.
+  !/"schedule":\s*"[^"]*\*\/\d/.test(src.vercelJson),
+  "a sub-daily expression fails deployment on Hobby",
+);
+check("the job requires the shared secret", /Bearer \$\{secret/.test(src.cron));
+check(
+  "the secret comparison is constant time",
+  /timingSafeEqual/.test(src.cron),
+  "=== returns early on the first wrong byte, which is a timing oracle",
+);
+check(
+  "a length mismatch is refused before comparing",
+  /a\.length !== b\.length/.test(src.cron),
+  "timingSafeEqual throws on unequal buffers",
+);
+check(
+  "the header is trimmed before comparison",
+  /authorization"\)\?\.trim\(\)/.test(src.cron),
+  "HTTP strips edge whitespace from a field value",
+);
+check("a missing secret refuses rather than allows", /!secret \|\|/.test(src.cron));
+{
+  // Comments stripped: the doc comment says the job logs no recipient, which is
+  // the opposite of the thing being looked for.
+  const cronCode = src.cron.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  check(
+    "the job reports counts only",
+    !/recipient|email_address|notification_id/.test(cronCode),
+    "the cron log would carry an identifying value",
+  );
+}
+check("the drain is bounded", /max = 20/.test(src.emailQueue) && /Math\.max\(1, max\)/.test(src.emailQueue));
+check("the drain stops on the first failure", /result\.failed\+\+;\s*break;/.test(src.emailQueue));
+
+check(
+  "the drain is NOT a server action",
+  // Comments stripped: the module's own doc comment explains why it is not a
+  // server action, and therefore contains the exact directive being looked for.
+  !/"use server"/.test(
+    src.emailQueue.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, ""),
+  ) && /import "server-only"/.test(src.emailQueue),
+  "an ownerless drain exported from a use-server file would be a public way to make the server send mail",
+);
+check("the owner-scoped actions reuse the same worker", /claimAndSendResultEmail/.test(src.resultAction));
+check(
+  "the actions file no longer keeps its own copy",
+  !/async function recordOutcome/.test(src.resultAction),
+  "lease handling would exist in two places",
+);
+
 
 /* ------------------------------------------------------------------ */
 

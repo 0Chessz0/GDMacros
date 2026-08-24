@@ -6,8 +6,8 @@ import { SUPABASE_URL } from "./config";
 /**
  * Reading the account list, for the legal notice tool and nothing else.
  *
- * This is the second module in the project that touches a privileged Supabase
- * key, after storage-admin. It exists because there is no other way to learn an
+ * This is one of the narrow server-only modules that touches the privileged
+ * Supabase key. It exists because there is no other way to learn an
  * account's email address: `auth.users` is not reachable through PostgREST, and
  * deliberately so. Sending an important Terms or Privacy notice to every
  * account holder is the only reason the application needs that information.

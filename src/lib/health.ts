@@ -150,6 +150,40 @@ export interface SiteStats {
   env: string;
 }
 
+/**
+ * Work that has stopped and is waiting for a person.
+ *
+ * Counts only, deliberately. The status page answers "is anything wrong"; the
+ * detail for acting on it lives in the review queue and the provider dashboard,
+ * where it can be seen in context. A status board that leaks a recipient or a
+ * raw provider error would be a worse trade than one that says "3".
+ */
+export interface OperationsSummary {
+  stuckPublishes: number;
+  resultEmailsNeedingReview: number;
+  resultEmailsFailed: number;
+  resultEmailsPending: number;
+  noticeBatchesNeedingReview: number;
+}
+
+/**
+ * Whether any of it needs a human.
+ *
+ * Pending result email is excluded on purpose: a job is pending for a moment
+ * during every ordinary accept or reject, so counting it as a problem would
+ * make the page cry wolf on the happy path. It is still shown, because a
+ * pending count that stays high is worth noticing given delivery is
+ * opportunistic rather than scheduled.
+ */
+export function needsAttention(ops: OperationsSummary): boolean {
+  return (
+    ops.stuckPublishes > 0 ||
+    ops.resultEmailsNeedingReview > 0 ||
+    ops.resultEmailsFailed > 0 ||
+    ops.noticeBatchesNeedingReview > 0
+  );
+}
+
 /** Counts the catalog. Takes the parsed catalog so it stays testable. */
 export function catalogStats(catalog: { macros?: { recorder?: string }[] }[]): {
   levels: number;

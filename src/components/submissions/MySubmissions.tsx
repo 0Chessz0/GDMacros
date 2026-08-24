@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { dismissNotification, withdrawSubmission } from "@/lib/actions/submissions";
-import {
-  STATUS_LABEL,
-  formatDate,
-  type NotificationRow,
-  type SubmissionRow,
-} from "@/lib/submissions";
+import { ChevronDownIcon } from "@/components/icons";
+import { withdrawSubmission } from "@/lib/actions/submissions";
+import type { OwnedMacroView } from "@/lib/publishedSubmissions";
+import { STATUS_LABEL, formatDate, type SubmissionRow } from "@/lib/submissions";
 
 function StatusPill({ status }: { status: string }) {
   const tone =
@@ -23,22 +20,26 @@ function StatusPill({ status }: { status: string }) {
 }
 
 /**
- * What a submitter sees: the submissions still in play, and the outcomes of the
- * ones that are finished.
+ * What a submitter sees: submissions still in play, and a collapsed record of
+ * the ones already published.
  *
- * An outcome is a separate, tiny row. The submission itself is deleted once it
- * is accepted or rejected, so nothing here can show a file, a video, notes or
- * anything else about a finished submission, because none of it still exists.
+ * Accepted and rejected RESULTS deliberately do not appear here. They live in
+ * the notification centre, which is the one place a result is read and
+ * dismissed. Showing the same outcome in two places made "dismiss" ambiguous:
+ * it was never clear whether it cleared the notice or the history.
  */
 export default function MySubmissions({
   rows,
-  notifications,
+  owned,
+  profileHref,
 }: {
   rows: SubmissionRow[];
-  notifications: NotificationRow[];
+  /** Every published macro that is theirs, newest first. */
+  owned: OwnedMacroView[];
+  /** The visitor's own public profile, or null if nothing is credited to them yet. */
+  profileHref: string | null;
 }) {
   const [items, setItems] = useState(rows);
-  const [notes, setNotes] = useState(notifications);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -54,18 +55,7 @@ export default function MySubmissions({
     });
   }
 
-  function onDismiss(id: string) {
-    setError(null);
-    setBusyId(id);
-    startTransition(async () => {
-      const res = await dismissNotification(id);
-      if (res.ok) setNotes((list) => list.filter((n) => n.id !== id));
-      else setError(res.error);
-      setBusyId(null);
-    });
-  }
-
-  const nothingAtAll = items.length === 0 && notes.length === 0;
+  const nothingAtAll = items.length === 0 && owned.length === 0;
 
   if (nothingAtAll) {
     return (
@@ -95,52 +85,66 @@ export default function MySubmissions({
         </div>
       )}
 
-      {notes.length > 0 && (
-        <section>
-          <h2 className="mb-2.5 text-[13px] font-bold text-text-dim">Results</h2>
-          <div className="flex flex-col gap-2.5">
-            {notes.map((n) => (
+      {owned.length > 0 && (
+        <details className="group card overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 marker:content-none sm:px-5">
+            <span>
+              <span className="text-[13.5px] font-bold text-text">Accepted &amp; live</span>
+              <span className="ml-2 rounded-md border border-green/30 bg-green/10 px-2 py-0.5 text-[11px] font-semibold text-green tabular-nums">
+                {owned.length}
+              </span>
+              <span className="mt-1 block text-[12px] font-normal text-muted">
+                Your macros on the site
+              </span>
+            </span>
+            <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+          </summary>
+
+          <div className="border-t border-border-soft px-4 py-2 sm:px-5">
+            {owned.map((item) => (
               <div
-                key={n.id}
-                className={`card p-4 ${
-                  n.outcome === "accepted" ? "border-green/30" : "border-rose/30"
-                }`}
+                key={item.key}
+                className="flex flex-col gap-2 border-b border-border-soft py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="text-[13.5px] leading-relaxed text-text">
-                    Your submission for{" "}
-                    <span className="font-bold">{n.level_name}</span>{" "}
-                    {n.outcome === "accepted" ? (
-                      <span className="font-semibold text-green">was accepted.</span>
-                    ) : (
-                      <span className="font-semibold text-rose">was rejected.</span>
+                <div className="min-w-0">
+                  <p className="truncate text-[13.5px] font-bold text-text" translate="no">
+                    {item.levelName}
+                  </p>
+                  <p className="mt-1 text-[12px] text-muted">
+                    ID <span className="tabular-nums">{item.levelId}</span> · {item.recorder}
+                    {/* Only worth naming when it is not simply you. */}
+                    {item.submittedByYou && item.macroAuthor !== undefined && (
+                      <> · by <span translate="no" className="notranslate text-text-dim">{item.macroAuthor}</span></>
                     )}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => onDismiss(n.id)}
-                    disabled={busyId === n.id}
-                    className="shrink-0 text-[12px] text-muted transition-colors hover:text-text-dim disabled:opacity-60"
-                  >
-                    {busyId === n.id ? "Dismissing..." : "Dismiss"}
-                  </button>
+                  {item.addedAt && (
+                    <p className="mt-1 text-[11.5px] text-muted">Added {formatDate(item.addedAt)}</p>
+                  )}
                 </div>
-
-                {n.outcome === "rejected" && n.rejection_reason && (
-                  <p className="mt-2 text-[12.5px] leading-relaxed text-text-dim">
-                    <span className="text-muted">Reason:</span> {n.rejection_reason}
-                  </p>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="shrink-0 text-[12.5px] font-medium text-accent-soft hover:underline"
+                  >
+                    View live macro
+                  </Link>
+                ) : (
+                  <span className="shrink-0 text-[11.5px] text-muted">Live catalog entry</span>
                 )}
-                {n.outcome === "accepted" && (
-                  <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
-                    Your macro is now live on GDMacros.
-                  </p>
-                )}
-                <p className="mt-2 text-[11.5px] text-muted">{formatDate(n.created_at)}</p>
               </div>
             ))}
+
+            {profileHref && (
+              <p className="border-t border-border-soft py-3 text-[11.5px] leading-relaxed text-muted">
+                These are also on{" "}
+                <Link href={profileHref} className="text-accent-soft hover:underline">
+                  your public profile
+                </Link>
+                , which is what everyone else sees.
+              </p>
+            )}
           </div>
-        </section>
+        </details>
       )}
 
       {items.length > 0 && (
@@ -171,7 +175,7 @@ export default function MySubmissions({
 
                 {s.status === "processing" && (
                   <p className="mt-3 text-[12.5px] leading-relaxed text-muted">
-                    Someone is publishing this now. You will see the result here when it is done.
+                    Someone is publishing this now. The result arrives in your notifications.
                   </p>
                 )}
 

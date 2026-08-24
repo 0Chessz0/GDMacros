@@ -21,6 +21,7 @@ import {
   isPlaceholderLink,
   levelUrl,
 } from "@/lib/format";
+import { findAuthorByName } from "@/lib/authors";
 import { getAllLevels, getLevelBySlug, getNeighbours } from "@/lib/macros";
 import { site } from "@/lib/site";
 import type { Level, Macro } from "@/lib/types";
@@ -77,20 +78,35 @@ function MacroCardBlock({ macro }: { macro: Macro }) {
   const unavailable = isPlaceholderLink(macro.downloadLink);
   const fileName = unavailable ? null : fileNameFromUrl(macro.downloadLink);
   const host = unavailable ? null : hostNameFromUrl(macro.downloadLink);
+  const author = findAuthorByName(macro.author);
 
   // Fixed width rather than w-full, so several cards sit side by side and wrap
   // onto a new line only when they actually run out of room.
   return (
-    <div className="card w-[320px] max-w-full overflow-hidden transition-[transform,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40">
+    <div
+      id={`macro-${macro.position}`}
+      className="card w-[320px] max-w-full scroll-mt-24 overflow-hidden transition-[transform,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40"
+    >
       <div className="border-b border-border-soft px-5 pt-4 pb-3 text-center">
         <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
           Macro {macro.position}
         </p>
         <p className="mt-1 text-[16px] font-bold text-text">
           <span className="font-normal text-muted">by </span>
-          <span translate="no" className="notranslate text-accent-soft">
-            {macro.author}
-          </span>
+          {author ? (
+            <Link
+              href={`/author/${author.slug}`}
+              translate="no"
+              title={`View macros credited to ${author.name}`}
+              className="notranslate text-accent-soft underline-offset-2 transition-colors hover:text-text hover:underline"
+            >
+              {macro.author}
+            </Link>
+          ) : (
+            <span translate="no" className="notranslate text-accent-soft">
+              {macro.author}
+            </span>
+          )}
         </p>
         <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-0.5 text-[11.5px] font-medium text-text-dim">
           <BotIcon className="h-3.5 w-3.5 text-muted" />
