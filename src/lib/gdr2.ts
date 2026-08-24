@@ -69,6 +69,21 @@ class Cursor {
   skip(n: number) {
     this.bytes(n);
   }
+
+  /** Big-endian, as the format stores them. */
+  f32(): number {
+    const b = this.bytes(4);
+    return new DataView(b.buffer, b.byteOffset, 4).getFloat32(0, false);
+  }
+
+  f64(): number {
+    const b = this.bytes(8);
+    return new DataView(b.buffer, b.byteOffset, 8).getFloat64(0, false);
+  }
+
+  byte(): number {
+    return this.bytes(1)[0];
+  }
 }
 
 export function checkGdr2(input: ArrayBuffer | Uint8Array): Gdr2Check {
@@ -123,5 +138,102 @@ export function checkGdr2(input: ArrayBuffer | Uint8Array): Gdr2Check {
     // distinction between "truncated" and "malformed varint" helps nobody
     // uploading a file, and leaking internals helps nobody at all.
     return { ok: false, error: "That macro file looks damaged or incomplete." };
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Metadata, for a reviewer
+ * ------------------------------------------------------------------ */
+
+/**
+ * What the file itself claims about a recording.
+ *
+ * Every field here is read by the same walk `checkGdr2` already performs, in
+ * the same order, from a layout that has been exercised against real xdBot and
+ * Mega Hack files. Nothing is guessed and nothing beyond the declared extension
+ * block is parsed: the input stream layout has no reference implementation
+ * available here, and showing a reviewer a confidently wrong number is worse
+ * than showing them nothing.
+ */
+export interface Gdr2Metadata {
+  version: number;
+  /** The tool that wrote the file, as the file states it. */
+  botName: string;
+  botVersion: number;
+  /** The level the RECORDING says it is for. Not what the submitter typed. */
+  levelId: number;
+  levelName: string;
+  /** Seconds, or null when the file left it at zero. */
+  duration: number | null;
+  framerate: number | null;
+  gameVersion: number;
+  platformer: boolean;
+  lowDetail: boolean;
+  coins: number;
+  /** Author string embedded by the recorder. Often empty. */
+  author: string;
+  description: string;
+  /** Declared size of the extension block, in bytes. */
+  extensionBytes: number;
+}
+
+/**
+ * Reads the header for review, returning null rather than throwing.
+ *
+ * Separate from `checkGdr2` on purpose. That function is a GATE on the upload
+ * path and its behaviour must not shift because a display field was added here.
+ * This one runs later, for an admin looking at a file that was already accepted
+ * as plausible.
+ */
+export function readGdr2Metadata(input: ArrayBuffer | Uint8Array): Gdr2Metadata | null {
+  const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
+  if (buf.length < 8) return null;
+  if (buf[0] !== 0x47 || buf[1] !== 0x44 || buf[2] !== 0x52) return null;
+
+  try {
+    const c = new Cursor(buf, 3);
+
+    const version = c.varint();
+    if (version !== 2) return null;
+
+    c.string(); // inputTag
+    const author = c.string();
+    const description = c.string();
+    const duration = c.f32();
+    const gameVersion = c.varint();
+    const framerate = c.f64();
+    c.varint(); // seed
+    const coins = c.varint();
+    const lowDetail = c.byte() !== 0;
+    const platformer = c.byte() !== 0;
+    const botName = c.string();
+    const botVersion = c.varint();
+    const levelId = c.varint();
+    const levelName = c.string();
+    const extensionBytes = c.varint();
+
+    if (extensionBytes > c.remaining) return null;
+
+    return {
+      version,
+      botName,
+      botVersion,
+      levelId,
+      levelName,
+      // Both are left at zero by some recorders, which is not the same as
+      // "zero seconds" or "zero fps" and should not be rendered as though it
+      // were a measurement.
+      duration: Number.isFinite(duration) && duration > 0 ? duration : null,
+      framerate: Number.isFinite(framerate) && framerate > 0 ? framerate : null,
+      gameVersion,
+      platformer,
+      lowDetail,
+      coins,
+      author,
+      description,
+      extensionBytes,
+    };
+  } catch {
+    return null;
   }
 }
