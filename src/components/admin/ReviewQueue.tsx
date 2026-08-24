@@ -10,6 +10,7 @@ import {
 import { LIMITS, MIN_REJECTION_REASON, STATUS_LABEL, formatDate } from "@/lib/submissions";
 import ProcessingModal from "./ProcessingModal";
 import EditSubmission from "./EditSubmission";
+import InspectSubmission from "./InspectSubmission";
 
 export interface AdminRow {
   id: string;
@@ -243,6 +244,7 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
               >
                 {busy === "accept" ? "Opening..." : "Start Publishing"}
               </button>
+              <InspectSubmission id={row.id} />
               <button
                 type="button"
                 onClick={() => setEditing((v) => !v)}

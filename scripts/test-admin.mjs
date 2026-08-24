@@ -40,6 +40,7 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-admin.mjs"), {
 const health = await jiti.import(path.join(ROOT, "src/lib/health.ts"));
 const va = await jiti.import(path.join(ROOT, "src/lib/vercelAnalytics.ts"));
 const rl = await jiti.import(path.join(ROOT, "src/lib/rateLimit.ts"));
+const review = await jiti.import(path.join(ROOT, "src/lib/gdr2Review.ts"));
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const src = {
@@ -64,6 +65,9 @@ const src = {
   searchRoute: read("src/app/api/search/route.ts"),
   ciWorkflow: read(".github/workflows/ci.yml"),
   vercelJson: read("vercel.json"),
+  inspectAction: read("src/lib/actions/submissionInspect.ts"),
+  inspectUi: read("src/components/admin/InspectSubmission.tsx"),
+  gdr2: read("src/lib/gdr2.ts"),
 };
 const flat = (t) => t.replace(/\s+/g, " ");
 
@@ -637,6 +641,171 @@ check(
   !/async function recordOutcome/.test(src.resultAction),
   "lease handling would exist in two places",
 );
+
+
+/* ------------------------------------------------------------------ *
+ * 6. Reading an uploaded macro's own header
+ * ------------------------------------------------------------------ */
+console.log("Submission inspection");
+
+/**
+ * A header as the two recorders actually produce them.
+ *
+ * The distinguishing field is the extension block, not the declared bot name:
+ * every file in this catalog says xdBot, including the ones published as Mega
+ * Hack, because they are all xdBot recordings and some have been converted.
+ * Verified against 24 real catalog files, twelve of each recorder, with total
+ * separation.
+ */
+const header = (over = {}) => ({
+  version: 2,
+  botName: "xdBot",
+  botVersion: 1,
+  levelId: 73667628,
+  levelName: "Acheron",
+  duration: 66.15,
+  framerate: 240,
+  gameVersion: 22,
+  platformer: false,
+  lowDetail: false,
+  coins: 0,
+  author: "",
+  description: "",
+  extensionBytes: 452049,
+  ...over,
+});
+const claim = (over = {}) => ({ levelId: "73667628", levelName: "Acheron", recorder: "xdBot", ...over });
+const byId = (list, id) => list.find((f) => f.id === id);
+const hash = (c) => c.repeat(64);
+
+/* ---- the recorder inference ---- */
+eq("an extension block means xdBot", review.recorderFromFile(header()), "xdBot");
+eq("no extension block means Mega Hack", review.recorderFromFile(header({ extensionBytes: 0 })), "Mega Hack");
+check(
+  "the declared bot name is NOT used",
+  review.recorderFromFile(header({ botName: "Mega Hack", extensionBytes: 452049 })) === "xdBot",
+  "every catalog file declares xdBot, so trusting the name would agree with itself",
+);
+
+/* ---- the exact bug this was built for ---- */
+{
+  // squeak: a converted file (no extension block) submitted as xdBot.
+  const f = review.reviewFindings(header({ extensionBytes: 0 }), claim({ recorder: "xdBot" }), 579, hash("a"));
+  const rec = byId(f, "recorder");
+  eq("a converted file submitted as xdBot is flagged", rec.level, "warn");
+  eq("and it names what the file looks like", rec.value, "Mega Hack");
+  check("the note explains the evidence", /extension block is absent/i.test(rec.note ?? ""));
+  check("the whole report is marked as needing a look", review.hasWarnings(f));
+}
+{
+  // The mirror: a raw recording submitted as Mega Hack.
+  const f = review.reviewFindings(header(), claim({ recorder: "Mega Hack" }), 452637, hash("b"));
+  eq("a raw file submitted as Mega Hack is flagged", byId(f, "recorder").level, "warn");
+}
+{
+  const f = review.reviewFindings(header(), claim(), 452637, hash("c"));
+  eq("a matching recorder is not flagged", byId(f, "recorder").level, "ok");
+  check("and nothing else is either", !review.hasWarnings(f));
+}
+
+/* ---- the level the recording is for ---- */
+{
+  const f = review.reviewFindings(header(), claim({ levelId: "128" }), 1000, hash("d"));
+  const lvl = byId(f, "level");
+  eq("a level mismatch is flagged", lvl.level, "warn");
+  check("the note names the submitted id", /128/.test(lvl.note ?? ""));
+  check("the value names the id in the file", /73667628/.test(lvl.value));
+}
+check(
+  "a matching level is not flagged",
+  byId(review.reviewFindings(header(), claim(), 1000, hash("e")), "level").level === "ok",
+);
+check(
+  "whitespace around a submitted id does not cause a false mismatch",
+  byId(review.reviewFindings(header(), claim({ levelId: " 73667628 " }), 1000, hash("f")), "level").level === "ok",
+);
+
+/* ---- context rows ---- */
+{
+  const f = review.reviewFindings(header({ framerate: 30 }), claim(), 1000, hash("g"));
+  eq("a low framerate is flagged", byId(f, "framerate").level, "warn");
+  check("the note explains desync", /desync/i.test(byId(f, "framerate").note ?? ""));
+}
+eq(
+  "240 fps is not flagged",
+  byId(review.reviewFindings(header(), claim(), 1000, hash("h")), "framerate").level,
+  "info",
+);
+eq(
+  "a missing framerate is not invented",
+  byId(review.reviewFindings(header({ framerate: null }), claim(), 1000, hash("i")), "framerate").value,
+  "not recorded",
+);
+eq(
+  "a missing duration is not invented",
+  byId(review.reviewFindings(header({ duration: null }), claim(), 1000, hash("j")), "duration").value,
+  "not recorded",
+);
+check(
+  "a long recording reads in minutes",
+  /1m/.test(byId(review.reviewFindings(header({ duration: 66.15 }), claim(), 1000, hash("k")), "duration").value),
+);
+check(
+  "the declared bot is shown but explained as a different question",
+  /not the same question/i.test(
+    byId(review.reviewFindings(header(), claim(), 1000, hash("l")), "declaredBot").note ?? "",
+  ),
+);
+check(
+  "platformer is only mentioned when true",
+  !byId(review.reviewFindings(header(), claim(), 1000, hash("m")), "platformer") &&
+    Boolean(byId(review.reviewFindings(header({ platformer: true }), claim(), 1000, hash("n")), "platformer")),
+);
+check(
+  "the hash is shortened rather than dumped",
+  byId(review.reviewFindings(header(), claim(), 1000, hash("z")), "sha256").value.length < 64,
+);
+
+/* ---- duplicate detection ---- */
+{
+  const cat = [
+    { name: "Acheron", levelId: "73667628", macros: [{ recorder: "xdBot", author: "Zoink" }] },
+  ];
+  const dup = review.findExistingEntry(cat, claim({ recorder: "xdBot" }));
+  check("an existing entry for the same level and recorder is found", dup?.author === "Zoink");
+  check(
+    "a different recorder on that level is not a duplicate",
+    review.findExistingEntry(cat, claim({ recorder: "Mega Hack" })) === null,
+  );
+  check("an unknown level is not a duplicate", review.findExistingEntry(cat, claim({ levelId: "1" })) === null);
+  check("an empty catalog is handled", review.findExistingEntry([], claim()) === null);
+}
+
+/* ---- the parser and the action ---- */
+check(
+  "the metadata reader is separate from the upload gate",
+  /export function readGdr2Metadata/.test(src.gdr2) && /export function checkGdr2/.test(src.gdr2),
+);
+check("the reader returns null rather than throwing", /catch \{[\s\S]{0,60}return null/.test(src.gdr2));
+check("the action checks the admin role", /isCurrentUserAdmin\(\)/.test(src.inspectAction));
+check(
+  "the claim comes from the row, not the caller",
+  /from\("submissions"\)[\s\S]{0,300}\.eq\("id", id\)/.test(src.inspectAction),
+  "otherwise a modified request could compare the file against invented details",
+);
+check("it reads the private object server side", /downloadSubmissionObject/.test(src.inspectAction));
+check(
+  "it writes nothing",
+  // Scoped to query-builder writes. A bare /\.update\(/ also matches
+  // createHash(...).update(bytes), which is the hash being fed, not a row
+  // being changed.
+  !/\.from\("[^"]+"\)[\s\S]{0,120}\.(insert|update|upsert|delete)\(/.test(src.inspectAction) &&
+    !/\.rpc\(|publishMacro|approveSubmission/.test(src.inspectAction),
+  "inspection must not be able to change a submission",
+);
+check("the file is hashed for identity", /createHash\("sha256"\)/.test(src.inspectAction));
+check("it is loaded on demand, not with the queue", /Inspect file/.test(src.inspectUi));
+check("the queue offers it", /InspectSubmission/.test(src.queue));
 
 
 /* ------------------------------------------------------------------ */
