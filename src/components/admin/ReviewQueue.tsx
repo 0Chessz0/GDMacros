@@ -11,6 +11,7 @@ import { LIMITS, MIN_REJECTION_REASON, STATUS_LABEL, formatDate } from "@/lib/su
 import ProcessingModal from "./ProcessingModal";
 import EditSubmission from "./EditSubmission";
 import InspectSubmission from "./InspectSubmission";
+import BulkPublishPanel from "./BulkPublishPanel";
 
 export interface AdminRow {
   id: string;
@@ -54,7 +55,19 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
+function Card({
+  row,
+  onChanged,
+  selected,
+  onSelected,
+  batchRunning,
+}: {
+  row: AdminRow;
+  onChanged: () => void;
+  selected: boolean;
+  onSelected: (selected: boolean) => void;
+  batchRunning: boolean;
+}) {
   const router = useRouter();
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
@@ -149,6 +162,12 @@ function Card({ row, onChanged }: { row: AdminRow; onChanged: () => void }) {
       )}
 
       <div className={`card p-4 sm:p-5 ${status === "processing" ? "border-accent/30" : ""}`}>
+        {status === "pending" && (
+          <label className="mb-3 flex w-fit cursor-pointer items-center gap-2 text-[12px] font-semibold text-muted">
+            <input type="checkbox" checked={selected} onChange={(event) => onSelected(event.target.checked)} disabled={batchRunning} className="h-4 w-4 accent-[var(--color-accent)]" />
+            Select for bulk publishing
+          </label>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[14.5px] font-bold text-text">{row.level_name}</p>
@@ -345,6 +364,9 @@ const FILTERS = [
 
 export default function ReviewQueue({ rows, filter }: { rows: AdminRow[]; filter: string }) {
   const router = useRouter();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const selectedRows = rows.filter((row) => selected.includes(row.id) && row.status === "pending");
 
   return (
     <>
@@ -370,6 +392,17 @@ export default function ReviewQueue({ rows, filter }: { rows: AdminRow[]; filter
         ))}
       </div>
 
+      {rows.some((row) => row.status === "pending") && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 text-[12.5px]">
+          <button type="button" disabled={batchRunning} onClick={() => setSelected(rows.filter((row) => row.status === "pending").map((row) => row.id))} className="font-semibold text-accent-soft hover:underline disabled:opacity-50">Select all pending</button>
+          {selected.length > 0 && <button type="button" disabled={batchRunning} onClick={() => setSelected([])} className="text-muted hover:text-text disabled:opacity-50">Clear selection</button>}
+        </div>
+      )}
+
+      {selectedRows.length > 0 && (
+        <BulkPublishPanel rows={selectedRows} onRunningChange={setBatchRunning} onFinished={() => { setSelected([]); router.refresh(); }} />
+      )}
+
       {rows.length === 0 ? (
         <div className="card px-6 py-16 text-center">
           <p className="text-[15px] font-semibold text-text">Nothing here</p>
@@ -384,7 +417,14 @@ export default function ReviewQueue({ rows, filter }: { rows: AdminRow[]; filter
       ) : (
         <div className="flex flex-col gap-3">
           {rows.map((row) => (
-            <Card key={row.id} row={row} onChanged={() => router.refresh()} />
+            <Card
+              key={row.id}
+              row={row}
+              onChanged={() => router.refresh()}
+              selected={selected.includes(row.id)}
+              onSelected={(checked) => setSelected((current) => checked ? [...new Set([...current, row.id])] : current.filter((id) => id !== row.id))}
+              batchRunning={batchRunning}
+            />
           ))}
         </div>
       )}

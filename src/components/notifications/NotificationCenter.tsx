@@ -9,9 +9,11 @@ import { BellIcon, CheckIcon } from "@/components/icons";
 export default function NotificationCenter({
   initial,
   hrefBySubmission,
+  showEmpty = true,
 }: {
   initial: NotificationRow[];
   hrefBySubmission: Record<string, string>;
+  showEmpty?: boolean;
 }) {
   const [items, setItems] = useState(initial);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export default function NotificationCenter({
   }
 
   if (items.length === 0) {
+    if (!showEmpty) return null;
     return (
       <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">
         <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-2 text-muted">

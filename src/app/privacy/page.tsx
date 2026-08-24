@@ -205,6 +205,7 @@ export default function PrivacyPage() {
           items={[
             "account mail such as confirmation and password resets,",
             "submission results, if you have those switched on in Settings,",
+            "the result of a support ticket when an admin closes it,",
             "notice of a material change to the Terms or this policy,",
             "and important account, security or service messages.",
           ]}
@@ -221,6 +222,27 @@ export default function PrivacyPage() {
           the message and its delivery state. Where a retry needs it, a copy of the destination
           address is held only for as long as the retry is safe, and is erased once the message is
           settled. They are never used to build a mailing list.
+        </p>
+      </Section>
+
+      <Section title="Support tickets">
+        <p>
+          When you are signed in, a suggestion or broken-macro report opens a private support
+          thread. It stores your account ID, username, the title and messages, timestamps, its
+          status, and the macro page details when the report concerns a download. Only you and the
+          admins can read that thread.
+        </p>
+        <p>
+          Open tickets stay available so the conversation can continue. When an admin resolves or
+          closes one, you receive an in-app notification and an email with a link to its transcript.
+          The ticket, every message, its notification, and the delivery job are permanently deleted
+          30 days after closure. Access stops at that deadline even if the scheduled deletion is a
+          few seconds late.
+        </p>
+        <p>
+          An admin can block an account from opening new tickets when the feature is abused. The
+          block stores the account ID, the reason, who applied it, and the time. It does not hide an
+          existing conversation or prevent replies in one.
         </p>
       </Section>
 
@@ -266,7 +288,8 @@ export default function PrivacyPage() {
             <>
               <span className="font-semibold text-text">Supabase</span> stores accounts and
               everything attached to one: sign-in, profiles, favorites, submissions, the private
-              files you upload, review state, preferences and the records described above.
+              files you upload, review state, support tickets, preferences and the records described
+              above.
             </>,
             <>
               <span className="font-semibold text-text">Vercel</span> hosts the site and runs its
@@ -334,6 +357,7 @@ export default function PrivacyPage() {
             "Your password, which is only ever stored hashed.",
             "Files you upload, until and unless a macro is accepted and published.",
             "Your submission notes and anything from the review process.",
+            "Your support-ticket threads.",
             "Your settings, your notification state and your favorites.",
             "Support email you send us.",
             "Records of messages sent to your account.",
@@ -344,14 +368,15 @@ export default function PrivacyPage() {
       <Section title="How long things are kept">
         <p>
           The rule is that something is kept while it is still doing its job, and removed when it is
-          not. The application does not run deletion on a timer, so rather than invent retention
-          periods, here is what that means in practice:
+          not. Most records follow an event such as a decision or account deletion; closed support
+          tickets are the exception with a fixed deletion timer. Here is what that means in practice:
         </p>
         <Bullets
           items={[
             "A submission stays until it is decided or you withdraw it. Once it is accepted and confirmed live, the private copy of your upload is deleted; a rejected or withdrawn one is removed along with its file.",
             "A published macro stays in the catalog, because it is catalog content rather than account data.",
-            "Your account data, including settings, favorites, notifications and your submission history, stays while the account exists.",
+            "An open support ticket stays while the conversation is active. A resolved or otherwise closed ticket, its transcript and its notification are permanently deleted after 30 days.",
+            "Your other account data, including settings, favorites, notifications and your submission history, stays while the account exists.",
             "Delivery records hold a destination address only while a retry could still need it, and are erased once the message is settled.",
             "Support email stays in the mailbox unless it is deleted by hand.",
             "Deleting your account removes the account and the data tied to it. Macros already published stay in the catalog.",

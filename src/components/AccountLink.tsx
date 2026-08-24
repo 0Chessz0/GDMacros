@@ -41,11 +41,11 @@ export default function AccountLink() {
 
     async function readUnread() {
       if (!currentUserId) return;
-      const { count } = await supabase
-        .from("submission_notifications")
-        .select("id", { count: "exact", head: true })
-        .is("read_at", null);
-      if (active) setUnread(count ?? 0);
+      const [submissions, account] = await Promise.all([
+        supabase.from("submission_notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+        supabase.from("account_notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+      ]);
+      if (active) setUnread((submissions.count ?? 0) + (account.count ?? 0));
     }
 
     async function useUser(user: { id: string } | null) {
@@ -176,6 +176,9 @@ export default function AccountLink() {
             </Link>
             <Link role="menuitem" href="/settings" onClick={close} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-text-dim hover:bg-surface-2 hover:text-text">
               <SettingsIcon className="h-4 w-4 text-muted" /> Settings
+            </Link>
+            <Link role="menuitem" href="/support" onClick={close} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-text-dim hover:bg-surface-2 hover:text-text">
+              <BellIcon className="h-4 w-4 text-muted" /> Support tickets
             </Link>
             <div className="my-1 border-t border-border-soft" />
             <form action="/auth/signout" method="post">

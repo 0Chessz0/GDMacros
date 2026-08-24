@@ -62,6 +62,19 @@ export async function publishMacro(id: string): Promise<PublishProgress> {
   return result;
 }
 
+/**
+ * The same crash-safe publisher without route revalidation between items.
+ * A bulk run is driven by the admin browser one submission at a time; refreshing
+ * the route after every finished item would unmount and lose that in-memory
+ * queue. The bulk UI refreshes once after the complete selection finishes.
+ */
+export async function publishMacroForBatch(id: string): Promise<PublishProgress> {
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, state: "not_started", stage: "validating", error: "Publishing is unavailable right now." };
+  if (!(await isCurrentUserAdmin())) return { ok: false, state: "not_started", stage: "validating", error: "You do not have permission to do that." };
+  return runPublish(supabase, id, sendSubmissionResultBestEffort);
+}
+
 export interface PublishStateView {
   state: "none" | "not_started" | "asset_uploaded" | "catalog_committed" | "live_verified";
   assetName: string | null;

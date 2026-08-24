@@ -303,13 +303,7 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
         />
         <ReportBroken
           name={level.name}
-          levelId={level.levelId}
           slug={level.slug}
-          macros={level.macros.map((m) => ({
-            author: m.author,
-            recorder: m.recorder,
-            downloadUrl: m.downloadLink,
-          }))}
         />
       </div>
 

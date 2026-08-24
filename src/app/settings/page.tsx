@@ -103,6 +103,11 @@ export default async function SettingsPage() {
             title="Favorites"
             detail="Manage macros saved in this browser or synced to your account."
           />
+          <SettingsLink
+            href="/support"
+            title="Support tickets"
+            detail="Read private support threads or send a suggestion."
+          />
           {catalogAuthor && (
             <SettingsLink
               href={`/author/${catalogAuthor.slug}`}
