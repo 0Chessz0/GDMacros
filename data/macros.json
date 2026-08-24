@@ -2639,5 +2639,20 @@
         "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-7676557/ChesszDC-2-0-xdBot.gdr2"
       }
     ]
+  },
+  {
+    "name": "The Golden",
+    "creator": "BoBoBoBoBoBoBo",
+    "levelId": "60978746",
+    "video": "https://www.youtube.com/watch?v=SJ7SIDO5sj4",
+    "addedAt": "2026-08-24",
+    "macros": [
+      {
+        "author": "ChesszDC",
+        "recorder": "Mega Hack",
+        "downloadType": "GitHub",
+        "downloadLink": "https://github.com/GDMacros-com/GDMacros-downloads/releases/download/level-60978746/ChesszDC-The-Golden-Mega-Hack.gdr2"
+      }
+    ]
   }
 ]
