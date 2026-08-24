@@ -4,12 +4,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ChevronDownIcon } from "@/components/icons";
 import { withdrawSubmission } from "@/lib/actions/submissions";
-import {
-  STATUS_LABEL,
-  formatDate,
-  type PublishedSubmissionView,
-  type SubmissionRow,
-} from "@/lib/submissions";
+import type { OwnedMacroView } from "@/lib/publishedSubmissions";
+import { STATUS_LABEL, formatDate, type SubmissionRow } from "@/lib/submissions";
 
 function StatusPill({ status }: { status: string }) {
   const tone =
@@ -34,11 +30,12 @@ function StatusPill({ status }: { status: string }) {
  */
 export default function MySubmissions({
   rows,
-  published,
+  owned,
   profileHref,
 }: {
   rows: SubmissionRow[];
-  published: PublishedSubmissionView[];
+  /** Every published macro that is theirs, newest first. */
+  owned: OwnedMacroView[];
   /** The visitor's own public profile, or null if nothing is credited to them yet. */
   profileHref: string | null;
 }) {
@@ -58,7 +55,7 @@ export default function MySubmissions({
     });
   }
 
-  const nothingAtAll = items.length === 0 && published.length === 0;
+  const nothingAtAll = items.length === 0 && owned.length === 0;
 
   if (nothingAtAll) {
     return (
@@ -88,44 +85,45 @@ export default function MySubmissions({
         </div>
       )}
 
-      {published.length > 0 && (
+      {owned.length > 0 && (
         <details className="group card overflow-hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 marker:content-none sm:px-5">
             <span>
               <span className="text-[13.5px] font-bold text-text">Accepted &amp; live</span>
               <span className="ml-2 rounded-md border border-green/30 bg-green/10 px-2 py-0.5 text-[11px] font-semibold text-green tabular-nums">
-                {published.length}
+                {owned.length}
               </span>
               <span className="mt-1 block text-[12px] font-normal text-muted">
-                Published submissions tied to your account
+                Your macros on the site
               </span>
             </span>
             <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
           </summary>
 
           <div className="border-t border-border-soft px-4 py-2 sm:px-5">
-            {published.map((item) => (
+            {owned.map((item) => (
               <div
-                key={item.submission_id}
+                key={item.key}
                 className="flex flex-col gap-2 border-b border-border-soft py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="truncate text-[13.5px] font-bold text-text" translate="no">
-                    {item.level_name}
+                    {item.levelName}
                   </p>
                   <p className="mt-1 text-[12px] text-muted">
-                    ID <span className="tabular-nums">{item.level_id}</span> · {item.recorder} · by{" "}
-                    <span translate="no" className="notranslate text-text-dim">
-                      {item.macro_author}
-                    </span>
+                    ID <span className="tabular-nums">{item.levelId}</span> · {item.recorder}
+                    {/* Only worth naming when it is not simply you. */}
+                    {item.submittedByYou && item.macroAuthor !== undefined && (
+                      <> · by <span translate="no" className="notranslate text-text-dim">{item.macroAuthor}</span></>
+                    )}
                   </p>
-                  <p className="mt-1 text-[11.5px] text-muted">
-                    Published {formatDate(item.published_at)}
-                  </p>
+                  {item.addedAt && (
+                    <p className="mt-1 text-[11.5px] text-muted">Added {formatDate(item.addedAt)}</p>
+                  )}
                 </div>
-                {item.macro_href ? (
+                {item.href ? (
                   <Link
-                    href={item.macro_href}
+                    href={item.href}
                     className="shrink-0 text-[12.5px] font-medium text-accent-soft hover:underline"
                   >
                     View live macro
@@ -136,21 +134,15 @@ export default function MySubmissions({
               </div>
             ))}
 
-            <p className="border-t border-border-soft py-3 text-[11.5px] leading-relaxed text-muted">
-              This list starts from when submission history was added, so macros published before
-              then are not in it.{" "}
-              {profileHref ? (
-                <>
-                  They are all on{" "}
-                  <Link href={profileHref} className="text-accent-soft hover:underline">
-                    your public profile
-                  </Link>
-                  .
-                </>
-              ) : (
-                <>Every macro credited to you is on your public profile.</>
-              )}
-            </p>
+            {profileHref && (
+              <p className="border-t border-border-soft py-3 text-[11.5px] leading-relaxed text-muted">
+                These are also on{" "}
+                <Link href={profileHref} className="text-accent-soft hover:underline">
+                  your public profile
+                </Link>
+                , which is what everyone else sees.
+              </p>
+            )}
           </div>
         </details>
       )}

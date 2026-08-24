@@ -36,6 +36,7 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-account.mjs"), {
 
 const authors = await jiti.import(path.join(ROOT, "src/lib/authors.ts"));
 const macros = await jiti.import(path.join(ROOT, "src/lib/macros.ts"));
+const owned = await jiti.import(path.join(ROOT, "src/lib/publishedSubmissions.ts"));
 
 const src = {
   migration: read("supabase/migrations/0011_account_experience.sql"),
@@ -102,12 +103,80 @@ console.log("Accepted submission history");
 check("the page queries the account ledger", /from\("published_submissions"\)/.test(src.submissionsPage));
 check("the ledger is resolved by verified download URL", /downloadLink/.test(src.published) && /download_url/.test(src.published));
 check("accepted links target the exact macro card", /#macro-\$\{macro\.position\}/.test(src.published));
-check("the resolver never matches a username", !/username|profile/i.test(src.published));
+//
+// The panel is now sourced from the CATALOG first, matched on the account's
+// username, because on this site the name credited on a macro is its owner.
+// It used to refuse name matching entirely, which meant every macro published
+// before the account ledger existed was invisible to the person who made it:
+// the panel rendered empty for someone with hundreds of macros.
+//
+check(
+  "the panel is built from catalog credits",
+  /CatalogAuthor/.test(src.published) && /author\?\.credits/.test(src.published),
+);
+check(
+  "the ledger still contributes what the catalog cannot know",
+  /ledger/.test(src.published) && /submittedByYou/.test(src.published),
+);
+{
+  const mine = authors.findAuthorByName("ChesszDC");
+  check("a real username resolves to an author", Boolean(mine));
+
+  const rows = owned.resolveOwnedMacros(mine, []);
+  check("their whole catalog appears without any ledger row", rows.length === mine.macroCount,
+    `${rows.length} rows vs ${mine.macroCount} credits`);
+  check("every row can link to its macro", rows.every((r) => r.href && r.href.startsWith("/macro/")));
+  check("rows carry the level and recorder", rows.every((r) => r.levelName && r.levelId && r.recorder));
+
+  // Newest first, so the most recent upload is not buried.
+  const dated = rows.filter((r) => r.addedAt);
+  check(
+    "rows are newest first",
+    dated.every((r, i) => i === 0 || dated[i - 1].addedAt >= r.addedAt),
+  );
+
+  check("an unknown username resolves to nothing", authors.findAuthorByName("NoSuchPersonHere") === undefined);
+  check("an unknown username yields an empty panel", owned.resolveOwnedMacros(undefined, []).length === 0);
+  check("matching is case-insensitive", owned.resolveOwnedMacros(authors.findAuthorByName("chesszdc"), []).length === rows.length);
+
+  // A macro this account submitted but which is credited to somebody else.
+  const other = authors.findAuthorByName("Spypiexj8");
+  const borrowed = other.credits[0];
+  const ledgerRow = {
+    submission_id: "sub-1",
+    level_name: borrowed.level.name,
+    level_id: String(borrowed.level.levelId),
+    macro_author: borrowed.macro.author,
+    recorder: borrowed.macro.recorder,
+    download_url: borrowed.macro.downloadLink,
+    published_at: "2026-08-24T00:00:00Z",
+  };
+  const merged = owned.resolveOwnedMacros(mine, [ledgerRow]);
+  check("a submission credited to someone else still appears", merged.length === rows.length + 1);
+  check("and is marked as submitted by you",
+    merged.some((r) => r.macroAuthor === borrowed.macro.author && r.submittedByYou));
+
+  // The same macro from both sources is one row, keyed on the download URL.
+  const own = mine.credits[0];
+  const dup = owned.resolveOwnedMacros(mine, [{
+    ...ledgerRow,
+    submission_id: "sub-2",
+    macro_author: own.macro.author,
+    recorder: own.macro.recorder,
+    download_url: own.macro.downloadLink,
+  }]);
+  check("a macro in both sources is not duplicated", dup.length === rows.length);
+}
 check("accepted history is collapsible", /<details/.test(src.submissionsUi) && /<summary/.test(src.submissionsUi));
 check("accepted history links live macros", /View live macro/.test(src.submissionsUi));
 check(
-  "the history explains why older macros are absent",
-  /macros published before then are not in it/i.test(flat(src.submissionsUi)),
+  "the history no longer claims older macros are missing",
+  !/macros published before then are not in it/i.test(flat(src.submissionsUi)),
+  "the panel now includes everything, so that caveat would be wrong",
+);
+check(
+  "the panel points at the public profile",
+  /your public profile/i.test(flat(src.submissionsUi)),
 );
 check("published history is owned by a UUID", /create table if not exists public\.published_submissions/i.test(src.migration) && /user_id\s+uuid/i.test(src.migration));
 check("the ledger has owner-only RLS", /published_submissions[\s\S]*enable row level security/i.test(src.migration) && /auth\.uid\(\)[\s\S]*user_id/i.test(src.migration));

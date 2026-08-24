@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import MySubmissions from "@/components/submissions/MySubmissions";
 import { findAuthorByName } from "@/lib/authors";
 import { getUserAndProfile } from "@/lib/profile";
-import { resolvePublishedSubmissions } from "@/lib/publishedSubmissions";
+import { resolveOwnedMacros } from "@/lib/publishedSubmissions";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -46,7 +46,12 @@ export default async function SubmissionsPage() {
   ]);
 
   const data = live.data as SubmissionRow[] | null;
-  const published = resolvePublishedSubmissions(
+
+  // Every macro credited to this username, plus anything this account submitted
+  // under a different credit. The catalog half is what makes work published
+  // before the account ledger existed show up at all.
+  const owned = resolveOwnedMacros(
+    findAuthorByName(profile.username),
     (accepted.data ?? []) as PublishedSubmissionRow[],
   );
 
@@ -71,7 +76,7 @@ export default async function SubmissionsPage() {
 
       <MySubmissions
         rows={data ?? []}
-        published={published}
+        owned={owned}
         profileHref={
           findAuthorByName(profile.username)
             ? `/author/${findAuthorByName(profile.username)!.slug}`
