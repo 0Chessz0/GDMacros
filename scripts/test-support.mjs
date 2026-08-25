@@ -33,6 +33,7 @@ const support = await jiti.import(path.join(ROOT, "src/lib/supportTickets.ts"));
 
 const src = {
   migration: read("supabase/migrations/0014_support_inbox_and_admin_tools.sql"),
+  replyMigration: read("supabase/migrations/0015_support_reply_notifications.sql"),
   actions: read("src/lib/actions/supportTickets.ts"),
   adminActions: read("src/lib/actions/adminTools.ts"),
   email: read("src/lib/email/supportTicket.ts"),
@@ -66,6 +67,7 @@ const src = {
   privacy: read("src/app/privacy/page.tsx"),
 };
 const mig = flat(src.migration);
+const replyMig = flat(src.replyMigration);
 
 console.log("Support routes and entry points");
 for (const route of [
@@ -154,6 +156,18 @@ check("nightly maintenance also purges expired tickets", /purgeExpiredSupportTic
 check("Postgres schedules physical deletion every minute", /cron\.schedule\( 'gdmacros-purge-expired-support-tickets', '\* \* \* \* \*'/.test(mig));
 check("physical deletion is indexed and time bounded", /support_tickets_retention_idx/.test(mig) && /delete_after <= now\(\)/.test(mig));
 check("only service role can call the purge RPC", /revoke all on function public\.purge_expired_support_tickets\(\) from public, anon, authenticated; grant execute on function public\.purge_expired_support_tickets\(\) to service_role/.test(mig));
+
+console.log("Reply notifications");
+check("reply notifications have their own kind", /support_ticket_reply/.test(replyMig));
+check("the opening message is not treated as a reply", /m\.id <> new\.id[\s\S]*return new/.test(replyMig));
+check("admin replies notify the ticket owner", /new\.author_role = 'admin'[\s\S]*v_owner[\s\S]*'support_ticket_reply'/.test(replyMig));
+check("owner replies notify every admin", /from public\.user_roles r[\s\S]*r\.role = 'admin'/.test(replyMig));
+check("reply alerts coalesce per recipient and ticket", /unique \(user_id, ticket_id, kind\)/.test(replyMig) && /on conflict \(user_id, ticket_id, kind\) do update/.test(replyMig));
+check("a fresh reply becomes unread and visible again", /read_at = null[\s\S]*dismissed_at = null/.test(replyMig));
+check("replying clears the author's stale alert", /dismissed_at = coalesce[\s\S]*n\.user_id = new\.author_id/.test(replyMig));
+check("reply alerts never enter the closure email queue", /when \(new\.kind = 'support_ticket_closed'\)/.test(replyMig));
+check("reply alerts inherit the ticket deletion deadline", /expire_support_ticket_reply_notifications[\s\S]*expires_at = new\.delete_after/.test(replyMig));
+check("reply alerts render differently from closures", /item\.kind === "support_ticket_reply"/.test(src.supportNotifications) && /Open reply/.test(src.supportNotifications));
 
 console.log("Admin inbox and blocks");
 for (const [name, page] of [["inbox", src.inbox], ["activity", src.activity], ["quality", src.quality]]) {

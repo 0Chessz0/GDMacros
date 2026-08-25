@@ -35,12 +35,12 @@ export interface SupportTicketMessageRow {
 
 export interface AccountNotificationRow {
   id: string;
-  kind: "support_ticket_closed";
+  kind: "support_ticket_closed" | "support_ticket_reply";
   ticket_id: string;
   title: string;
   message: string;
   read_at: string | null;
-  expires_at: string;
+  expires_at: string | null;
   created_at: string;
 }
 
