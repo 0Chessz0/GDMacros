@@ -1,5 +1,5 @@
 /**
- * The two GDMacros owners, as a fixed list.
+ * The GDMacros owner, kept in a fixed list so the UI can remain data-driven.
  *
  * These ids are hardcoded ON PURPOSE. The About page is not a Discord lookup
  * tool: no query string, route parameter or other visitor input may ever reach
@@ -18,7 +18,6 @@ export interface Owner {
 
 export const OWNERS: readonly Owner[] = [
   { name: "Chessz", role: "Owner", discordId: "1488686761264549939" },
-  { name: "Spypiexj8", role: "Owner", discordId: "836846354781175818" },
 ] as const;
 
 /** The public profile link Discord itself serves. Never an invite. */
