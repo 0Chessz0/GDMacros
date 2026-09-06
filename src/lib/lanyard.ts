@@ -1,5 +1,5 @@
 /**
- * Public Discord presence for the two GDMacros owners, via Lanyard.
+ * Public Discord presence for the configured GDMacros owner, via Lanyard.
  *
  * Everything here is pure: it takes whatever Lanyard returned and turns it into
  * a small, safe shape for rendering. No fetching, no React, no side effects, so
@@ -12,7 +12,7 @@
  * widget is never worth breaking a page over. Every accessor below treats the
  * response as untrusted and falls back rather than assuming a shape.
  *
- * This is deliberately NOT a general Discord lookup. Only the two ids in
+ * This is deliberately NOT a general Discord lookup. Only the ids in
  * `owners.ts` are ever requested, and no visitor input reaches the URL.
  */
 

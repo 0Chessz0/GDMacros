@@ -93,11 +93,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Owners last, at the very bottom of the page. */}
+      {/* The owner stays last, at the very bottom of the page. */}
       <section className="mt-14">
-        <h2 className="text-[19px] font-bold text-text">Meet the owners</h2>
+        <h2 className="text-[19px] font-bold text-text">Meet the owner</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          Two people run {site.name} and record most of what you see here.
+          Chessz runs {site.name} and records most of what you see here.
         </p>
 
         <DiscordOwnerCards />

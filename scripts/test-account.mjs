@@ -37,6 +37,7 @@ const jiti = createJiti(path.join(ROOT, "scripts", "test-account.mjs"), {
 const authors = await jiti.import(path.join(ROOT, "src/lib/authors.ts"));
 const macros = await jiti.import(path.join(ROOT, "src/lib/macros.ts"));
 const owned = await jiti.import(path.join(ROOT, "src/lib/publishedSubmissions.ts"));
+const usernames = await jiti.import(path.join(ROOT, "src/lib/username.ts"));
 
 const src = {
   migration: read("supabase/migrations/0011_account_experience.sql"),
@@ -69,6 +70,7 @@ const src = {
   publisher: read("src/lib/publish/publisher.ts"),
   privacy: read("src/app/privacy/page.tsx"),
   legal: read("src/lib/legal.ts"),
+  formerOwnerRemoval: read("supabase/migrations/0016_remove_former_owner_access.sql"),
 };
 
 console.log("Catalog-credit authors");
@@ -98,6 +100,9 @@ check("the profile page is labelled a profile", /Profile/.test(src.authorPage));
 check("macro detail links author credits", /\/author\/\$\{author\.slug\}/.test(src.macroPage));
 check("author links are outside the download anchor", src.macroPage.indexOf("href={`/author/") < src.macroPage.indexOf("href={macro.downloadLink}"));
 check("the sitemap includes every author page", /getAllAuthors/.test(src.sitemap) && /\/author\//.test(src.sitemap));
+check("the former owner name passes the client availability check", usernames.usernameProblem("Spypiexj8") === null);
+check("the former owner role is revoked defensively", /delete from public\.user_roles[\s\S]*role = 'admin'[\s\S]*username_lower = 'spypiexj8'/.test(src.formerOwnerRemoval));
+check("the former owner name is released in the database", /delete from private\.reserved_usernames[\s\S]*name_lower = 'spypiexj8'/.test(src.formerOwnerRemoval));
 
 console.log("Accepted submission history");
 check("the page queries the account ledger", /from\("published_submissions"\)/.test(src.submissionsPage));
@@ -140,7 +145,7 @@ check(
   check("matching is case-insensitive", owned.resolveOwnedMacros(authors.findAuthorByName("chesszdc"), []).length === rows.length);
 
   // A macro this account submitted but which is credited to somebody else.
-  const other = authors.findAuthorByName("Spypiexj8");
+  const other = authors.findAuthorByName("Cerealmilkbowl");
   const borrowed = other.credits[0];
   const ledgerRow = {
     submission_id: "sub-1",

@@ -28,7 +28,7 @@ const RESERVED_HINT = new Set([
   "admin", "administrator", "root", "system", "support", "staff", "mod",
   "moderator", "official", "owner", "gdmacros", "gd_macros", "api", "auth",
   "login", "logout", "signup", "account", "settings", "favorites", "submit",
-  "welcome", "admin_panel", "null", "undefined", "chesszdc", "spypiexj8",
+  "welcome", "admin_panel", "null", "undefined", "chesszdc",
 ]);
 
 /** The first thing wrong with a candidate name, or null when it looks fine. */

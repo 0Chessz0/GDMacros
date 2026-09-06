@@ -328,7 +328,7 @@ export default function PrivacyPage() {
                 About
               </Link>{" "}
               page. That request is made by your browser. It asks only for the public Discord
-              profiles of the two site owners, and there is no way to make it look up anyone else.
+              profile of the site owner, and there is no way to make it look up anyone else.
             </>,
           ]}
         />

@@ -607,12 +607,10 @@ check("broadcasts and audiences are not used", !/\.broadcasts\.|\.audiences\./.t
  * ------------------------------------------------------------------ */
 console.log("Owners and Lanyard");
 
-eq("two owners are configured", owners.OWNERS.length, 2);
+eq("one owner is configured", owners.OWNERS.length, 1);
 eq("Chessz id", owners.OWNERS[0].discordId, "1488686761264549939");
-eq("Spypiexj8 id", owners.OWNERS[1].discordId, "836846354781175818");
 eq("profile link for Chessz", owners.discordProfileUrl(owners.OWNERS[0].discordId), "https://discord.com/users/1488686761264549939");
-eq("profile link for Spypiexj8", owners.discordProfileUrl(owners.OWNERS[1].discordId), "https://discord.com/users/836846354781175818");
-check("owner ids are recognised", owners.isOwnerId("836846354781175818"));
+check("the owner id is recognised", owners.isOwnerId("1488686761264549939"));
 check("an arbitrary id is not an owner", !owners.isOwnerId("123456789012345678"));
 check("no invite link is invented", !/discord\.gg/.test(src.about + src.ownerCard));
 check(
@@ -648,7 +646,7 @@ eq("display name prefers the global name", online.displayName, "Chessz");
 eq("username is kept", online.username, "chesszdc");
 check("avatar url is built from the hash", online.avatarUrl.includes("/avatars/1488686761264549939/abc123.png"));
 check("animated avatars use gif", lanyard.avatarUrl("1", "a_deadbeef").endsWith(".gif?size=128"));
-check("a missing avatar falls back to a default", lanyard.avatarUrl("836846354781175818", null).includes("/embed/avatars/"));
+check("a missing avatar falls back to a default", lanyard.avatarUrl("1488686761264549939", null).includes("/embed/avatars/"));
 check("no avatar url is hardcoded anywhere", !/cdn\.discordapp\.com\/avatars\/(1488686761264549939|836846354781175818)\//.test(src.ownerCard + src.about));
 
 eq("no activity means no activity line", online.activity, null);
@@ -706,14 +704,14 @@ for (const [label, bad] of [
   check(`malformed payload returns null or a safe shape: ${label}`, threw || out === null || typeof out === "object");
 }
 
-eq("lanyard url for an owner", lanyard.lanyardUrl("836846354781175818"), "https://api.lanyard.rest/v1/users/836846354781175818");
+eq("lanyard url for the owner", lanyard.lanyardUrl("1488686761264549939"), "https://api.lanyard.rest/v1/users/1488686761264549939");
 check("the fallback still shows the owner", /Discord status unavailable/.test(src.ownerCard));
 check("the fallback still links the profile", /discordProfileUrl/.test(src.ownerCard));
-check("presence failures do not blank the other card", /allSettled/.test(src.ownerCard));
+check("presence failures do not blank the owner card", /allSettled/.test(src.ownerCard));
 check("refresh is not aggressive", /REFRESH_MS = 4[0-9]_?[0-9]*|REFRESH_MS = [3-9][0-9]_000/.test(src.ownerCard));
 check("no empty activity box is rendered", /presence\?\.activity && \(/.test(src.ownerCard));
 check("the build does not depend on Lanyard", /"use client"/.test(src.ownerCard.slice(0, 40)));
-check("about page shows the owners section", /Meet the owners/.test(src.about));
+check("about page shows the owner section", /Meet the owner/.test(src.about));
 check("about page carries the support mailto", /SUPPORT_MAILTO/.test(src.about));
 check(
   "the private mailbox appears nowhere in rendered output",

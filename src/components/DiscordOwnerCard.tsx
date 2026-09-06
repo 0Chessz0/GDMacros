@@ -12,7 +12,7 @@ import {
 import { DiscordIcon, ExternalIcon } from "./icons";
 
 /**
- * Live Discord presence for the two site owners, via Lanyard.
+ * Live Discord presence for the configured site owner, via Lanyard.
  *
  * Fetched in the BROWSER, on purpose. Presence changes constantly, so baking it
  * into the build would ship a status that is stale the moment it is deployed,
@@ -34,8 +34,8 @@ function useOwnerPresence(): Record<string, OwnerPresence | null> {
     let cancelled = false;
 
     async function load() {
-      // Each owner is fetched independently so one failure cannot blank the
-      // other card. `allSettled`, never `all`.
+      // Each owner is fetched independently so one failed lookup cannot blank
+      // any other configured card. `allSettled`, never `all`.
       const results = await Promise.allSettled(
         OWNERS.map(async (o) => {
           const res = await fetch(lanyardUrl(o.discordId), { cache: "no-store" });
@@ -147,8 +147,6 @@ function Card({ owner, presence }: { owner: Owner; presence: OwnerPresence | nul
 }
 
 /**
- * Both owner cards.
- *
  * Renders immediately from the configured owner list, before any request
  * finishes and whether or not one ever does. Presence only ever adds detail to
  * a card that already exists.
@@ -157,7 +155,7 @@ export default function DiscordOwnerCards() {
   const presence = useOwnerPresence();
 
   return (
-    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+    <div className="mt-6 grid max-w-md gap-4">
       {OWNERS.map((o) => (
         <Card key={o.discordId} owner={o} presence={presence[o.discordId] ?? null} />
       ))}
