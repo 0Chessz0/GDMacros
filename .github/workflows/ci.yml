@@ -88,5 +88,8 @@ jobs:
       - name: Support inbox and admin tools
         run: npm run test:support
 
+      - name: Advertising and consent wiring
+        run: npm run test:ads
+
       - name: Language switcher
         run: npm run test:translate
