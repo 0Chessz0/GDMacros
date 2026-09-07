@@ -3,10 +3,15 @@ export const RECORDERS = ["Mega Hack", "xdBot", "zBot"] as const;
 
 export type Recorder = (typeof RECORDERS)[number];
 
-/** Original uploads currently accepted by the .gdr2 submission pipeline. */
-export const SUBMISSION_RECORDERS = ["Mega Hack", "xdBot"] as const;
+/** Playback formats accepted by the submission and publishing pipeline. */
+export const SUBMISSION_RECORDERS = RECORDERS;
 
 export type SubmissionRecorder = (typeof SUBMISSION_RECORDERS)[number];
+
+/** Public file extension used by each recorder. */
+export function macroFileExtension(recorder: string): ".gdr" | ".gdr2" {
+  return recorder === "zBot" ? ".gdr" : ".gdr2";
+}
 
 /** One downloadable macro. A level can carry any number of these. */
 export interface MacroInput {

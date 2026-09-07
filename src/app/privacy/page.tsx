@@ -162,7 +162,7 @@ export default function PrivacyPage() {
         <Bullets
           items={[
             "Which account submitted it, and the level, video link, recorder, macro author and any notes you entered.",
-            "The .gdr2 file itself.",
+            "The .gdr or .gdr2 file itself.",
             "Timestamps and the current review status.",
           ]}
         />

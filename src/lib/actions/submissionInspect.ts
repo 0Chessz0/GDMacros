@@ -4,11 +4,13 @@ import { createHash } from "node:crypto";
 import { isCurrentUserAdmin } from "@/lib/admin";
 import { getUser, createClient } from "@/lib/supabase/server";
 import { downloadSubmissionObject } from "@/lib/supabase/storage-admin";
+import { readGdrMetadata } from "@/lib/gdr";
 import { readGdr2Metadata } from "@/lib/gdr2";
 import { getAllLevels } from "@/lib/macros";
 import {
   findExistingEntry,
   hasWarnings,
+  reviewGdrFindings,
   reviewFindings,
   type Finding,
 } from "@/lib/gdr2Review";
@@ -62,8 +64,10 @@ export async function inspectSubmission(id: string): Promise<InspectResult> {
   const file = await downloadSubmissionObject(data.submitted_by as string, data.id as string);
   if (!file.ok) return { ok: false, error: "The uploaded file could not be opened." };
 
-  const meta = readGdr2Metadata(file.bytes);
-  if (!meta) {
+  const recorder = String(data.recorder ?? "");
+  const gdrMeta = recorder === "zBot" ? readGdrMetadata(file.bytes) : null;
+  const gdr2Meta = recorder !== "zBot" ? readGdr2Metadata(file.bytes) : null;
+  if (!gdrMeta && !gdr2Meta) {
     return {
       ok: false,
       error:
@@ -79,7 +83,9 @@ export async function inspectSubmission(id: string): Promise<InspectResult> {
     recorder: String(data.recorder ?? ""),
   };
 
-  const findings = reviewFindings(meta, claim, file.bytes.byteLength, sha256);
+  const findings = gdrMeta
+    ? reviewGdrFindings(gdrMeta, claim, file.bytes.byteLength, sha256)
+    : reviewFindings(gdr2Meta!, claim, file.bytes.byteLength, sha256);
 
   return {
     ok: true,

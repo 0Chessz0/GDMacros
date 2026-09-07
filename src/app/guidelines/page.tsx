@@ -13,7 +13,7 @@ const SECTIONS = [
   {
     title: "What belongs here",
     items: [
-      "Macros recorded with Mega Hack's macro recorder, or with xdBot's recorder. Nothing else is accepted.",
+      "Macros recorded with Mega Hack, xdBot or zBot. Nothing else is accepted.",
       "The level has to be possible on 240 FPS.",
       "The level has to exist in-game and have a working level ID.",
       "A showcase video is optional but encouraged. It becomes the entry's thumbnail automatically.",
@@ -22,7 +22,7 @@ const SECTIONS = [
   {
     title: "What gets rejected",
     items: [
-      "Anything recorded with a tool other than Mega Hack or xdBot.",
+      "Anything recorded with a tool other than Mega Hack, xdBot or zBot.",
       "Reuploads. If the macro isn't yours, it doesn't get posted.",
       "Macros presented as legitimate completions. This is a macro index, not a records list.",
       "Entries with a level ID that doesn't resolve on GD Browser.",
@@ -36,11 +36,11 @@ export default function GuidelinesPage() {
       <AnimatedHeading text="Guidelines" className="text-[30px] font-extrabold tracking-tight text-text sm:text-[36px]" />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         {site.name} indexes macros and does not rank them against each other. Submissions are accepted
-        as long as they were recorded with one of the two supported tools and are your own work.
+        as long as they were recorded with one of the three supported tools and are your own work.
       </p>
 
-      {/* The two accepted recorders, called out up front. */}
-      <div className="mt-8 grid gap-2.5 sm:grid-cols-2">
+      {/* The accepted recorders, called out up front. */}
+      <div className="mt-8 grid gap-2.5 sm:grid-cols-3">
         {SUBMISSION_RECORDERS.map((r) => (
           <div key={r} className="card px-4 py-3.5">
             <p className="text-[11px] font-semibold tracking-wider text-muted uppercase">Accepted</p>
@@ -69,8 +69,9 @@ export default function GuidelinesPage() {
         <h2 className="text-[17px] font-bold text-text">Submitting</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
           You don&apos;t need to host the file anywhere. Sign in, fill in the level name, the level
-          creator, the level ID and who recorded it, then attach the .gdr2. We review it, upload it
-          ourselves and add it to the catalog for you.
+          creator, the level ID and who recorded it, then attach the matching file: .gdr for zBot
+          or .gdr2 for Mega Hack and xdBot. We review it, upload it ourselves and add it to the
+          catalog for you.
         </p>
         <Link
           href="/submit"

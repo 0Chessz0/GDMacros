@@ -6,6 +6,7 @@ import {
   putSubmissionObject,
 } from "@/lib/supabase/storage-admin";
 import { checkGdr2 } from "@/lib/gdr2";
+import { checkGdr } from "@/lib/gdr";
 import { lookupLevel } from "@/lib/gdbrowser";
 import { canonicalUrl, verifyVideo, videoIdFromUrl } from "@/lib/youtube";
 import {
@@ -99,11 +100,11 @@ export async function POST(request: NextRequest) {
 
   const file = form.get("file");
   const asFile = file instanceof File ? file : null;
-  const fileError = validateFile(asFile);
+  const fileError = validateFile(asFile, fields.recorder);
   if (fileError) errors.file = fileError;
 
   if (!isClean(errors)) return bad(400, "Some fields need fixing.", errors);
-  if (!asFile) return bad(400, "Choose the .gdr2 macro file.");
+  if (!asFile) return bad(400, "Choose the macro file.");
 
   // Read the bytes only after the cheap checks have passed.
   const bytes = new Uint8Array(await asFile.arrayBuffer());
@@ -116,9 +117,9 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const gdr = checkGdr2(bytes);
-  if (!gdr.ok) {
-    return bad(400, "Some fields need fixing.", { file: gdr.error });
+  const macro = fields.recorder === "zBot" ? checkGdr(bytes) : checkGdr2(bytes);
+  if (!macro.ok) {
+    return bad(400, "Some fields need fixing.", { file: macro.error });
   }
 
   /*

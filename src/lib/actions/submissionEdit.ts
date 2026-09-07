@@ -7,6 +7,9 @@ import { canonicalUrl, verifyVideo, videoIdFromUrl } from "@/lib/youtube";
 import { lookupLevel } from "@/lib/gdbrowser";
 import { SUBMISSION_RECORDERS } from "@/lib/types";
 import { safeDetail } from "@/lib/health";
+import { checkGdr } from "@/lib/gdr";
+import { checkGdr2 } from "@/lib/gdr2";
+import { downloadSubmissionObject } from "@/lib/supabase/storage-admin";
 
 /**
  * Correcting a submission before it is published.
@@ -123,7 +126,30 @@ export async function updateSubmission(id: string, fields: EditFields): Promise<
   if (fields.recorder?.trim()) {
     const recorder = fields.recorder.trim();
     if (!(SUBMISSION_RECORDERS as readonly string[]).includes(recorder)) {
-      return { ok: false, error: "Recorder must be one of the two supported tools." };
+      return { ok: false, error: "Recorder must be Mega Hack, xdBot or zBot." };
+    }
+
+    // A recorder edit can also change the required file format. Confirm the
+    // private bytes before saving so the queue cannot claim zBot while holding
+    // a `.gdr2`, or claim Mega Hack/xdBot while holding a `.gdr`.
+    const { data: stored } = await supabase
+      .from("submissions")
+      .select("id,submitted_by")
+      .eq("id", id)
+      .maybeSingle();
+    if (!stored) return { ok: false, error: "That submission could not be found." };
+
+    const file = await downloadSubmissionObject(stored.submitted_by, stored.id);
+    if (!file.ok) return { ok: false, error: "The submitted file could not be checked." };
+    const format = recorder === "zBot" ? checkGdr(file.bytes) : checkGdr2(file.bytes);
+    if (!format.ok) {
+      return {
+        ok: false,
+        error:
+          recorder === "zBot"
+            ? "That upload is not a valid zBot .gdr file."
+            : `That upload is not a valid ${recorder} .gdr2 file.`,
+      };
     }
     payload.p_recorder = recorder;
   }

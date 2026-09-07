@@ -170,7 +170,7 @@ check("FAQ links guidelines and submit", /href="\/guidelines"/.test(src.faq) && 
 check("FAQ links terms and privacy", /href="\/terms"/.test(src.faq) && /href="\/privacy"/.test(src.faq));
 check("FAQ refuses to promise macros are ban-safe", /cannot promise/i.test(src.faq));
 check(
-  "FAQ does not claim every level has both recorders",
+  "FAQ does not claim every level has every recorder",
   !/every level has both/i.test(src.faq),
 );
 check("FAQ says replay files are not executables", /neither format is an installer or executable/i.test(src.faq));

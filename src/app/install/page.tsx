@@ -253,8 +253,8 @@ export default function InstallPage() {
           </span>
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-muted">
-          The zBot downloads in this catalog are converted from compatible xdBot recordings while
-          keeping the same level and macro-author credit.
+          The initial zBot collection was converted from compatible xdBot recordings while keeping
+          the same level and macro-author credit. Native zBot recordings can also be submitted.
         </p>
 
         <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">

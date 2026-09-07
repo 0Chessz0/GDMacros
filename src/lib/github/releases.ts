@@ -11,7 +11,8 @@ import { DOWNLOADS_REPO, GITHUB_API, GITHUB_ORG, GITHUB_UPLOADS } from "./config
  *
  *   title  Acheron
  *   tag    level-73667628
- *   assets Zoink-Acheron-Mega-Hack.gdr2, Someone-Acheron-xdBot.gdr2, ...
+ *   assets Zoink-Acheron-Mega-Hack.gdr2, Someone-Acheron-xdBot.gdr2,
+ *   Player-Acheron-zBot.gdr, ...
  *
  * The tag is the identity because level names collide and can change, while an
  * id cannot. Every later macro for the same level attaches to the same release.

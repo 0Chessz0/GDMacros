@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { checkGdr } from "@/lib/gdr";
 import { checkGdr2 } from "@/lib/gdr2";
 import { lookupLevel } from "@/lib/gdbrowser";
 import { downloadSubmissionObject } from "@/lib/supabase/storage-admin";
@@ -30,7 +31,7 @@ import { assetCandidates, releaseTagFor } from "./assetName";
  *
  * ORDER OF IRREVERSIBLE WORK
  * --------------------------
- *   not_started      -> upload the .gdr2 to a GitHub Release   (irreversible)
+ *   not_started      -> upload the recorder's macro file       (irreversible)
  *   asset_uploaded   -> commit data/macros.json to main        (irreversible)
  *   catalog_committed-> observe production serving that commit (observation)
  *   live_verified    -> finalise: delete submission, notify    (irreversible)
@@ -299,9 +300,9 @@ export async function runPublish(
 
       // Revalidate the bytes themselves. They passed this at submission time,
       // but this is the last moment before they become permanently public.
-      const check = checkGdr2(file.bytes);
+      const check = sub.recorder === "zBot" ? checkGdr(file.bytes) : checkGdr2(file.bytes);
       if (!check.ok) {
-        await noteError(supabase, submissionId, "validating", "gdr2 revalidation failed");
+        await noteError(supabase, submissionId, "validating", "macro revalidation failed");
         return {
           ok: false,
           state,

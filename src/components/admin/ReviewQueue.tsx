@@ -8,6 +8,7 @@ import {
   startProcessing,
 } from "@/lib/actions/submissions";
 import { LIMITS, MIN_REJECTION_REASON, STATUS_LABEL, formatDate } from "@/lib/submissions";
+import { macroFileExtension } from "@/lib/types";
 import ProcessingModal from "./ProcessingModal";
 import EditSubmission from "./EditSubmission";
 import InspectSubmission from "./InspectSubmission";
@@ -253,7 +254,9 @@ function Card({
                 disabled={busy !== null}
                 className="rounded-lg border border-accent/40 bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent-soft transition-[background-color,border-color,transform] duration-200 ease-out hover:bg-accent/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {busy === "download" ? "Preparing..." : "Download .gdr2"}
+                {busy === "download"
+                  ? "Preparing..."
+                  : `Download ${macroFileExtension(row.recorder)}`}
               </button>
               <button
                 type="button"
@@ -291,7 +294,9 @@ function Card({
                 disabled={busy !== null}
                 className="rounded-lg border border-accent/40 bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent-soft transition-[background-color,border-color,transform] duration-200 ease-out hover:bg-accent/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {busy === "download" ? "Preparing..." : "Download .gdr2"}
+                {busy === "download"
+                  ? "Preparing..."
+                  : `Download ${macroFileExtension(row.recorder)}`}
               </button>
               <button
                 type="button"

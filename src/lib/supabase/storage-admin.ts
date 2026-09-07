@@ -72,7 +72,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  *   {user_id}/{submission_id}.gdr2
  *
  * Built here from ids rather than accepted as a string, so no caller can pass a
- * traversal or point at another user's folder.
+ * traversal or point at another user's folder. This is an internal object key,
+ * not the public filename: ZBot bytes use the same opaque path and receive
+ * their correct `.gdr` filename when an admin downloads or publishes them.
  */
 function objectPath(userId: string, submissionId: string): string {
   if (!UUID.test(userId) || !UUID.test(submissionId)) {
@@ -187,12 +189,15 @@ export async function downloadSubmissionObject(
 export async function createSubmissionSignedUrl(
   userId: string,
   submissionId: string,
+  downloadName: string,
   expiresInSeconds = 60,
 ): Promise<{ url: string } | { error: string }> {
   try {
     const { data, error } = await adminClient()
       .storage.from(BUCKET)
-      .createSignedUrl(objectPath(userId, submissionId), expiresInSeconds);
+      .createSignedUrl(objectPath(userId, submissionId), expiresInSeconds, {
+        download: downloadName,
+      });
     if (error || !data?.signedUrl) return { error: error?.message ?? "could not sign" };
     return { url: data.signedUrl };
   } catch (e) {

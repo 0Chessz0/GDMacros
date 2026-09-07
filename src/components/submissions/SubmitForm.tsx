@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { AuthField, FormError, SubmitButton } from "@/components/auth/fields";
-import { SUBMISSION_RECORDERS } from "@/lib/types";
+import { SUBMISSION_RECORDERS, macroFileExtension } from "@/lib/types";
 import { isClean, validateFile, type FieldErrors } from "@/lib/submissions";
 
 /**
@@ -161,7 +161,7 @@ export default function SubmitForm({ username }: { username: string }) {
     if (!SUBMISSION_RECORDERS.includes(recorder as (typeof SUBMISSION_RECORDERS)[number]))
       next.recorder = "Choose which tool recorded this macro.";
     if (!macroAuthor.trim()) next.macroAuthor = "Enter who recorded the macro.";
-    const fileProblem = validateFile(file);
+    const fileProblem = validateFile(file, recorder);
     if (fileProblem) next.file = fileProblem;
     setErrors(next);
     if (!isClean(next)) return;
@@ -519,7 +519,7 @@ export default function SubmitForm({ username }: { username: string }) {
             id="file"
             ref={fileRef}
             type="file"
-            accept=".gdr2"
+            accept={recorder ? macroFileExtension(recorder) : ".gdr,.gdr2"}
             onChange={(e) => {
               setFile(e.target.files?.[0] ?? null);
               setErrors((p) => ({ ...p, file: undefined }));
@@ -531,7 +531,13 @@ export default function SubmitForm({ username }: { username: string }) {
           {errors.file ? (
             <p className="mt-1.5 text-[12px] text-rose">{errors.file}</p>
           ) : (
-            <p className="mt-1.5 text-[12px] text-muted">A .gdr2 file, up to 2 MB.</p>
+            <p className="mt-1.5 text-[12px] text-muted">
+              {recorder === "zBot"
+                ? "A ZBot .gdr file, up to 2 MB."
+                : recorder
+                  ? `A ${recorder} .gdr2 file, up to 2 MB.`
+                  : "A .gdr file for ZBot, or a .gdr2 file for Mega Hack and xdBot. Up to 2 MB."}
+            </p>
           )}
         </div>
 

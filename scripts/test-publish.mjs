@@ -416,6 +416,34 @@ function fakeGdr2() {
   return new Uint8Array(Buffer.concat(parts));
 }
 
+/** A minimal native ZBot MessagePack replay. */
+function fakeGdr() {
+  const parts = [];
+  const byte = (...values) => parts.push(Buffer.from(values));
+  const str = (value) => {
+    const encoded = Buffer.from(value, "utf8");
+    if (encoded.length >= 32) throw new Error("test string is too long");
+    byte(0xa0 | encoded.length);
+    parts.push(encoded);
+  };
+  const f32 = (value) => {
+    const encoded = Buffer.alloc(5);
+    encoded[0] = 0xca;
+    encoded.writeFloatBE(value, 1);
+    parts.push(encoded);
+  };
+
+  byte(0x87);
+  str("version"); f32(1);
+  str("bot"); byte(0x82); str("name"); str("zBot"); str("version"); str("3.0.0");
+  str("level"); byte(0x82); str("id"); byte(0xce, 0x04, 0x64, 0x2a, 0x4c); str("name"); str("Acheron");
+  str("inputs"); byte(0x91, 0x84); str("2p"); byte(0xc2); str("btn"); byte(0x01); str("down"); byte(0xc3); str("frame"); byte(0x00);
+  str("duration"); f32(1);
+  str("framerate"); f32(240);
+  str("author"); str("Zoink");
+  return new Uint8Array(Buffer.concat(parts));
+}
+
 /* ------------------------------------------------------------------ */
 /* Run                                                                 */
 /* ------------------------------------------------------------------ */
@@ -438,6 +466,11 @@ async function main() {
     "xdBot casing preserved",
     names.assetFileName({ macroAuthor: "SomePlayer", levelName: "Bloodbath", recorder: "xdBot" }),
     "SomePlayer-Bloodbath-xdBot.gdr2",
+  );
+  eq(
+    "zBot uses its native extension",
+    names.assetFileName({ macroAuthor: "SomePlayer", levelName: "Bloodbath", recorder: "zBot" }),
+    "SomePlayer-Bloodbath-zBot.gdr",
   );
   eq(
     "spaces and punctuation collapse",
@@ -476,6 +509,7 @@ async function main() {
   eq("candidate 1 is clean", names.assetCandidate({ macroAuthor: "Z", levelName: "A", recorder: "xdBot" }, 1), "Z-A-xdBot.gdr2");
   eq("candidate 2 suffixes", names.assetCandidate({ macroAuthor: "Z", levelName: "A", recorder: "xdBot" }, 2), "Z-A-xdBot-2.gdr2");
   eq("candidate 3 suffixes", names.assetCandidate({ macroAuthor: "Z", levelName: "A", recorder: "xdBot" }, 3), "Z-A-xdBot-3.gdr2");
+  eq("zBot candidates keep .gdr", names.assetCandidate({ macroAuthor: "Z", levelName: "A", recorder: "zBot" }, 2), "Z-A-zBot-2.gdr");
 
   eq("release tag uses the level id", names.releaseTagFor("73667628"), "level-73667628");
   check(
@@ -635,6 +669,21 @@ async function main() {
     eq("happy: notification outcome", db.notifications[0].outcome, "accepted");
     eq("happy: still only one asset", gh.assets.get(gh.releases[0].id).length, 1);
     eq("happy: still only one commit", gh.commits.length, 1);
+  });
+
+  // -- native ZBot file follows the same flow and keeps its .gdr extension --
+  await scenario(async (gh) => {
+    globalThis.__FAKE_BYTES__ = fakeGdr();
+    const db = makeSupabase(baseSubmission({ recorder: "zBot" }));
+    const r = await pub.runPublish(db.client, UUID_B);
+    check("zBot: waits for production after publishing", r.ok && r.stage === "waiting-for-production");
+    eq("zBot: one asset", gh.assets.get(gh.releases[0].id).length, 1);
+    eq("zBot: native extension is retained", gh.assets.get(gh.releases[0].id)[0].name, "Zoink-Acheron-zBot.gdr");
+    const published = JSON.parse(gh.catalog.text)
+      .find((level) => String(level.levelId) === "73667628")
+      ?.macros.find((macro) => macro.downloadLink.endsWith("Zoink-Acheron-zBot.gdr"));
+    check("zBot: catalog entry is created", published?.recorder === "zBot");
+    globalThis.__FAKE_BYTES__ = bytes;
   });
 
   // -- production reports a DIFFERENT commit --

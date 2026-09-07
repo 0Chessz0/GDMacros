@@ -1,10 +1,11 @@
 /**
  * The one place a release asset filename is decided.
  *
- * Shape: `<macro-author>-<level-name>-<recorder>.gdr2`
+ * Shape: `<macro-author>-<level-name>-<recorder>.<format>`
  *
  *   Zoink-Acheron-Mega-Hack.gdr2
  *   SomePlayer-Bloodbath-xdBot.gdr2
+ *   Player-Acheron-zBot.gdr
  *
  * MACRO AUTHOR, never the submitter. Whoever uploaded a macro and whoever
  * recorded it are separate concepts everywhere else in this project, and a
@@ -23,14 +24,13 @@
  * import. That is what lets the tests exercise it directly.
  */
 
-/** Extension is fixed. A macro is a .gdr2 or it is not a macro. */
-export const ASSET_EXTENSION = ".gdr2";
+import { macroFileExtension } from "@/lib/types";
 
 /** Per-segment cap, so one absurd level name cannot eat the whole filename. */
 const MAX_SEGMENT = 48;
 
 /**
- * Cap for the whole base name (everything before `.gdr2`). Well under any
+ * Cap for the whole base name (everything before the extension). Well under any
  * filesystem or GitHub limit, and short enough to stay readable in a browser's
  * download list.
  */
@@ -88,14 +88,14 @@ export function assetBaseName({ macroAuthor, levelName, recorder }: AssetNamePar
 
 /** The full filename for a first upload. */
 export function assetFileName(parts: AssetNameParts): string {
-  return assetBaseName(parts) + ASSET_EXTENSION;
+  return assetBaseName(parts) + macroFileExtension(parts.recorder);
 }
 
 /**
  * The nth candidate name, used only when GitHub already holds the previous one.
  *
- * `n = 1` is the clean name. `n = 2` becomes `...-2.gdr2`, and so on, matching
- * the convention asked for.
+ * `n = 1` is the clean name. `n = 2` becomes `...-2.gdr2` or `...-2.gdr`,
+ * depending on the recorder, matching the convention asked for.
  *
  * IMPORTANT: a suffix means "a different macro that happens to sanitise to the
  * same name", never "the same submission being retried". Retry safety comes
@@ -104,8 +104,9 @@ export function assetFileName(parts: AssetNameParts): string {
  */
 export function assetCandidate(parts: AssetNameParts, n: number): string {
   const base = assetBaseName(parts);
-  if (n <= 1) return base + ASSET_EXTENSION;
-  return `${base}-${n}${ASSET_EXTENSION}`;
+  const extension = macroFileExtension(parts.recorder);
+  if (n <= 1) return base + extension;
+  return `${base}-${n}${extension}`;
 }
 
 /**

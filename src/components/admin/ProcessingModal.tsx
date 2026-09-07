@@ -5,6 +5,7 @@ import { getSubmissionDownloadUrl, releaseProcessing } from "@/lib/actions/submi
 import { checkPublishProgress, getPublishState, publishMacro } from "@/lib/actions/publish";
 import type { PublishProgress } from "@/lib/publish/publisher";
 import { formatDate } from "@/lib/submissions";
+import { macroFileExtension } from "@/lib/types";
 import type { AdminRow } from "./ReviewQueue";
 
 /**
@@ -127,6 +128,7 @@ export default function ProcessingModal({
   onClose: () => void;
   onFinished: () => void;
 }) {
+  const fileExtension = macroFileExtension(row.recorder);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<"download" | "publish" | "release" | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -395,7 +397,7 @@ export default function ProcessingModal({
 
           <Section title="File">
             <Row label="Filename">
-              <span className="font-mono text-[12px]">{row.level_id}.gdr2</span>
+              <span className="font-mono text-[12px]">{row.level_id}{fileExtension}</span>
             </Row>
             <Row label="Size">
               {row.file_size ? `${(row.file_size / 1024).toFixed(1)} KB` : "Unknown"}
@@ -407,7 +409,7 @@ export default function ProcessingModal({
                 disabled={busy !== null}
                 className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-dim transition-[background-color,border-color,transform,color] duration-200 ease-out hover:border-accent/40 hover:text-text active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {busy === "download" ? "Preparing..." : "Download .gdr2"}
+                {busy === "download" ? "Preparing..." : `Download ${fileExtension}`}
               </button>
               <p className="mt-2 text-[12px] text-muted">
                 A private link that expires in two minutes. It stops working once you finish.
@@ -442,7 +444,9 @@ export default function ProcessingModal({
             <div className="rounded-xl border border-accent/40 bg-accent/5 p-3.5">
               <p className="text-[13px] leading-relaxed text-text-dim">This will:</p>
               <ul className="mt-2 flex flex-col gap-1 text-[12.5px] leading-relaxed text-text-dim">
-                <li>publish the .gdr2 to GDMacros Downloads, permanently and publicly</li>
+                <li>
+                  publish the {fileExtension} to GDMacros Downloads, permanently and publicly
+                </li>
                 <li>add the macro to the GDMacros catalog</li>
                 <li>commit the catalog to GitHub</li>
                 <li>trigger the production deployment</li>
@@ -482,7 +486,7 @@ export default function ProcessingModal({
           <div className="mt-3">
             {started ? (
               /*
-               * Deliberately not offered any more. Once the .gdr2 is a public
+               * Deliberately not offered any more. Once the macro is a public
                * GitHub Release asset, handing the submission back to Pending
                * would leave a published file with nothing tracking it, and the
                * next admin would publish a second copy. The server refuses this

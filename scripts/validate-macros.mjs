@@ -102,7 +102,7 @@ data.forEach((entry, i) => {
     }
   });
 
-  // One person recording the same level for both tools is normal, so the slip
+  // One person recording the same level for multiple tools is normal, so the slip
   // worth catching is the same author *and* the same recorder twice over.
   const pairs = macros
     .map((m) => `${String(m.author || "").trim().toLowerCase()}|${String(m.recorder || "").trim()}`)

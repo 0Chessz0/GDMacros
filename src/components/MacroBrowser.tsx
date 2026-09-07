@@ -255,7 +255,7 @@ export default function MacroBrowser({ levels }: { levels: Level[] }) {
         </button>
       </div>
 
-      {/* Recorder filter. The guidelines only accept these two tools. */}
+      {/* Recorder filter. The guidelines accept exactly these catalog tools. */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 px-0.5">
         <Segmented<RecorderFilter>
           ariaLabel="Filter by recorder"

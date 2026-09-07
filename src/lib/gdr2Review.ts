@@ -1,4 +1,5 @@
 import type { Gdr2Metadata } from "./gdr2";
+import type { GdrMetadata } from "./gdr";
 
 /**
  * Turning a file's own header into things a reviewer should look at.
@@ -9,7 +10,7 @@ import type { Gdr2Metadata } from "./gdr2";
  *
  * WHY THIS EXISTS
  * ---------------
- * A macro was published with the two recorders swapped. Nothing in the review
+ * A macro was published with its recorder labels swapped. Nothing in the review
  * screen could have caught it, because the only evidence was inside the file
  * and nothing read it. Correcting it afterwards meant renaming release assets
  * through a temporary name and two catalog commits. This is the check that
@@ -159,6 +160,70 @@ export function reviewFindings(
   });
 
   return findings;
+}
+
+/** Review findings for a native ZBot GDReplayFormat v1 file. */
+export function reviewGdrFindings(
+  meta: GdrMetadata,
+  claim: SubmissionClaim,
+  fileBytes: number,
+  sha256: string,
+): Finding[] {
+  const declaredId = String(meta.levelId);
+  const levelMatches = declaredId === String(claim.levelId).trim();
+
+  return [
+    {
+      id: "level",
+      level: levelMatches ? "ok" : "warn",
+      label: "Level in the file",
+      value: meta.levelName ? `${meta.levelName} (${declaredId})` : declaredId,
+      note: levelMatches
+        ? undefined
+        : `The form says ${claim.levelId}. The recording is for a different level, or the ID was mistyped.`,
+    },
+    {
+      id: "recorder",
+      level: claim.recorder.trim() === "zBot" ? "ok" : "warn",
+      label: "Recorder the file is written for",
+      value: "zBot",
+      note:
+        claim.recorder.trim() === "zBot"
+          ? undefined
+          : `The form says ${claim.recorder}, but this is a ZBot .gdr replay.`,
+    },
+    {
+      id: "framerate",
+      level: meta.framerate < 60 ? "warn" : "info",
+      label: "Framerate",
+      value: `${meta.framerate} FPS`,
+      note:
+        meta.framerate < 60
+          ? "Unusually low. A macro recorded below 60 FPS often desyncs for other people."
+          : undefined,
+    },
+    { id: "duration", level: "info", label: "Length", value: fmtDuration(meta.duration) },
+    {
+      id: "declaredBot",
+      level: "info",
+      label: "Declared by the file",
+      value: `${meta.botName} v${meta.botVersion}`,
+    },
+    {
+      id: "inputs",
+      level: "info",
+      label: "Inputs",
+      value: meta.inputCount.toLocaleString("en-US"),
+    },
+    { id: "size", level: "info", label: "File", value: fmtBytes(fileBytes) },
+    {
+      id: "sha256",
+      level: "info",
+      label: "SHA-256",
+      value: sha256.slice(0, 16),
+      note: "Identifies this exact file. Two submissions with the same hash are the same upload.",
+    },
+  ];
 }
 
 /** True when anything needs a second look before publishing. */

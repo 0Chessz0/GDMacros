@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Submit a macro",
-  description: "Send a .gdr2 macro to GDMacros for review.",
+  description: "Send a Mega Hack, xdBot or zBot macro to GDMacros for review.",
   robots: { index: false, follow: false },
 };
 
@@ -31,7 +31,7 @@ export default async function SubmitPage() {
         Submit a macro
       </h1>
       <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-        Send a .gdr2 recording in for review. Have a look at the{" "}
+        Send a Mega Hack, xdBot or zBot recording in for review. Have a look at the{" "}
         <Link href="/guidelines" className="text-accent-soft hover:underline">
           guidelines
         </Link>{" "}

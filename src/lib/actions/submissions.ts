@@ -11,6 +11,7 @@ import {
 import { isCurrentUserAdmin } from "@/lib/admin";
 import { sendSubmissionResultBestEffort } from "@/lib/actions/submissionResultEmail";
 import { MIN_REJECTION_REASON, LIMITS, submissionErrorMessage } from "@/lib/submissions";
+import { assetFileName } from "@/lib/publish/assetName";
 
 /**
  * Server actions for everything after a submission exists.
@@ -238,7 +239,7 @@ export async function getSubmissionDownloadUrl(
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("id,submitted_by,status")
+    .select("id,submitted_by,status,level_name,recorder,macro_author")
     .eq("id", id)
     .maybeSingle();
 
@@ -250,7 +251,12 @@ export async function getSubmissionDownloadUrl(
     return { error: "That submission is no longer available." };
   }
 
-  const signed = await createSubmissionSignedUrl(data.submitted_by, data.id, 120);
+  const downloadName = assetFileName({
+    macroAuthor: data.macro_author,
+    levelName: data.level_name,
+    recorder: data.recorder,
+  });
+  const signed = await createSubmissionSignedUrl(data.submitted_by, data.id, downloadName, 120);
   if ("error" in signed) {
     console.error("[submissions] could not sign download", { id });
     return { error: "That file could not be prepared for download." };

@@ -127,7 +127,7 @@ export default function TermsPage() {
           items={[
             "You recorded it, or you have permission from the person who did to submit and distribute it.",
             "The level, recorder, author and other details you enter are accurate as far as you know.",
-            "The file is a genuine .gdr2 macro and not malware, a joke file, or anything designed to cause harm.",
+            "The file is a genuine .gdr or .gdr2 macro and not malware, a joke file, or anything designed to cause harm.",
           ]}
         />
         <p>

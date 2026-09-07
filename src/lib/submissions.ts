@@ -1,4 +1,8 @@
-import { SUBMISSION_RECORDERS, type SubmissionRecorder } from "./types";
+import {
+  SUBMISSION_RECORDERS,
+  macroFileExtension,
+  type SubmissionRecorder,
+} from "./types";
 
 /**
  * Submission field rules, mirrored from the database.
@@ -107,9 +111,17 @@ export function normaliseSubmission(fields: SubmissionFields) {
   };
 }
 
-export function validateFile(file: { name: string; size: number } | null): string | null {
-  if (!file) return "Choose the .gdr2 macro file.";
-  if (!file.name.toLowerCase().endsWith(".gdr2")) return "The file must be a .gdr2 macro.";
+export function validateFile(
+  file: { name: string; size: number } | null,
+  recorder: string,
+): string | null {
+  const expected = macroFileExtension(recorder);
+  if (!file) return `Choose the ${expected} macro file.`;
+  if (!file.name.toLowerCase().endsWith(expected)) {
+    return recorder === "zBot"
+      ? "ZBot macros must be .gdr files."
+      : `${recorder || "Mega Hack and xdBot"} macros must be .gdr2 files.`;
+  }
   if (file.size === 0) return "That file is empty.";
   if (file.size > MAX_FILE_BYTES) return "The file is too large. The limit is 2 MB.";
   return null;
@@ -163,7 +175,7 @@ export function submissionErrorMessage(raw: unknown): string {
   if (t.includes("video_url_safe")) return "That video link is not a valid http or https link.";
   if (t.includes("reason_len")) return "That reason is too long.";
   if (t.includes("file_size")) return "The file is too large. The limit is 2 MB.";
-  if (t.includes("recorder")) return "Choose xdBot or Mega Hack.";
+  if (t.includes("recorder")) return "Choose Mega Hack, xdBot or zBot.";
 
   return "Something went wrong. Please try again.";
 }

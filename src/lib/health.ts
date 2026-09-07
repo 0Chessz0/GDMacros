@@ -205,7 +205,7 @@ export function catalogStats(catalog: { macros?: { recorder?: string }[] }[]): {
     levels: (catalog ?? []).length,
     macros,
     // Sorted by count then name, so the order does not jump around between
-    // loads when two recorders are level.
+    // loads when multiple recorder counts are tied.
     recorders: [...tally.entries()]
       .map(([recorder, count]) => ({ recorder, count }))
       .sort((a, b) => b.count - a.count || a.recorder.localeCompare(b.recorder)),
