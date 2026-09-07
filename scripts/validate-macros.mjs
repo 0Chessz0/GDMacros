@@ -31,7 +31,7 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 /** Keep in sync with RECORDERS in src/lib/types.ts. */
-const RECORDERS = ["Mega Hack", "xdBot"];
+const RECORDERS = ["Mega Hack", "xdBot", "zBot"];
 const LEVEL_REQUIRED = ["name", "creator", "levelId"];
 const MACRO_REQUIRED = ["author", "recorder", "downloadType", "downloadLink"];
 

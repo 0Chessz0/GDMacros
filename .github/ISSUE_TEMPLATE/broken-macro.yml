@@ -35,6 +35,7 @@ body:
       options:
         - Mega Hack
         - xdBot
+        - zBot
         - Both
         - Not sure
     validations:
@@ -76,6 +77,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        Note: an xdBot recording will not play correctly in Mega Hack. If that is
-        the case, download the Mega Hack version of the same level instead. The
+        Note: use the download labelled for your playback tool. zBot files end in
+        .gdr; Mega Hack and xdBot files end in .gdr2. The
         [FAQ](https://www.gdmacros.com/faq) explains why.

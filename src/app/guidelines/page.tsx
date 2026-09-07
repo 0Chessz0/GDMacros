@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { RECORDERS } from "@/lib/types";
+import { SUBMISSION_RECORDERS } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Guidelines",
@@ -41,7 +41,7 @@ export default function GuidelinesPage() {
 
       {/* The two accepted recorders, called out up front. */}
       <div className="mt-8 grid gap-2.5 sm:grid-cols-2">
-        {RECORDERS.map((r) => (
+        {SUBMISSION_RECORDERS.map((r) => (
           <div key={r} className="card px-4 py-3.5">
             <p className="text-[11px] font-semibold tracking-wider text-muted uppercase">Accepted</p>
             <p translate="no" className="notranslate mt-1 text-[16px] font-bold text-text">

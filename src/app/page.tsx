@@ -45,7 +45,7 @@ export default function HomePage() {
           {macroCount > 0 ? (
             <>
               {macroCount} free macro{macroCount === 1 ? "" : "s"} across {levels.length} level
-              {levels.length === 1 ? "" : "s"}, recorded with Mega Hack and xdBot. Search by level,
+              {levels.length === 1 ? "" : "s"}, available for Mega Hack, xdBot and zBot. Search by level,
               creator, macro author or level ID.
             </>
           ) : (

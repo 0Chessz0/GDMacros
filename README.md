@@ -96,12 +96,12 @@ Macro fields, inside `macros[]`:
 | Field          | Required | Notes                                                          |
 | -------------- | -------- | -------------------------------------------------------------- |
 | `author`       | **yes**  | Who recorded this macro, shown as "Macro N by ..."              |
-| `recorder`     | **yes**  | `"Mega Hack"` or `"xdBot"`. Anything else fails the build       |
+| `recorder`     | **yes**  | `"Mega Hack"`, `"xdBot"` or `"zBot"`. Anything else fails the build |
 | `downloadType` | **yes**  | Where it's hosted: `"Google Drive"`, `"MediaFire"`, `"MEGA"`, etc. |
 | `downloadLink` | **yes**  | Direct URL to the macro file                                    |
 
 `recorder` is a closed set defined by `RECORDERS` in [`src/lib/types.ts`](src/lib/types.ts). The
-guidelines only accept those two tools, and the home page filters on it. A level matches the filter
+catalog accepts those three tools, and the home page filters on it. A level matches the filter
 when **any** of its macros used the selected recorder.
 
 `downloadType` is free text, so any host works. These get a tinted icon:
@@ -279,7 +279,7 @@ Ordering is **alphabetical by level name, always**. It isn't configurable from t
 is ranked. Discovery is the search box, which matches level name, level creator, macro author,
 level ID, recorder and download host. Press <kbd>/</kbd> to jump to it, <kbd>Esc</kbd> to clear.
 
-The only filter is **recorder** (All / Mega Hack / xdBot), which is linkable as `?recorder=xdBot`.
+The only filter is **recorder** (All / Mega Hack / xdBot / zBot), which is linkable as `?recorder=zBot`.
 Search and view mode are in the URL too (`?q=`, `?view=grid`).
 
 > The Next.js badge you may see in the bottom-left corner during `npm run dev` is the framework's

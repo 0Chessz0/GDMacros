@@ -173,7 +173,7 @@ check(
   "FAQ does not claim every level has both recorders",
   !/every level has both/i.test(src.faq),
 );
-check("FAQ says a .gdr2 is not an executable", /not an installer and not an executable/i.test(src.faq));
+check("FAQ says replay files are not executables", /neither format is an installer or executable/i.test(src.faq));
 check("catalog currently has macros to count", levelCount > 0 && macroCount > 0, `${levelCount}/${macroCount}`);
 
 /* ------------------------------------------------------------------ *

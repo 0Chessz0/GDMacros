@@ -12,7 +12,7 @@ export const site = {
    * under ~160 characters.
    */
   description:
-    "Download free Geometry Dash macros. Browse macros for extreme demons and every other level, recorded with Mega Hack and xdBot.",
+    "Download free Geometry Dash macros. Browse macros for extreme demons and every other level, available for Mega Hack, xdBot and zBot.",
 
   /**
    * Canonical origin, used for absolute URLs in metadata, sitemap.xml and
@@ -45,6 +45,7 @@ export const KEYWORDS = [
   "geometry dash macro",
   "free geometry dash macros",
   "xdBot macros",
+  "zBot macros",
   "Mega Hack macros",
   "geometry dash extreme demon macros",
   "gd macro list",

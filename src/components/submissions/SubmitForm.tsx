@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { AuthField, FormError, SubmitButton } from "@/components/auth/fields";
-import { RECORDERS } from "@/lib/types";
+import { SUBMISSION_RECORDERS } from "@/lib/types";
 import { isClean, validateFile, type FieldErrors } from "@/lib/submissions";
 
 /**
@@ -158,7 +158,7 @@ export default function SubmitForm({ username }: { username: string }) {
 
     const next: FieldErrors = {};
     if (!level) next.levelId = "Search for the level and choose it from the results.";
-    if (!RECORDERS.includes(recorder as (typeof RECORDERS)[number]))
+    if (!SUBMISSION_RECORDERS.includes(recorder as (typeof SUBMISSION_RECORDERS)[number]))
       next.recorder = "Choose which tool recorded this macro.";
     if (!macroAuthor.trim()) next.macroAuthor = "Enter who recorded the macro.";
     const fileProblem = validateFile(file);
@@ -467,7 +467,7 @@ export default function SubmitForm({ username }: { username: string }) {
             }`}
           >
             <option value="">Choose one</option>
-            {RECORDERS.map((r) => (
+            {SUBMISSION_RECORDERS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>

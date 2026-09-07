@@ -556,7 +556,7 @@ async function main() {
   eq("new level without a video omits the key", "video" in noVideo, false);
 
   check("refuses a non-https download link", catalog.applyPublication(real, { ...pubExisting, downloadLink: "http://x/y.gdr2" }).ok === false);
-  check("refuses an unknown recorder", catalog.applyPublication(real, { ...pubExisting, recorder: "zBot" }).ok === false);
+  check("refuses an unknown recorder", catalog.applyPublication(real, { ...pubExisting, recorder: "Eclipse" }).ok === false);
   check("refuses a non-numeric level id", catalog.applyPublication(real, { ...pubExisting, levelId: "abc" }).ok === false);
   check("refuses invalid json", catalog.applyPublication("{not json", pubExisting).ok === false);
 

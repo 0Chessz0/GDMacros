@@ -1,4 +1,4 @@
-import { RECORDERS, type Recorder } from "./types";
+import { SUBMISSION_RECORDERS, type SubmissionRecorder } from "./types";
 
 /**
  * Submission field rules, mirrored from the database.
@@ -69,7 +69,7 @@ export function validateSubmission(fields: SubmissionFields): FieldErrors {
   else if (macroAuthor.length > LIMITS.macroAuthor)
     errors.macroAuthor = `Keep the macro author under ${LIMITS.macroAuthor} characters.`;
 
-  if (!RECORDERS.includes(fields.recorder as Recorder))
+  if (!SUBMISSION_RECORDERS.includes(fields.recorder as SubmissionRecorder))
     errors.recorder = "Choose which tool recorded this macro.";
 
   if (notes.length > LIMITS.notes)

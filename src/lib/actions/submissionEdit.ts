@@ -5,7 +5,7 @@ import { createClient, getUser } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/admin";
 import { canonicalUrl, verifyVideo, videoIdFromUrl } from "@/lib/youtube";
 import { lookupLevel } from "@/lib/gdbrowser";
-import { RECORDERS } from "@/lib/types";
+import { SUBMISSION_RECORDERS } from "@/lib/types";
 import { safeDetail } from "@/lib/health";
 
 /**
@@ -122,7 +122,7 @@ export async function updateSubmission(id: string, fields: EditFields): Promise<
   /* ---- recorder and macro author ---- */
   if (fields.recorder?.trim()) {
     const recorder = fields.recorder.trim();
-    if (!(RECORDERS as readonly string[]).includes(recorder)) {
+    if (!(SUBMISSION_RECORDERS as readonly string[]).includes(recorder)) {
       return { ok: false, error: "Recorder must be one of the two supported tools." };
     }
     payload.p_recorder = recorder;

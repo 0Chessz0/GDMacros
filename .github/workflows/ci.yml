@@ -90,3 +90,6 @@ jobs:
 
       - name: Language switcher
         run: npm run test:translate
+
+      - name: ZBot catalog
+        run: npm run test:zbot

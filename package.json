@@ -16,6 +16,7 @@
     "test:admin": "node scripts/test-admin.mjs",
     "test:account": "node scripts/test-account.mjs",
     "test:support": "node scripts/test-support.mjs",
+    "test:zbot": "node scripts/test-zbot.mjs",
     "migrate:mediafire": "node scripts/migrate-mediafire-to-github.mjs"
   },
   "dependencies": {

@@ -18,7 +18,7 @@ const levelCount = () => getAllLevels().length;
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: `Common questions about Geometry Dash macros, .gdr2 files, and how ${site.name} works.`,
+  description: `Common questions about Geometry Dash macros, .gdr and .gdr2 files, and how ${site.name} works.`,
 };
 
 interface Item {
@@ -68,25 +68,27 @@ function items(levels: number, macros: number): Item[] {
       ),
     },
     {
-      q: "What is a .gdr2 file?",
+      q: "What are .gdr2 and .gdr files?",
       plain:
-        "The replay format both supported recorders write. It holds the recorded inputs for one level. It is a data file, not an installer or an executable.",
+        ".gdr2 and .gdr are replay data files containing the recorded inputs for one level. Mega Hack and xdBot entries use .gdr2, while zBot entries use .gdr. Neither format is an installer or executable.",
       a: (
         <>
-          The replay format both supported recorders write. It holds the recorded inputs for one
-          level and nothing else. It is a data file, not an installer and not an executable.
+          Both are replay data files containing the inputs for one level. Mega Hack and xdBot entries
+          use <span className="font-mono">.gdr2</span>, while zBot entries use{" "}
+          <span className="font-mono">.gdr</span>. Neither format is an installer or executable.
         </>
       ),
     },
     {
-      q: "Mega Hack or xdBot: which download do I take?",
+      q: "Mega Hack, xdBot or zBot: which download do I take?",
       plain:
-        "Take the file that matches the recorder you play with. A macro recorded for one tool is not guaranteed to replay correctly in the other. Every download on the site is labelled with its recorder.",
+        "Take the file labelled for the replay tool you use. Mega Hack and xdBot entries use .gdr2; zBot entries use .gdr. Every download card clearly identifies its tool.",
       a: (
         <>
           Take the one that matches the tool you actually use. Every download is labelled with its
-          recorder, so pick the label that matches your setup. A file made for one recorder is not
-          guaranteed to replay correctly in the other.
+          replay tool, so pick the label that matches your setup. Mega Hack and xdBot entries use{" "}
+          <span className="font-mono">.gdr2</span>; zBot entries use{" "}
+          <span className="font-mono">.gdr</span>.
           <br />
           <br />
           Most levels here carry a version for each recorder, but not every level has to, so check
@@ -97,11 +99,10 @@ function items(levels: number, macros: number): Item[] {
     {
       q: "How do I install and play one?",
       plain:
-        "Install a supported recorder, put the .gdr2 file in its macro folder, then load and play it from inside the game. The install page has the full walkthrough.",
+        "Install the matching replay tool, put the downloaded .gdr or .gdr2 file where that tool can load it, then play it from inside the game. The install page has the full walkthrough.",
       a: (
         <>
-          Install one of the supported recorders, drop the .gdr2 into its macro folder, then load and
-          play it in game. The{" "}
+          Install the matching replay tool, load its .gdr or .gdr2 download, then play it in game. The{" "}
           <Link href="/install" className="text-accent-soft hover:underline">
             install guide
           </Link>{" "}
@@ -125,11 +126,11 @@ function items(levels: number, macros: number): Item[] {
     {
       q: "What exactly am I downloading?",
       plain:
-        "A single .gdr2 replay file. There is no installer and no executable. The filename and the host are shown on the button before you click it.",
+        "A single .gdr or .gdr2 replay file. There is no installer and no executable. The filename and the host are shown on the button before you click it.",
       a: (
         <>
-          A single .gdr2 replay file. No installer, no executable, nothing that runs on its own. The
-          filename and the host are both shown on the download button before you click it.
+          A single .gdr or .gdr2 replay file. No installer, no executable, nothing that runs on its
+          own. The filename and the host are both shown on the download button before you click it.
         </>
       ),
     },
@@ -230,15 +231,15 @@ function items(levels: number, macros: number): Item[] {
     },
     {
       q: `Is ${site.name} free?`,
-      plain: `Yes. The site, the catalog and every download are free. The recording tools are made by other people and have their own pricing: xdBot is free and Mega Hack is paid.`,
+      plain: `Yes. The site, the catalog and every download are free. The replay tools are made by other people and have their own pricing: xdBot and zBot have free versions, while Mega Hack is paid.`,
       a: (
         <>
           Yes. The site, the catalog and all {macros} downloads across {levels} levels are free, with
           no account required and nothing to pay.
           <br />
           <br />
-          The recording tools are separate products made by other people. xdBot is free. Mega Hack is
-          paid. Neither of them is ours.
+          The replay tools are separate products made by other people. xdBot and zBot have free
+          versions, while Mega Hack is paid. None of them is ours.
         </>
       ),
     },

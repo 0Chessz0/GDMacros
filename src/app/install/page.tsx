@@ -6,12 +6,12 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "How to Install Geometry Dash Macros",
   description:
-    "Step-by-step guide to installing and playing Geometry Dash macros. Get xdBot free or buy Mega Hack, install the .geode file by hand, and fix desync problems.",
+    "Step-by-step guide to installing and playing Geometry Dash macros with xdBot, zBot or Mega Hack, including .gdr and .gdr2 files.",
   alternates: { canonical: "/install" },
   openGraph: {
     title: `How to Install Geometry Dash Macros | ${site.name}`,
     description:
-      "Step-by-step guide to installing and playing Geometry Dash macros with xdBot or Mega Hack.",
+      "Step-by-step guide to installing and playing Geometry Dash macros with xdBot, zBot or Mega Hack.",
     url: "/install",
     type: "article",
   },
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 const XDBOT_PC = "https://www.mediafire.com/file/kk33lxumpzit8y8/zilko.xdbot.geode/file";
 const XDBOT_MOBILE = "https://www.mediafire.com/file/gdxapqjqgkbcgmy/zilko.xdbot.geode/file";
 const MEGA_HACK_STORE = "https://absolllute.com/store/mega-hack";
+const ZBOT_PAGE = "https://geode-sdk.org/mods/fig.zbot";
 
 /** Numbered step in one of the walkthroughs. */
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -62,7 +63,7 @@ const howToJsonLd = {
     "Install the Geode mod loader, add a macro bot, download a macro, and play it back in Geometry Dash.",
   step: [
     { "@type": "HowToStep", name: "Install Geode", text: "Install the Geode mod loader for Geometry Dash." },
-    { "@type": "HowToStep", name: "Get a macro bot", text: "Download xdBot for free, or buy Mega Hack." },
+    { "@type": "HowToStep", name: "Get a macro bot", text: "Install xdBot or zBot, or buy Mega Hack." },
     { "@type": "HowToStep", name: "Install the mod", text: "Drop the .geode file into the geode/mods folder." },
     { "@type": "HowToStep", name: "Download a macro", text: "Download the macro file for the level you want." },
     { "@type": "HowToStep", name: "Load the macro", text: "Pause the level, open the bot, and load the macro file." },
@@ -82,13 +83,13 @@ export default function InstallPage() {
         className="text-[30px] leading-tight font-extrabold tracking-tight text-text sm:text-[36px]"
       />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        A macro is a recording of every input in a level. To play one back you need the same tool it
-        was recorded with. Every macro on {site.name} shows its recorder on the download card, so
+        A macro is a recording of every input in a level. To play one back you need a file made for
+        your playback tool. Every macro on {site.name} shows its tool on the download card, so
         check that first, then follow the matching section below.
       </p>
 
       {/* The free/paid split is the first thing anyone wants to know. */}
-      <div className="mt-8 grid gap-2.5 sm:grid-cols-2">
+      <div className="mt-8 grid gap-2.5 sm:grid-cols-3">
         <div className="card p-4">
           <div className="flex items-center justify-between gap-2">
             <p translate="no" className="notranslate text-[16px] font-bold text-text">
@@ -100,6 +101,19 @@ export default function InstallPage() {
           </div>
           <p className="mt-1.5 text-[13px] leading-snug text-muted">
             What most macros here use. Needs a manual install now, see below.
+          </p>
+        </div>
+        <div className="card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p translate="no" className="notranslate text-[16px] font-bold text-text">
+              zBot
+            </p>
+            <span className="rounded-md border border-green/35 bg-green/12 px-2 py-0.5 text-[11.5px] font-semibold text-green">
+              Free
+            </span>
+          </div>
+          <p className="mt-1.5 text-[13px] leading-snug text-muted">
+            A cross-platform replay bot. Uses the converted .gdr downloads.
           </p>
         </div>
         <div className="card p-4">
@@ -120,7 +134,7 @@ export default function InstallPage() {
       <section className="card mt-8 p-5">
         <h2 className="text-[17px] font-bold text-text">Before you start</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          Both tools run on <Ext href="https://geode-sdk.org">Geode</Ext>, the Geometry Dash mod
+          These tools run with <Ext href="https://geode-sdk.org">Geode</Ext>, the Geometry Dash mod
           loader. Install Geode first and launch the game once so it sets itself up. Everything below
           assumes Geode is already working.
         </p>
@@ -140,7 +154,7 @@ export default function InstallPage() {
             Free
           </span>
           <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11.5px] text-muted">
-            .gdr2 .gdr
+            .gdr2
           </span>
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-muted">
@@ -225,6 +239,55 @@ export default function InstallPage() {
         </ol>
       </section>
 
+      {/* -------------------------------- zBot ------------------------------- */}
+      <section className="mt-10">
+        <div className="flex flex-wrap items-baseline gap-2.5">
+          <h2 translate="no" className="notranslate text-[20px] font-bold text-text">
+            zBot
+          </h2>
+          <span className="rounded-md border border-green/35 bg-green/12 px-2 py-0.5 text-[11.5px] font-semibold text-green">
+            Free
+          </span>
+          <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-[11.5px] text-muted">
+            .gdr
+          </span>
+        </div>
+        <p className="mt-2 text-[14px] leading-relaxed text-muted">
+          The zBot downloads in this catalog are converted from compatible xdBot recordings while
+          keeping the same level and macro-author credit.
+        </p>
+
+        <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
+          <p className="text-[13.5px] leading-relaxed text-text-dim">
+            Install zBot through Geode. Its free version includes recording and playback; the
+            optional paid key removes zBot&apos;s visible watermark.
+          </p>
+          <Ext href={ZBOT_PAGE}>
+            <span className="inline-flex rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover">
+              Open zBot on Geode
+            </span>
+          </Ext>
+        </div>
+
+        <ol className="mt-6 space-y-4">
+          <Step n={1} title="Install zBot">
+            Open Geode&apos;s mod browser, search for zBot and install the version offered for your
+            device. The official Geode page above also lists the currently available builds.
+          </Step>
+          <Step n={2} title="Download the zBot entry">
+            Open a level in the catalog and choose the download card labelled zBot. Its filename ends
+            in <span className="font-mono">.gdr</span>.
+          </Step>
+          <Step n={3} title="Load the replay">
+            Open zBot in game and use its load or import control to select the downloaded .gdr file.
+          </Step>
+          <Step n={4} title="Play from the beginning">
+            Use playback mode and start the matching level from the beginning. Keep the game at 240
+            FPS unless the macro page says otherwise.
+          </Step>
+        </ol>
+      </section>
+
       {/* ----------------------------- Mega Hack ----------------------------- */}
       <section className="mt-10">
         <div className="flex flex-wrap items-baseline gap-2.5">
@@ -270,18 +333,15 @@ export default function InstallPage() {
           </Step>
         </ol>
 
-        {/* Both tools share the .gdr2 extension, so people assume any macro works
-            anywhere. It does not, and finding that out mid-level is worse than
-            reading it here. */}
+        {/* The catalog carries tool-specific files. Finding that out mid-level
+            is worse than reading it here. */}
         <div className="mt-5 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3">
           <p className="text-[13.5px] leading-relaxed text-amber">
             <span className="font-semibold">
-              A macro only works in the tool that recorded it.
+              Use the file made for your playback tool.
             </span>{" "}
-            Mega Hack and xdBot both use the .gdr2 extension, so the files look identical, but a
-            recording made in xdBot will not play in Mega Hack and a Mega Hack one will not play in
-            xdBot. Check the recorder on each download card and take the one that matches your
-            setup.
+            Mega Hack and xdBot entries use .gdr2, while zBot entries use .gdr. Check the recorder on
+            each download card and take the one that matches your setup.
           </p>
         </div>
       </section>
@@ -311,14 +371,10 @@ export default function InstallPage() {
       </section>
 
       <section className="card mt-10 border-l-2 border-l-accent p-5">
-        <h2 className="text-[17px] font-bold text-text">More tools are coming</h2>
+        <h2 className="text-[17px] font-bold text-text">More tools may come</h2>
         <p className="mt-2 text-[14.5px] leading-relaxed text-text-dim">
-          Right now the catalog only accepts xdBot and Mega Hack recordings. Support for other ways
-          of botting is planned, including{" "}
-          <span translate="no" className="notranslate font-medium text-text">
-            zBot
-          </span>{" "}
-          and{" "}
+          The catalog now carries xdBot, zBot and Mega Hack downloads. Support for other replay tools
+          may be added later, including{" "}
           <span translate="no" className="notranslate font-medium text-text">
             Eclipse
           </span>

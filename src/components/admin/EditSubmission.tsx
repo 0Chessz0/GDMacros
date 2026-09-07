@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { updateSubmission } from "@/lib/actions/submissionEdit";
-import { RECORDERS } from "@/lib/types";
+import { SUBMISSION_RECORDERS } from "@/lib/types";
 
 /**
  * Correcting a submission's details before it is published.
@@ -141,7 +141,7 @@ export default function EditSubmission({
             onChange={(e) => setRecorder(e.target.value)}
             className={`${field} mt-1`}
           >
-            {RECORDERS.map((r) => (
+            {SUBMISSION_RECORDERS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>

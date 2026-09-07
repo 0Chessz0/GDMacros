@@ -89,7 +89,7 @@ export default function TermsPage() {
         <p>
           {site.name} is an independent fan project. It is not affiliated with, endorsed by, or
           connected to RobTop Games. Geometry Dash and its assets belong to their owners. The same
-          goes for the recording tools: Mega Hack and xdBot are made by other people and are not ours.
+          goes for the replay tools: Mega Hack, xdBot and zBot are made by other people and are not ours.
         </p>
       </Section>
 

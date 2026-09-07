@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   // types into Google.
   title: "About Geometry Dash Macros",
   description:
-    "GDMacros is a free catalog of Geometry Dash macros for extreme demons and every other level, recorded with Mega Hack and xdBot and hosted by us.",
+    "GDMacros is a free catalog of Geometry Dash macros for extreme demons and every other level, available for Mega Hack, xdBot and zBot and hosted by us.",
   alternates: { canonical: "/about" },
 };
 
@@ -30,7 +30,7 @@ const SECTIONS = [
     items: [
       "Not a records list. Nothing here is a legitimate completion and none of it is presented as one.",
       "Not a ranking. The list is alphabetical, and no macro sits above another.",
-      "Not a mod menu. You will need Mega Hack or xdBot to play any of these back.",
+      "Not a mod menu. You will need Mega Hack, xdBot or zBot to play these files back.",
     ],
   },
 ];
@@ -47,7 +47,7 @@ export default function AboutPage() {
       />
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         {site.name} is a free catalog of Geometry Dash macros. Every macro here plays back a real
-        level, was recorded with either Mega Hack or xdBot, and costs nothing to download.
+        level, is labelled for Mega Hack, xdBot or zBot, and costs nothing to download.
       </p>
 
       {count > 0 && (

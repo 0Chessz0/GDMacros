@@ -47,7 +47,9 @@ export async function generateMetadata({
   // The generated sentence leads, because it is the one carrying the search
   // terms. Any custom description is appended, not substituted, so a personal
   // note never costs the page its keywords.
-  const recorders = [...new Set(level.macros.map((m) => m.recorder))].join(" and ");
+  const recorders = new Intl.ListFormat("en", { style: "long", type: "conjunction" }).format([
+    ...new Set(level.macros.map((m) => m.recorder)),
+  ]);
   const base = `Download ${count > 1 ? `${count} free Geometry Dash macros` : "a free Geometry Dash macro"} for ${level.name} by ${level.creator}. Recorded by ${authors} with ${recorders}.`;
   const extra = level.description?.trim();
   const description = extra ? `${base} ${extra}`.slice(0, 300) : base;

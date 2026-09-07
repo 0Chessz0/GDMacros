@@ -1,7 +1,12 @@
-/** The only two recorders accepted. See the guidelines page. */
-export const RECORDERS = ["Mega Hack", "xdBot"] as const;
+/** Every playback format that can appear in the public catalog. */
+export const RECORDERS = ["Mega Hack", "xdBot", "zBot"] as const;
 
 export type Recorder = (typeof RECORDERS)[number];
+
+/** Original uploads currently accepted by the .gdr2 submission pipeline. */
+export const SUBMISSION_RECORDERS = ["Mega Hack", "xdBot"] as const;
+
+export type SubmissionRecorder = (typeof SUBMISSION_RECORDERS)[number];
 
 /** One downloadable macro. A level can carry any number of these. */
 export interface MacroInput {
