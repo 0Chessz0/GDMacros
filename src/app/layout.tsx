@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import GoogleTranslate from "@/components/GoogleTranslate";
 import PageTransition from "@/components/PageTransition";
 import Navbar from "@/components/Navbar";
+import AdBlockNotice from "@/components/ads/AdBlockNotice";
 import OpenTicketBanner from "@/components/support/OpenTicketBanner";
 import { KEYWORDS, site } from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PageTransition>{children}</PageTransition>
         </main>
         <Footer />
+        <AdBlockNotice />
         <Analytics />
         <SpeedInsights />
       </body>

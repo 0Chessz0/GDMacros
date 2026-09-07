@@ -115,6 +115,34 @@ body {
   min-height: 100dvh;
 }
 
+/*
+ * Reserved, responsive AdSense space. There is one placement on the catalog
+ * and one after a macro page's content. It deliberately looks unlike a card or
+ * download control, and an unfilled unit collapses instead of leaving a hole.
+ */
+.gdm-ad-slot {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
+  padding: 0.4rem 0.5rem 0.5rem;
+}
+
+.gdm-ad-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gdm-ad-slot:has(.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}
+
 /* Keep theme flips from flashing, but never animate layout. */
 body,
 header,

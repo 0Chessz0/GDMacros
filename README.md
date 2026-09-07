@@ -141,6 +141,28 @@ source) are informational. Blank template rows are counted separately and never 
 
 ---
 
+## AdSense
+
+The publisher id is public and is already wired into the root layout and `public/ads.txt`. Actual
+ad units stay off until both the feature flag and their public slot ids are configured. Create two
+responsive **Display** ad units in AdSense, then add these Vercel environment variables for the
+Production environment only:
+
+```text
+NEXT_PUBLIC_ADSENSE_ENABLED=true
+NEXT_PUBLIC_ADSENSE_HOME_SLOT=<numeric catalog ad unit id>
+NEXT_PUBLIC_ADSENSE_MACRO_SLOT=<numeric macro-page ad unit id>
+```
+
+The catalog gets one unit before its results and a macro page gets one after all macro content and
+navigation. Account, admin, submission, notification, settings and support pages have no ad units.
+The ad-block reminder is detected locally, can always be dismissed, remembers dismissal only for
+the current tab, and never prevents access.
+
+AdSense's Google CMP remains configured in the AdSense dashboard. Keep its three-choice European
+message published. Do not enable Auto ads as well unless the manual-placement limits are being
+deliberately replaced; running both would defeat the restrained layout.
+
 ## Deploying
 
 ### Vercel (recommended)

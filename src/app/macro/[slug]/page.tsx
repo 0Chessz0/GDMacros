@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdSlot from "@/components/ads/AdSlot";
 import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import ReportBroken from "@/components/ReportBroken";
@@ -22,6 +23,7 @@ import {
   levelUrl,
 } from "@/lib/format";
 import { findAuthorByName } from "@/lib/authors";
+import { ADSENSE_MACRO_SLOT } from "@/lib/adsense";
 import { getAllLevels, getLevelBySlug, getNeighbours } from "@/lib/macros";
 import { site } from "@/lib/site";
 import type { Level, Macro } from "@/lib/types";
@@ -348,6 +350,10 @@ export default async function MacroPage({ params }: { params: Promise<{ slug: st
           )}
         </nav>
       )}
+
+      {/* Kept after the complete macro experience so it cannot be mistaken for
+          a download, video control, report action or previous/next link. */}
+      <AdSlot slot={ADSENSE_MACRO_SLOT} className="mt-10" />
     </div>
   );
 }
