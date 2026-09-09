@@ -6,6 +6,7 @@
  * through jiti; route, RLS and action wiring is asserted from source text.
  */
 import { createJiti } from "jiti";
+import { clearAuthCookiesAtScopes } from "@supabase/ssr";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -38,6 +39,7 @@ const authors = await jiti.import(path.join(ROOT, "src/lib/authors.ts"));
 const macros = await jiti.import(path.join(ROOT, "src/lib/macros.ts"));
 const owned = await jiti.import(path.join(ROOT, "src/lib/publishedSubmissions.ts"));
 const usernames = await jiti.import(path.join(ROOT, "src/lib/username.ts"));
+const sessionRecovery = await jiti.import(path.join(ROOT, "src/lib/supabase/sessionRecovery.ts"));
 
 const src = {
   migration: read("supabase/migrations/0011_account_experience.sql"),
@@ -62,6 +64,7 @@ const src = {
   navbar: read("src/components/Navbar.tsx"),
   middleware: read("src/proxy.ts"),
   middlewareLib: read("src/lib/supabase/middleware.ts"),
+  usernameForm: read("src/components/auth/ChooseUsernameForm.tsx"),
   resultSender: read("src/lib/email/submissionResult.ts"),
   resultAction: read("src/lib/actions/submissionResultEmail.ts"),
   resultAdmin: read("src/lib/supabase/result-email-admin.ts"),
@@ -103,6 +106,36 @@ check("the sitemap includes every author page", /getAllAuthors/.test(src.sitemap
 check("the former owner name passes the client availability check", usernames.usernameProblem("Spypiexj8") === null);
 check("the former owner role is revoked defensively", /delete from public\.user_roles[\s\S]*role = 'admin'[\s\S]*username_lower = 'spypiexj8'/.test(src.formerOwnerRemoval));
 check("the former owner name is released in the database", /delete from private\.reserved_usernames[\s\S]*name_lower = 'spypiexj8'/.test(src.formerOwnerRemoval));
+
+console.log("Deleted-account session recovery");
+eq(
+  "the Supabase auth storage key matches the SDK convention",
+  sessionRecovery.authStorageKey("https://project-ref.supabase.co"),
+  "sb-project-ref-auth-token",
+);
+check("a deleted Auth user is a stale session", sessionRecovery.isInvalidAuthSessionError({ status: 403, code: "user_not_found", message: "User not found" }));
+check("an unauthorized database request is a stale session", sessionRecovery.isInvalidAuthSessionError({ status: 401, code: "PGRST301" }));
+check("a temporary provider failure keeps the login", !sessionRecovery.isInvalidAuthSessionError({ status: 503, message: "Unavailable" }));
+check("an unrelated forbidden response keeps the login", !sessionRecovery.isInvalidAuthSessionError({ status: 403, message: "Forbidden" }));
+{
+  const writes = [];
+  await clearAuthCookiesAtScopes({
+    getAll: () => [
+      { name: "sb-project-ref-auth-token.0", value: "old-session-a" },
+      { name: "sb-project-ref-auth-token.1", value: "old-session-b" },
+      { name: "theme", value: "dark" },
+      { name: "cookie-consent", value: "yes" },
+    ],
+    setAll: (cookies) => writes.push(...cookies),
+    storageKey: "sb-project-ref-auth-token",
+    scopes: [{ path: "/" }],
+  });
+  check("only Supabase session chunks are expired", writes.length === 2 && writes.every((item) => item.name.startsWith("sb-project-ref-auth-token.")));
+  check("expired session chunks use immediate expiry", writes.every((item) => item.value === "" && item.options.maxAge === 0));
+}
+check("middleware clears only a proven-invalid Supabase session", /isInvalidAuthSessionError\(userError\)[\s\S]*clearAuthCookiesAtScopes/.test(src.middlewareLib));
+check("stale session cleanup is limited to the project auth key", /authStorageKey\(SUPABASE_URL\)/.test(src.middlewareLib) && /scopes: \[\{ path: "\/" \}\]/.test(src.middlewareLib));
+check("the username form recovers from a late deletion", /isInvalidAuthSessionError\(error\)[\s\S]*signOut\(\{ scope: "local" \}\)[\s\S]*window\.location\.replace\("\/signup"\)/.test(src.usernameForm));
 
 console.log("Accepted submission history");
 check("the page queries the account ledger", /from\("published_submissions"\)/.test(src.submissionsPage));

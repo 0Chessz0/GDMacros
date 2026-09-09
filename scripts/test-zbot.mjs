@@ -74,8 +74,8 @@ assert.equal(checked.ok, true, "a structurally valid ZBot MessagePack replay mus
 assert.equal(checked.info.botName, "zBot");
 assert.equal(gdr.checkGdr(new Uint8Array(Buffer.from("not a replay"))).ok, false);
 
-assert.equal(xdBot.length, 127, "the source XD Bot catalog changed; review the ZBot migration");
-assert.equal(zBot.length, 126, "every safely convertible XD Bot entry should have one ZBot entry");
+assert.equal(xdBot.length, 128, "the source XD Bot catalog changed; review the ZBot migration");
+assert.equal(zBot.length, 125, "the reviewed ZBot catalog changed unexpectedly");
 assert.equal(new Set(zBot.map((macro) => macro.downloadLink)).size, zBot.length, "ZBot URLs must be unique");
 
 for (const macro of zBot) {
@@ -94,6 +94,16 @@ assert.equal(
   zBot.some((macro) => macro.levelName === "Relief"),
   false,
   "Relief is a mixed-player source and must remain unconverted",
+);
+assert.equal(
+  zBot.some((macro) => macro.levelName === "Final Destination"),
+  false,
+  "Final Destination was intentionally removed from the ZBot catalog",
+);
+assert.equal(
+  zBot.some((macro) => macro.levelName === "Unnerfed sakupen circles" && macro.author === "yqyqyqyyqya"),
+  false,
+  "the newly submitted XD Bot recording has no reviewed ZBot conversion",
 );
 assert.equal(
   zBot.some((macro) => macro.levelName === "Backrooms"),

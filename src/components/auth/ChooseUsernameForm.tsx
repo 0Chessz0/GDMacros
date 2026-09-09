@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isInvalidAuthSessionError } from "@/lib/supabase/sessionRecovery";
 import { USERNAME_HINT, usernameErrorMessage, usernameProblem } from "@/lib/username";
 import { AuthField, FormError, SubmitButton } from "./fields";
 
@@ -44,6 +45,14 @@ export default function ChooseUsernameForm() {
     setBusy(false);
 
     if (error) {
+      // Covers the small race where an administrator deletes the Auth account
+      // after this page rendered but before the username request arrived.
+      if (isInvalidAuthSessionError(error)) {
+        await supabase.auth.signOut({ scope: "local" });
+        window.location.replace("/signup");
+        return;
+      }
+
       const message = usernameErrorMessage(error);
       // A taken or malformed name belongs on the field, anything else is a
       // problem with the request rather than with what was typed.

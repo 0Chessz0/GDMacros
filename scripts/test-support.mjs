@@ -102,6 +102,8 @@ check("settings links support without changing theme access", /href="\/support"/
 
 console.log("Broken reports and suggestions");
 check("the broken button has explicit confirmation", /Report \{name\} as broken\?/.test(src.report));
+check("the broken-report dialog is viewport-bound on mobile", /createPortal/.test(src.report) && /fixed inset-0/.test(src.report) && /w-full max-w-\[390px\]/.test(src.report));
+check("the broken-report actions stack on narrow screens", /flex-col-reverse[^"]*sm:flex-row/.test(src.report));
 check("the broken button creates a ticket", /createBrokenMacroTicket\(slug\)/.test(src.report));
 check("the broken button opens neither email nor GitHub", !/mailto:|issues\/new/i.test(src.report));
 check("the broken report context is looked up server side", /getLevelBySlug\(slug\.trim\(\)\)/.test(src.actions));
